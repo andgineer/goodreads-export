@@ -1,0 +1,16 @@
+site_name: garmin-dayly
+site_url: https://andgineer.github.io/garmin-dayly
+site_author: Andrey Sorokin
+
+# Repository
+repo_name: garmin-dayly
+repo_url: https://github.com/andgineer/garmin-dayly
+edit_uri: edit/master/docs
+docs_dir: docs
+
+plugins:
+  - awesome-pages
+  - search
+
+theme:
+  name: readthedocs
