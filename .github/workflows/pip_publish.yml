@@ -44,6 +44,6 @@ jobs:
       with:
         tag_name: ${{ github.ref }}
         release_name: Release ${{ github.ref }}
-        body: https://pypi.org/project/garmin-dayly/${{ env.RELEASE_VERSION }}/
+        body: https://pypi.org/project/goodreads-export/${{ env.RELEASE_VERSION }}/
         draft: false
         prerelease: false

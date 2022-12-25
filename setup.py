@@ -36,10 +36,7 @@ setuptools.setup(
     version=get_version("src/goodreads_export/version.py"),
     author="Andrey Sorokin",
     author_email="andrey@sorokin.engineer",
-    description=(
-        "Aggregate data from Garmin Connect daily. "
-        "Also contains script to convert goodreads books to markdown files, for example for Obsidian."
-    ),
+    description=("Convert goodreads books to markdown files, for example for Obsidian."),
     entry_points={
         "console_scripts": [
             "goodreads-export=goodreads_export.goodreads_csv_to_markdown:main",
@@ -53,7 +50,7 @@ setuptools.setup(
     install_requires=requirements,
     tests_require=tests_requirements,
     python_requires=">=3.7",
-    keywords="Garmin Connect Health goodreads book markdown",
+    keywords="goodreads book markdown obsidian",
     classifiers=[
         "Programming Language :: Python :: 3",
         "License :: OSI Approved :: MIT License",
