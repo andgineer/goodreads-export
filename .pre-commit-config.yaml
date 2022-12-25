@@ -69,7 +69,7 @@ repos:
         exclude: (tests)
         language: python
         require_serial: true
-        args: ["run", "--", "--strict", "--implicit-reexport", "--warn-unused-ignores", "--cache-fine-grained", "--no-namespace-packages"]
+        args: ["run", "--", "--strict", "--implicit-reexport", "--warn-unused-ignores", "--cache-fine-grained", "--no-namespace-packages", "--verbose"]
 
       - id: pylint
         name: Pylint
