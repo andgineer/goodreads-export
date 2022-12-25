@@ -9,7 +9,7 @@ For Obsidian etc
 
 # Developers
 
-#### Create / activate environment 
+#### Create / activate environment
     . ./activate.sh
 
 Delete `venv/` if you want to reinstall everything from requirements*.txt
@@ -30,4 +30,3 @@ Using pip-tools
     make ver-bug/feature/release
 
 Github actin will automatically update the pip package on pypi.org
-
