@@ -43,7 +43,7 @@ repos:
         args: ["--line-length=99"]
 
   - repo: https://github.com/PyCQA/flake8
-    rev: 3.8.4
+    rev: 6.0.0
     hooks:
       - id: flake8
         name: Checks pep8 style
