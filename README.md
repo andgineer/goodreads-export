@@ -14,17 +14,17 @@ For Obsidian etc
 
 Delete `venv/` if you want to reinstall everything from requirements*.txt
 
+    make reqs  # if you want to refresh versions
     deactivate
     rm -f venv
-    make reqs  # if you want to refresh versions
     pip install --upgrade pip-tools
     . ./activate.sh
 
 #### Compile pinned to versions requirements*.txt from requirements*.in files
+
 Using pip-tools
 
     make reqs
-
 
 #### Release version
     make ver-bug/feature/release

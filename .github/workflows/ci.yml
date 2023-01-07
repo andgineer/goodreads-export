@@ -30,4 +30,10 @@ jobs:
         pip install -r requirements.dev.txt
         python -m pip install -e .
     - name: Test with pytest
-      run: pytest
+      run: pytest --junitxml=pytest.xml --cov-report=term-missing:skip-covered --cov=src tests/ | tee pytest-coverage.txt
+    - name: Pytest coverage comment
+      if: ${{ matrix.python-version == 3.11 && matrix.platform == 'ubuntu-latest' }}
+      uses: MishaKav/pytest-coverage-comment@main
+      with:
+        pytest-coverage-path: ./pytest-coverage.txt
+        junitxml-path: ./pytest.xml

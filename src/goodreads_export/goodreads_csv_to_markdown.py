@@ -1,16 +1,37 @@
 """Create md-files from https://www.goodreads.com/ CSV export."""
 import os
+import urllib.parse
 from pathlib import Path
-from typing import TextIO
+from typing import Dict, Optional, TextIO
 
 import click
 import markdownify
 import pandas as pd
 
+FILE_NAME_REPLACE_MAP = {
+    "%": " percent",
+    ":": "",
+    "/": "_",
+    ",": ";",
+    ".": "",
+    "\\": "_",
+    "[": "(",
+    "]": ")",
+    "<": "(",
+    ">": ")",
+    "*": "x",
+    "?": "",
+    '"': "'",
+    "|": "_",
+    "#": "@",
+}
 
-def clean_filename(file_name: str, not_allowed: str = ' %:/,.\\[]<>*?"|#') -> str:
-    """Replace with spaces chars unsafe for file name."""
-    return "".join([" " if ch in not_allowed else ch for ch in file_name]).strip()
+
+def clean_filename(file_name: str, replace_map: Optional[Dict[str, str]] = None) -> str:
+    """Replace chars unsafe for file name."""
+    if replace_map is None:
+        replace_map = FILE_NAME_REPLACE_MAP
+    return "".join(replace_map.get(ch, ch) for ch in file_name)
 
 
 def load_reviews(csv_file: TextIO) -> pd.DataFrame:
@@ -78,6 +99,8 @@ def dump_md(books_df: pd.DataFrame, folder: Path) -> None:
 ISBN{book.isbn} (ISBN13{book.isbn13})
 
 {book.review}
+
+[Search in Calibre](calibre://search/_?q={urllib.parse.quote(book.title)})
 
 {" ".join(book.tags)}
 """
