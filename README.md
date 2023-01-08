@@ -1,7 +1,8 @@
 [![Build Status](https://github.com/andgineer/goodreads-export/workflows/ci/badge.svg)](https://github.com/andgineer/goodreads-export/actions)
-# Export goodreads books into markdown files
+# Export goodreads books into markdown files (Obsidian etc)
 
-For Obsidian etc
+![goodreads.png](docs%2Fgoodreads.png)
+![goodreads-author.png](docs%2Fgoodreads-author.png)
 
 # Documentation
 
@@ -30,3 +31,9 @@ Using pip-tools
     make ver-bug/feature/release
 
 Github actin will automatically update the pip package on pypi.org
+
+# Docstrings documentation
+
+Documentation generated from source code.
+
+[reference](docstrings/)

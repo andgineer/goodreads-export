@@ -1,5 +1,6 @@
 """Create md-files from https://www.goodreads.com/ CSV export."""
 import os
+import sys
 import urllib.parse
 from pathlib import Path
 from typing import Dict, Optional, TextIO
@@ -7,6 +8,8 @@ from typing import Dict, Optional, TextIO
 import click
 import markdownify
 import pandas as pd
+
+from goodreads_export.version import VERSION
 
 FILE_NAME_REPLACE_MAP = {
     "%": " percent",
@@ -123,7 +126,15 @@ ISBN{book.isbn} (ISBN13{book.isbn13})
     help="Folder where we put result. By default current folder.",
     nargs=1,
 )
-def main(csv_file: TextIO, output_folder: Path) -> None:
+@click.option(
+    "--version",
+    "version",
+    is_flag=True,
+    default=False,
+    help="Show version.",
+    nargs=1,
+)
+def main(csv_file: TextIO, output_folder: Path, version: bool) -> None:
     """Convert reviews and authors from goodreads export CSV file to markdown files.
 
     For example you can create nice structure in Obsidian.
@@ -134,7 +145,11 @@ def main(csv_file: TextIO, output_folder: Path) -> None:
 
     CSV_FILE: Goodreads export file. By default `goodreads_library_export.csv`.
 
+    Documentation https://andgineer.github.io/goodreads-export/
     """
+    if version:
+        print(f"{VERSION}")
+        sys.exit(0)
     books = load_reviews(csv_file)
     dump_md(books, output_folder)
 
