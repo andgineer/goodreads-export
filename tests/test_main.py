@@ -12,5 +12,5 @@ def test_main_version():
             "--version",
         ],
     )
-    assert result.exit_code == 0, f"stdout/err: {result.output}\n{result.stderr}"
+    assert result.exit_code == 0, f"stdout: {result.output}"
     assert VERSION in result.output
