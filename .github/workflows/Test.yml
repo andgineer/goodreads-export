@@ -37,3 +37,8 @@ jobs:
       with:
         pytest-coverage-path: ./pytest-coverage.txt
         junitxml-path: ./pytest.xml
+    - name: Upload coverage data to coveralls.io
+      if: ${{ matrix.python-version == 3.11 && matrix.platform == 'ubuntu-latest' }}
+      run: coveralls --service=github
+      env:
+        GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}

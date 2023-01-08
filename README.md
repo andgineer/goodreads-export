@@ -1,4 +1,5 @@
-[![Build Status](https://github.com/andgineer/goodreads-export/workflows/ci/badge.svg)](https://github.com/andgineer/goodreads-export/actions)
+[![Build Status](https://github.com/andgineer/goodreads-export/workflows/Test/badge.svg)](https://github.com/andgineer/goodreads-export/actions)
+[![Coverage Status](https://coveralls.io/repos/github/andgineer/goodreads-export/badge.svg)](https://coveralls.io/github/andgineer/goodreads-export)
 # Export goodreads books into markdown files (Obsidian etc)
 
 ![goodreads.png](docs%2Fgoodreads.png)
