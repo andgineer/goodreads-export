@@ -37,9 +37,28 @@ def clean_filename(file_name: str, replace_map: Optional[Dict[str, str]] = None)
     return "".join(replace_map.get(ch, ch) for ch in file_name)
 
 
+EXPECTED_COLUMNS = set(
+    [
+        "Title",
+        "Author",
+        "Book Id",
+        "My Rating",
+        "My Review",
+        "Bookshelves",
+        "ISBN",
+        "ISBN13",
+    ]
+)
+
+
 def load_reviews(csv_file: TextIO) -> pd.DataFrame:
     """Load goodreads books infor from CSV export."""
-    return pd.read_csv(csv_file)
+    reviews = pd.read_csv(csv_file)
+    assert EXPECTED_COLUMNS.issubset(reviews.columns), (
+        f"Wrong goodreads export file.\n "
+        f"Columns {EXPECTED_COLUMNS - set(reviews.columns)} were not found."
+    )
+    return reviews
 
 
 SUBFOLDERS = {
@@ -114,7 +133,10 @@ ISBN{book.isbn} (ISBN13{book.isbn13})
 @click.argument(
     "csv_file",
     default="goodreads_library_export.csv",
-    type=click.File("r"),
+    type=click.File(
+        "r",
+        lazy=True,  # so --version and --help will work without the file
+    ),
     nargs=1,
 )
 @click.option(
@@ -150,8 +172,12 @@ def main(csv_file: TextIO, output_folder: Path, version: bool) -> None:
     if version:
         print(f"{VERSION}")
         sys.exit(0)
-    books = load_reviews(csv_file)
-    dump_md(books, output_folder)
+    try:
+        books = load_reviews(csv_file)
+        dump_md(books, output_folder)
+    except Exception as exc:  # pylint: disable=broad-except
+        print(f"\n{exc}")
+        sys.exit(1)
 
 
 if __name__ == "__main__":

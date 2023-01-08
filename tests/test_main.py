@@ -14,3 +14,16 @@ def test_main_version():
     )
     assert result.exit_code == 0, f"stdout: {result.output}"
     assert VERSION in result.output
+
+
+def test_main_wrong_csv():
+    runner = CliRunner()
+    with runner.isolated_filesystem():
+        with open("goodreads_library_export.csv", "w") as f:
+            f.write("-fake-")
+        result = runner.invoke(
+            main,
+            [],
+        )
+    assert result.exit_code == 1
+    assert "Wrong goodreads export file" in result.output
