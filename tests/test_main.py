@@ -25,5 +25,5 @@ def test_main_wrong_csv():
             main,
             [],
         )
-    assert result.exit_code == 1
+    assert result.exit_code == 1, f"stdout: {result.output}"
     assert "Wrong goodreads export file" in result.output

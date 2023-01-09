@@ -1,0 +1,49 @@
+import pathlib
+from pathlib import Path
+from typing import List, Optional
+
+import pytest
+
+
+def _get_repo_root_dir() -> str:
+    """
+    :return: path to the project folder.
+    `tests/` should be in the same folder and this file should be in the root of `tests/`.
+    """
+    return str(Path(__file__).parent.parent)
+
+
+ROOT_DIR = _get_repo_root_dir()
+RESOURCES = pathlib.Path(f"{ROOT_DIR}/tests/resources")
+
+
+def paths_content_is_same(path1: Path, path2: Path) -> bool:
+    if path1.is_file():
+        assert (
+            path1.open("r").read() == path2.open("r").read()  # with assert we leverage pytest diff
+        ), f"{path1.parent.name}/{path1.name}"
+        return True
+
+    subpath_rel_1 = [f"{folder.parent.name}/{folder.name}" for folder in path1.glob("*")]
+    subpath_rel_2 = [f"{folder.parent.name}/{folder.name}" for folder in path2.glob("*")]
+    assert subpath_rel_1 == subpath_rel_2, set(subpath_rel_1).difference(set(subpath_rel_2))
+
+    for subpath in path1.glob("*"):
+        paths_content_is_same(subpath, (path2 / subpath.name))  # do not need result
+    return True
+
+
+class GoodreadsTestCase:
+    diff: Optional[List[str]] = None
+
+    def __init__(self):
+        self.folder_expected = RESOURCES / "books"
+        self.csv = RESOURCES / "goodreads_library_export.csv"
+
+    def check(self, folder: str) -> bool:
+        return paths_content_is_same(self.folder_expected, Path(folder))
+
+
+@pytest.fixture(scope="function")
+def test_case():
+    return GoodreadsTestCase()

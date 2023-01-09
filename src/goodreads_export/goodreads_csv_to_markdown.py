@@ -3,7 +3,7 @@ import os
 import sys
 import urllib.parse
 from pathlib import Path
-from typing import Dict, Optional, TextIO
+from typing import Dict, Optional
 
 import click
 import markdownify
@@ -37,21 +37,19 @@ def clean_filename(file_name: str, replace_map: Optional[Dict[str, str]] = None)
     return "".join(replace_map.get(ch, ch) for ch in file_name)
 
 
-EXPECTED_COLUMNS = set(
-    [
-        "Title",
-        "Author",
-        "Book Id",
-        "My Rating",
-        "My Review",
-        "Bookshelves",
-        "ISBN",
-        "ISBN13",
-    ]
-)
+EXPECTED_COLUMNS = {
+    "Title",
+    "Author",
+    "Book Id",
+    "My Rating",
+    "My Review",
+    "Bookshelves",
+    "ISBN",
+    "ISBN13",
+}
 
 
-def load_reviews(csv_file: TextIO) -> pd.DataFrame:
+def load_reviews(csv_file: str) -> pd.DataFrame:
     """Load goodreads books infor from CSV export."""
     reviews = pd.read_csv(csv_file)
     assert EXPECTED_COLUMNS.issubset(reviews.columns), (
@@ -133,10 +131,6 @@ ISBN{book.isbn} (ISBN13{book.isbn13})
 @click.argument(
     "csv_file",
     default="goodreads_library_export.csv",
-    type=click.File(
-        "r",
-        lazy=True,  # so --version and --help will work without the file
-    ),
     nargs=1,
 )
 @click.option(
@@ -156,7 +150,7 @@ ISBN{book.isbn} (ISBN13{book.isbn13})
     help="Show version.",
     nargs=1,
 )
-def main(csv_file: TextIO, output_folder: Path, version: bool) -> None:
+def main(csv_file: str, output_folder: Path, version: bool) -> None:
     """Convert reviews and authors from goodreads export CSV file to markdown files.
 
     For example you can create nice structure in Obsidian.
