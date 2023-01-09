@@ -22,8 +22,8 @@ def test_clean_filename(file_name, expected_result):
 def test_success(test_case):
     runner = CliRunner()
     with runner.isolated_filesystem():
-        with open("goodreads_library_export.csv", "w") as f:
-            f.write(test_case.csv.open("r").read())
+        with open("goodreads_library_export.csv", "w", encoding="utf8") as f:
+            f.write(test_case.csv.open("r", encoding="utf8").read())
         mkdir("books")
         result = runner.invoke(
             main,

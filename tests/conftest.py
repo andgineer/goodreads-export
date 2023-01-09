@@ -20,7 +20,8 @@ RESOURCES = pathlib.Path(f"{ROOT_DIR}/tests/resources")
 def paths_content_is_same(path1: Path, path2: Path) -> bool:
     if path1.is_file():
         assert (
-            path1.open("r").read() == path2.open("r").read()  # with assert we leverage pytest diff
+            path1.open("r", encoding="utf8").read()
+            == path2.open("r", encoding="utf8").read()  # with assert we leverage pytest diff
         ), f"{path1.parent.name}/{path1.name}"
         return True
 

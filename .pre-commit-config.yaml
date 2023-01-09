@@ -7,7 +7,7 @@ repos:
       - id: check-yaml
         args: ["--unsafe"]
       - id: check-added-large-files
-        exclude: (site)
+        exclude: (tests/resources/)
 
   - repo: https://github.com/myint/autoflake
     rev: v1.4
