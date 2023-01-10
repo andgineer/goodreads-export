@@ -27,3 +27,31 @@ def test_main_wrong_csv():
         )
     assert result.exit_code == 1, f"stdout: {result.output}"
     assert "Wrong goodreads export file" in result.output
+    assert "Book Id" in result.output
+    assert "Author" in result.output
+
+
+def test_main_wrong_columns():
+    runner = CliRunner()
+    with runner.isolated_filesystem():
+        with open("goodreads_library_export.csv", "w") as f:
+            f.write("Author,Fake")
+        result = runner.invoke(
+            main,
+            [],
+        )
+    assert result.exit_code == 1, f"stdout: {result.output}"
+    assert "Wrong goodreads export file" in result.output
+    assert "Book Id" in result.output
+    assert "Author" not in result.output
+
+
+def test_main_wrong_folder_csv():
+    runner = CliRunner()
+    with runner.isolated_filesystem():
+        result = runner.invoke(
+            main,
+            ["."],
+        )
+    assert result.exit_code == 1, f"stdout: {result.output}"
+    assert "not found" in result.output

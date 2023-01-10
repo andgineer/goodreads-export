@@ -127,10 +127,13 @@ ISBN{book.isbn} (ISBN13{book.isbn13})
             md_file.write(book_article)
 
 
+GOODREAD_EXPORT_FILE_NAME = "goodreads_library_export.csv"
+
+
 @click.command()
 @click.argument(
     "csv_file",
-    default="goodreads_library_export.csv",
+    default=GOODREAD_EXPORT_FILE_NAME,
     nargs=1,
 )
 @click.option(
@@ -160,12 +163,20 @@ def main(csv_file: str, output_folder: Path, version: bool) -> None:
     but at least at the end of 2022 it still works.
 
     CSV_FILE: Goodreads export file. By default `goodreads_library_export.csv`.
+    if you specify just folder it will look for file with this name in that folder.
 
     Documentation https://andgineer.github.io/goodreads-export/
     """
     if version:
         print(f"{VERSION}")
         sys.exit(0)
+
+    if os.path.isdir(csv_file):
+        csv_file = os.path.join(csv_file, GOODREAD_EXPORT_FILE_NAME)
+    if not os.path.isfile(csv_file):
+        print(f"Goodreads export file '{csv_file}' not found.")
+        sys.exit(1)
+
     try:
         books = load_reviews(csv_file)
         dump_md(books, output_folder)
