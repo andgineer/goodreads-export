@@ -3,7 +3,8 @@ from os import mkdir
 import pytest
 from click.testing import CliRunner
 
-from goodreads_export.goodreads_csv_to_markdown import clean_filename, main
+from goodreads_export.export_markdown import clean_filename
+from goodreads_export.main import main
 
 
 @pytest.mark.parametrize(

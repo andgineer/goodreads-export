@@ -39,7 +39,7 @@ setuptools.setup(
     description=("Convert goodreads books to markdown files, for example for Obsidian."),
     entry_points={
         "console_scripts": [
-            "goodreads-export=goodreads_export.goodreads_csv_to_markdown:main",
+            "goodreads-export=goodreads_export.main:main",
         ],
     },
     long_description=long_description,

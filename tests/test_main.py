@@ -1,6 +1,6 @@
 from click.testing import CliRunner
 
-from goodreads_export.goodreads_csv_to_markdown import main
+from goodreads_export.main import main
 from goodreads_export.version import VERSION
 
 
