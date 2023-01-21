@@ -16,3 +16,6 @@ ver-release:
 
 reqs:
 	bash ./scripts/compile_requirements.sh
+
+refresh:
+	bash ./scripts/refresh_test_resources.sh

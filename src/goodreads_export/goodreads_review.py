@@ -16,11 +16,13 @@ EXPECTED_COLUMNS = {
 
 def load_reviews(csv_file: str) -> pd.DataFrame:
     """Load goodreads books infor from CSV export."""
+    print(f"Loading reviews from {csv_file}...", end="")
     reviews = pd.read_csv(csv_file)
     assert EXPECTED_COLUMNS.issubset(reviews.columns), (
         f"Wrong goodreads export file.\n "
         f"Columns {EXPECTED_COLUMNS - set(reviews.columns)} were not found."
     )
+    print(f" loaded {len(reviews)} reviews.")
     return reviews
 
 
@@ -33,7 +35,6 @@ class Book:  # pylint: disable=too-few-public-methods,too-many-instance-attribut
         self.author = goodreads["Author"]
         self.book_id = goodreads["Book Id"]
         self.rating = goodreads["My Rating"]
-        self.stars = "" if self.rating == 0 else ("@" * self.rating).ljust(6, " ")
         if isinstance(goodreads["My Review"], str):
             self.review = markdownify.markdownify(goodreads["My Review"])
         else:

@@ -1,5 +1,5 @@
 
-[[Richard P Feynman]]: [Six Not-So-Easy Pieces: Einstein's Relativity, Symmetry, and Space-Time](https://www.goodreads.com/book/show/6779)
+[[Richard P. Feynman]]: [Six Not-So-Easy Pieces: Einstein's Relativity, Symmetry, and Space-Time](https://www.goodreads.com/book/show/6779)
 ISBN="0465023932" (ISBN13="9780465023936")
 
 

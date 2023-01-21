@@ -3,4 +3,4 @@ pandas
 requests
 markdownify
 click
-pandas
+tqdm
