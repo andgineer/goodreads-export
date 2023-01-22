@@ -86,10 +86,7 @@ def create_book_md(book: Book, folder: Path) -> Optional[str]:
     file_name = f"{clean_filename(book.author)} - {clean_filename(book.title)}.md"
     book_url = f"https://www.goodreads.com/book/show/{book.book_id}"
     if book.series:
-        for series in book.series_full:
-            series_file_name = f"{clean_filename(series)}.md"
-            with open(folder / subfolder / series_file_name, "w", encoding="utf8") as md_file:
-                md_file.write(f"[[{clean_filename(book.author)}]]")
+        create_series_mds(book, folder, subfolder)
     with open(folder / subfolder / file_name, "w", encoding="utf8") as md_file:
         book_article = f"""
 [[{clean_filename(book.author)}]]: [{book.title}]({book_url})
@@ -103,6 +100,25 @@ ISBN{book.isbn} (ISBN13{book.isbn13})
 """
         md_file.write(book_article)
     return file_name
+
+
+def create_series_mds(book: Book, folder: Path, subfolder: str) -> None:
+    """Create series files."""
+    for series_idx, series in enumerate(book.series_full):
+        series_file_name = f"{clean_filename(series)}.md"
+        search_params = urllib.parse.urlencode(
+            {
+                "utf8": "✓",
+                "q": f"{book.series[series_idx]}, #",
+                "search_type": "books",
+                "search[field]": "title",
+            }
+        )
+        with open(folder / subfolder / series_file_name, "w", encoding="utf8") as md_file:
+            md_file.write(
+                f"""[[{clean_filename(book.author)}]]
+[{book.series[series_idx]}](https://www.goodreads.com/search?{search_params})"""
+            )
 
 
 def create_author_md(book: Book, folder: Path) -> Optional[str]:
