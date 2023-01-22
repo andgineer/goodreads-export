@@ -21,13 +21,13 @@ def dump_md(books_df: pd.DataFrame, folder: Path) -> None:
     authors_added = 0
 
     for _, goodreads_book in books_df.iterrows():
-        progress_review.update(1)
+        progress_review.update()
         progress_review.set_description(goodreads_book["Title"])
         book = Book(goodreads_book)
         author_file_name = create_author_md(book, folder)
         if author_file_name is not None:
             authors_added += 1
-            progress_author.update(1)
+            progress_author.update()
             progress_author.set_description(author_file_name)
         book_file_name = create_book_md(book, folder)
         if book_file_name is not None:
@@ -42,7 +42,7 @@ FILE_NAME_REPLACE_MAP = {
     "%": " percent",
     ":": "",
     "/": "_",
-    ",": ";",
+    ",": "",
     "\\": "_",
     "[": "(",
     "]": ")",
@@ -85,11 +85,16 @@ def create_book_md(book: Book, folder: Path) -> Optional[str]:
         subfolder = SUBFOLDERS["reviews"]
     file_name = f"{clean_filename(book.author)} - {clean_filename(book.title)}.md"
     book_url = f"https://www.goodreads.com/book/show/{book.book_id}"
+    if book.series:
+        for series in book.series_full:
+            series_file_name = f"{clean_filename(series)}.md"
+            with open(folder / subfolder / series_file_name, "w", encoding="utf8") as md_file:
+                md_file.write(f"[[{clean_filename(book.author)}]]")
     with open(folder / subfolder / file_name, "w", encoding="utf8") as md_file:
         book_article = f"""
 [[{clean_filename(book.author)}]]: [{book.title}]({book_url})
 ISBN{book.isbn} (ISBN13{book.isbn13})
-
+{' '.join(['[[' + clean_filename(series) + ']]' for series in book.series_full])}
 {book.review}
 
 [Search in Calibre](calibre://search/_?q={urllib.parse.quote(book.title)})

@@ -11,7 +11,7 @@ from goodreads_export.main import main
     "file_name, expected_result",
     [
         ("This is an * example|file_name?.pdf", "This is an x example_file_name.pdf"),
-        ("This_is_a#file_,%[name]", "This_is_a@file_; percent(name)"),
+        ("This_is_a#file_,%[name]", "This_is_a@file_ percent(name)"),
         ("Invalid/file:\\name", "Invalid_file_name"),
     ],
 )

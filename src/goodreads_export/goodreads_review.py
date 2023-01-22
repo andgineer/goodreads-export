@@ -1,4 +1,6 @@
 """Read goodreads export."""
+import re
+
 import markdownify
 import pandas as pd
 
@@ -45,3 +47,9 @@ class Book:  # pylint: disable=too-few-public-methods,too-many-instance-attribut
             self.tags = [f"#book/{shelf.strip()}" for shelf in goodreads["Bookshelves"].split(",")]
         self.isbn = goodreads["ISBN"]
         self.isbn13 = goodreads["ISBN13"]
+        if series_list_match := re.search(r"\(([^)\n]*)\)", self.title):
+            series_match = re.finditer(r"([^#;]*), #\d+(;|$)", series_list_match[1])
+            self.series = [series[1].strip() for series in series_match]
+        else:
+            self.series = []
+        self.series_full = [f"{self.author} - {series} - series" for series in self.series]
