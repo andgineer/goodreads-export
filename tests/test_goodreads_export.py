@@ -3,8 +3,8 @@ from os import mkdir
 import pytest
 from click.testing import CliRunner
 
-from goodreads_export.export_markdown import clean_filename
 from goodreads_export.main import main
+from goodreads_export.markdown_review import clean_filename
 
 
 @pytest.mark.parametrize(
@@ -26,6 +26,7 @@ def test_success(test_case):
         with open("goodreads_library_export.csv", "w", encoding="utf8") as f:
             f.write(test_case.csv.open("r", encoding="utf8").read())
         mkdir("books")
+        # todo copy from test_case.books_folder to books
         result = runner.invoke(
             main,
             ["-o", "books"],

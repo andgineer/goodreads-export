@@ -37,14 +37,15 @@ def paths_content_is_same(path1: Path, path2: Path) -> bool:
 class GoodreadsTestCase:
     diff: Optional[List[str]] = None
 
-    def __init__(self):
-        self.folder_expected = RESOURCES / "books"
-        self.csv = RESOURCES / "goodreads_library_export.csv"
+    def __init__(self, folder: str):
+        self.folder_expected = RESOURCES / folder / "books"
+        self.books_folder = RESOURCES / folder / "existed"
+        self.csv = RESOURCES / folder / "goodreads_library_export.csv"
 
     def check(self, folder: str) -> bool:
         return paths_content_is_same(self.folder_expected, Path(folder))
 
 
-@pytest.fixture(scope="function")
-def test_case():
-    return GoodreadsTestCase()
+@pytest.fixture(scope="function", params=["create", "update"])
+def test_case(request) -> GoodreadsTestCase:
+    return GoodreadsTestCase(request.param)

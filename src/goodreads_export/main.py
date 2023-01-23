@@ -5,8 +5,8 @@ from pathlib import Path
 
 import click
 
-from goodreads_export.export_markdown import dump_md
-from goodreads_export.goodreads_review import load_reviews
+from goodreads_export.goodreads_review import GoodreadsBooks
+from goodreads_export.markdown_review import BooksFolder
 from goodreads_export.version import VERSION
 
 GOODREAD_EXPORT_FILE_NAME = "goodreads_library_export.csv"
@@ -60,8 +60,20 @@ def main(csv_file: str, output_folder: Path, version: bool) -> None:
         sys.exit(1)
 
     try:
-        books = load_reviews(csv_file)
-        dump_md(books, output_folder)
+        books_folder = BooksFolder(output_folder)
+        print(f"Reading existing files from {output_folder}...", end="")
+        print(
+            f" loaded {len(books_folder.reviews)} books, {len(books_folder.authors)} authors, "
+            f"skipped {books_folder.skipped_unknown_files} unknown files"
+        )
+
+        print(f"Loading reviews from {csv_file}...", end="")
+        books = GoodreadsBooks(csv_file)
+        print(f" loaded {len(books)} reviews.")
+
+        reviews_added, authors_added = books_folder.dump(books)
+        print(f"\nAdded {reviews_added} review files, {authors_added} author files")
+
     except Exception as exc:  # pylint: disable=broad-except
         print(f"\n{exc}")
         sys.exit(1)
