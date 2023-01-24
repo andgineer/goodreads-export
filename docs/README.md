@@ -59,16 +59,19 @@ So if you just rename the file, application still will know the original
 author name from the link.
 Of cause you should not delete or modify the link.
 
-If you read non-English authors, there are could be a lot of different spellings of the author name
-in different books on goodreads. They have a huge amount of "different" authors that in reality
-just different spelling of the same author.
+#### Merging different author names
 
-In this case you could want to have just one author file.
+In goodreads could be a lot of different spellings of the author name plus versions in
+different languages.
 
-If you aggregate a number of author files you should copy to the aggregated author file all search
-links from author files that are aggregated into this one.
+With this application you can merge them so you will have one list of all author book.
 
-Application will extract all author name "synonyms" from these links.
+For that all author name versions should be listed as links in one author file -
+just copy them from other author files to that `primary` author file.
+
+Application will relink all existed and newly created books to this `primary` name.
+
+If you need only this re-link without importing goodreads file use option `--merge`.
 
 ### Installation
 

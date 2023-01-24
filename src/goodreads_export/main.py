@@ -35,7 +35,17 @@ GOODREAD_EXPORT_FILE_NAME = "goodreads_library_export.csv"
     help="Show version.",
     nargs=1,
 )
-def main(csv_file: str, output_folder: Path, version: bool) -> None:
+@click.option(
+    "--merge",
+    "-m",
+    "merge",
+    is_flag=True,
+    default=False,
+    help="""Merge only. Use it if you need only re-link to primary author names
+without importing goodreads file. See https://andgineer.github.io/goodreads-export/ for details.""",
+    nargs=1,
+)
+def main(csv_file: str, output_folder: Path, version: bool, merge: bool) -> None:
     """Convert reviews and authors from goodreads export CSV file to markdown files.
 
     For example you can create nice structure in Obsidian.
@@ -49,28 +59,32 @@ def main(csv_file: str, output_folder: Path, version: bool) -> None:
 
     Documentation https://andgineer.github.io/goodreads-export/
     """
-    if version:
-        print(f"{VERSION}")
-        sys.exit(0)
-
-    if os.path.isdir(csv_file):
-        csv_file = os.path.join(csv_file, GOODREAD_EXPORT_FILE_NAME)
-    if not os.path.isfile(csv_file):
-        print(f"Goodreads export file '{csv_file}' not found.")
-        sys.exit(1)
-
     try:
+        if version:
+            print(f"{VERSION}")
+            sys.exit(0)
+
+        if merge:  # merge only without import from goodreads file
+            books = GoodreadsBooks(None)
+        else:
+            if os.path.isdir(
+                csv_file
+            ):  # if folder as csv_file try to find goodreads file in that folder
+                csv_file = os.path.join(csv_file, GOODREAD_EXPORT_FILE_NAME)
+            if not os.path.isfile(csv_file):
+                print(f"Goodreads export file '{csv_file}' not found.")
+                sys.exit(1)
+            print(f"Loading reviews from {csv_file}...", end="")
+            books = GoodreadsBooks(csv_file)
+            print(f" loaded {len(books)} reviews.")
+
         books_folder = BooksFolder(output_folder)
         print(f"Reading existing files from {output_folder}...", end="")
         print(
             f" loaded {len(books_folder.reviews)} books, {len(books_folder.authors)} authors, "
             f"skipped {books_folder.skipped_unknown_files} unknown files"
         )
-
-        print(f"Loading reviews from {csv_file}...", end="")
-        books = GoodreadsBooks(csv_file)
-        print(f" loaded {len(books)} reviews.")
-
+        books_folder.merge_author_names()
         reviews_added, authors_added = books_folder.dump(books)
         print(f"\nAdded {reviews_added} review files, {authors_added} author files")
 

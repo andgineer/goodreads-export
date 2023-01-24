@@ -41,6 +41,7 @@ def test_main_wrong_columns():
             [],
         )
     assert result.exit_code == 1, f"stdout: {result.output}"
+    print("%" * 50, result.output)
     assert "Wrong goodreads export file" in result.output
     assert "Book Id" in result.output
     assert "Author" not in result.output
@@ -55,3 +56,25 @@ def test_main_wrong_folder_csv():
         )
     assert result.exit_code == 1, f"stdout: {result.output}"
     assert "not found" in result.output
+
+
+def test_main_no_csv():
+    runner = CliRunner()
+    with runner.isolated_filesystem():
+        result = runner.invoke(
+            main,
+            ["fake"],
+        )
+    assert result.exit_code == 1, f"stdout: {result.output}"
+    assert "not found" in result.output
+
+
+def test_main_merge():
+    runner = CliRunner()
+    with runner.isolated_filesystem():
+        result = runner.invoke(
+            main,
+            ["--merge"],
+        )
+    assert result.exit_code == 0, f"stdout: {result.output}"
+    assert "loaded 0 books, 0 authors, skipped 0 unknown files" in result.output

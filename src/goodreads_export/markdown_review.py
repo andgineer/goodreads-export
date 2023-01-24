@@ -27,8 +27,6 @@ class BookFile:
     author: Optional[str] = None
     book_id: Optional[str] = None
 
-    # todo set_author() change content and set dirty flag
-
 
 @dataclass
 class AuthorFile:
@@ -51,6 +49,26 @@ class BooksFolder:
         self.reviews.update(self.load_reviews(folder / SUBFOLDERS["toread"]))
         self.authors = self.load_authors(folder / SUBFOLDERS["authors"])
 
+    def merge_author_names(self) -> None:
+        """Replace all known versions of author names (translations, misspellings) with one primary name.
+
+        All author name versions should be listed as links in one author file -
+        just copy them from other author files to that `primary` author file.
+        """
+        for review in self.reviews.values():
+            if (
+                review.author in self.authors
+                and review.author != self.authors[review.author].author
+            ):
+                # we should update author name in the review
+                # and series links
+                pass
+        for author in self.authors.values():
+            # delete author files for non-main author name
+            # rename book series files if they exist for non-main author names
+            if author:
+                pass
+
     def dump(self, books: GoodreadsBooks) -> Tuple[int, int]:
         """Save books and authors as md-files.
 
@@ -59,43 +77,35 @@ class BooksFolder:
         for subfolder in SUBFOLDERS.values():
             os.makedirs(self.folder / subfolder, exist_ok=True)
 
-        progress_review = tqdm(books, unit="book", leave=False)
-        progress_author = tqdm(unit="author", leave=False)
         reviews_added = 0
         authors_added = 0
-
+        progress_reviews_title = tqdm(bar_format="{desc}", leave=False, position=1)
+        progress_reviews = tqdm(books, desc="Reviews", unit=" book", leave=False, position=2)
+        progress_authors_title = tqdm(bar_format="{desc}", leave=False, position=3)
+        progress_authors = tqdm(desc="Authors", unit=" author", leave=False, position=4)
         for book in books:
-            progress_review.update()
-            progress_review.set_description(book.title)
-            progress_author.set_description(book.author)
-            existing_review = self.reviews.get(book.book_id)
+            progress_reviews_title.set_description_str(book.title)
+            progress_authors_title.set_description_str(book.author)
             if book.author in self.authors:
-                author_name = self.authors[book.author].author
-                book.author = author_name
-                if existing_review and existing_review.author != author_name:
-                    existing_review.author = (
-                        author_name  # todo existing_review.set_author(author_name)
-                    )
-
                 book.author = self.authors[
                     book.author
                 ].author  # use the same author name for all synonyms
             if book.book_id not in self.reviews:
-                if book.author in self.authors and self.authors[book.author].author != book.author:
-                    book.author = self.authors[
-                        book.author
-                    ].author  # use the same author name for all synonyms
-                elif self.create_author_md(book):
+                if book.author not in self.authors and self.create_author_md(book):
                     authors_added += 1
-                    progress_author.update()
-                if self.create_book_md(book, existing_review):
+                    progress_authors.update()
+                if self.create_book_md(book):
                     reviews_added += 1
+            progress_reviews.update()
 
-        progress_review.close()
-        progress_author.close()
+        progress_reviews.close()
+        progress_authors.close()
+        progress_reviews_title.close()
+        progress_authors_title.close()
+
         return reviews_added, authors_added
 
-    def create_book_md(self, book: Book, existed_file: Optional[BookFile]) -> bool:
+    def create_book_md(self, book: Book) -> bool:
         """Create book markdown file.
 
         Return True if book file was added or updated, False otherwise
@@ -111,9 +121,6 @@ class BooksFolder:
         book_url = f"https://www.goodreads.com/book/show/{book.book_id}"
         if book.series:
             self.create_series_mds(book, subfolder)
-        # todo update review file with new author name if existed_file and existed_file.dirty
-        if existed_file:
-            pass
         with open(self.folder / subfolder / file_name, "w", encoding="utf8") as md_file:
             book_article = f"""
 [[{clean_filename(book.author)}]]: [{book.title}]({book_url})
@@ -209,7 +216,8 @@ ISBN{book.isbn} (ISBN13{book.isbn13})
     def load_authors(self, folder: Path) -> Dict[str, AuthorFile]:
         """Load existed authors.
 
-        Look for author synonyms inside files.
+        Look for author synonyms inside files and connect them with `Primary` author file - file
+        with multiple author links inside.
         Return {author: AuthorFile}, for each synonym.
         """
         authors = {}
@@ -224,9 +232,16 @@ ISBN{book.isbn} (ISBN13{book.isbn13})
                     r"\[([^]]*)\]\(https://www\.goodreads\.com/search\?utf8=%E2%9C%93&q=[^&]*"
                     r"&search_type=books&search%5Bfield%5D=author\)"
                 )
-                if re.search(pattern, author.content) is not None:
+                if names_count := len(re.findall(pattern, author.content)):
                     for author_match in re.finditer(pattern, author.content):
-                        authors[author_match[1]] = author
+                        if (
+                            author_match[1] in authors
+                            and names_count > 1
+                            or author_match[1] not in authors
+                        ):
+                            # do not replace if there is only one link in the file to keep links
+                            # to `primary` author from author files with multiple links
+                            authors[author_match[1]] = author
                 else:
                     self.skipped_unknown_files += 1
         return authors
