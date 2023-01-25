@@ -63,6 +63,7 @@ class AuthorFile:
         """Markdown file content."""
         if self._content is None:
             self.render()
+        assert self._content is not None
         return self._content
 
     @content.setter

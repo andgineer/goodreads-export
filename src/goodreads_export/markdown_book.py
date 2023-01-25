@@ -119,7 +119,7 @@ class BooksFolder:
             "w",
             encoding="utf8",
         ) as md_file:
-            md_file.write(book_markdown.content)  # type: ignore  # property and attr with the same name
+            md_file.write(book_markdown.content)
         return True
 
     def create_series_mds(self, book: Book, subfolder: str) -> None:
