@@ -4,7 +4,7 @@ import pytest
 from click.testing import CliRunner
 
 from goodreads_export.main import main
-from goodreads_export.markdown_review import clean_filename
+from goodreads_export.markdown_book import clean_file_name
 
 
 @pytest.mark.parametrize(
@@ -17,7 +17,7 @@ from goodreads_export.markdown_review import clean_filename
 )
 def test_clean_filename(file_name, expected_result):
     """Test that the characters in not_allowed is replaced with spaces."""
-    assert clean_filename(file_name) == expected_result
+    assert clean_file_name(file_name) == expected_result
 
 
 def test_success(test_case):

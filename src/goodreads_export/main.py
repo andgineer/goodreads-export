@@ -5,8 +5,8 @@ from pathlib import Path
 
 import click
 
-from goodreads_export.goodreads_review import GoodreadsBooks
-from goodreads_export.markdown_review import BooksFolder
+from goodreads_export.goodreads_book import GoodreadsBooks
+from goodreads_export.markdown_book import BooksFolder
 from goodreads_export.version import VERSION
 
 GOODREAD_EXPORT_FILE_NAME = "goodreads_library_export.csv"

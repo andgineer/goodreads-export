@@ -1,3 +1,4 @@
+import os.path
 import pathlib
 from pathlib import Path
 from typing import List, Optional
@@ -49,3 +50,45 @@ class GoodreadsTestCase:
 @pytest.fixture(scope="function", params=["create", "update"])
 def test_case(request) -> GoodreadsTestCase:
     return GoodreadsTestCase(request.param)
+
+
+@pytest.fixture(
+    scope="function",
+    params=[
+        "Anna Starobinets.md",
+        "Eric Schmidt.md",
+        "Liu Cixin.md",
+        "Richard P. Feynman.md",
+        "Terry Pratchett.md",
+        "Theodore Dreiser.md",
+    ],
+)
+def author_markdown(request) -> str:
+    with (RESOURCES / "create" / "books" / "authors" / request.param).open(
+        "r", encoding="utf8"
+    ) as author_file:
+        return author_file.read()
+
+
+@pytest.fixture(
+    scope="function",
+    params=[
+        os.path.join("reviews", "Anna Starobinets - Икарова железа. Книга метаморфоз.md"),
+        os.path.join("reviews", "Eric Schmidt - How Google Works.md"),
+        os.path.join("reviews", "Liu Cixin - The Wandering Earth.md"),
+        os.path.join("reviews", "Terry Pratchett - Mort (Discworld @4; Death @1).md"),
+        os.path.join(
+            "reviews", "Terry Pratchett - The Light Fantastic (Discworld @2; Rincewind @2).md"
+        ),
+        os.path.join("reviews", "Theodore Dreiser - The Genius by Theodore Dreiser.md"),
+        os.path.join(
+            "toread",
+            "Richard P. Feynman - Six Not-So-Easy Pieces Einstein's Relativity Symmetry and Space-Time.md",
+        ),
+    ],
+)
+def book_markdown(request) -> str:
+    with (RESOURCES / "create" / "books" / request.param).open(
+        "r", encoding="utf8"
+    ) as author_file:
+        return author_file.read()

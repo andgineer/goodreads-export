@@ -1,14 +1,15 @@
 """Create markdown files for book review and author."""
 import os
-import re
 import urllib.parse
-from dataclasses import dataclass
 from pathlib import Path
-from typing import Dict, Optional, Tuple
+from typing import Dict, Tuple
 
 from tqdm import tqdm
 
-from goodreads_export.goodreads_review import Book, GoodreadsBooks
+from goodreads_export.author_file import AuthorFile
+from goodreads_export.book_file import BookFile
+from goodreads_export.clean_file_name import clean_file_name
+from goodreads_export.goodreads_book import Book, GoodreadsBooks
 
 SUBFOLDERS = {
     "toread": "toread",  # for books without review and rating - supposedly this is from to-read
@@ -16,25 +17,7 @@ SUBFOLDERS = {
     "authors": "authors",  # book authors
 }
 
-
-@dataclass
-class BookFile:
-    """Book file."""
-
-    title: str
-    file_name: str
-    content: str
-    author: Optional[str] = None
-    book_id: Optional[str] = None
-
-
-@dataclass
-class AuthorFile:
-    """Author file."""
-
-    author: str
-    file_name: str
-    content: str
+REVIEWS_SUBFOLDERS = [SUBFOLDERS["reviews"], SUBFOLDERS["toread"]]
 
 
 class BooksFolder:
@@ -45,8 +28,8 @@ class BooksFolder:
     def __init__(self, folder: Path):
         """Initialize."""
         self.folder = folder
-        self.reviews = self.load_reviews(folder / SUBFOLDERS["reviews"])
-        self.reviews.update(self.load_reviews(folder / SUBFOLDERS["toread"]))
+        for reviews_subfolder in REVIEWS_SUBFOLDERS:
+            self.reviews = self.load_reviews(folder / reviews_subfolder)
         self.authors = self.load_authors(folder / SUBFOLDERS["authors"])
 
     def merge_author_names(self) -> None:
@@ -110,29 +93,33 @@ class BooksFolder:
 
         Return True if book file was added or updated, False otherwise
         """
-        book.tags.append("#book/book")
-        if book.rating > 0:
-            book.tags.append(f"#book/rating{book.rating}")
+        book_markdown = BookFile(
+            title=book.title,
+            tags=book.tags,
+            author=book.author,
+            book_id=book.book_id,
+            rating=book.rating,
+            isbn=book.isbn,
+            isbn13=book.isbn13,
+            series=book.series_full,
+            review=book.review,
+        )
         if book.review == "" and book.rating == 0:
             subfolder = SUBFOLDERS["toread"]
         else:
             subfolder = SUBFOLDERS["reviews"]
-        file_name = f"{clean_filename(book.author)} - {clean_filename(book.title)}.md"
-        book_url = f"https://www.goodreads.com/book/show/{book.book_id}"
         if book.series:
             self.create_series_mds(book, subfolder)
-        with open(self.folder / subfolder / file_name, "w", encoding="utf8") as md_file:
-            book_article = f"""
-[[{clean_filename(book.author)}]]: [{book.title}]({book_url})
-ISBN{book.isbn} (ISBN13{book.isbn13})
-{' '.join(['[[' + clean_filename(series) + ']]' for series in book.series_full])}
-{book.review}
-
-[Search in Calibre](calibre://search/_?q={urllib.parse.quote(book.title)})
-
-{" ".join(book.tags)}
-"""
-            md_file.write(book_article)
+        with open(
+            (
+                self.folder  # type: ignore  # property and attr with the same name
+                / subfolder
+                / book_markdown.file_name
+            ),
+            "w",
+            encoding="utf8",
+        ) as md_file:
+            md_file.write(book_markdown.content)  # type: ignore  # property and attr with the same name
         return True
 
     def create_series_mds(self, book: Book, subfolder: str) -> None:
@@ -141,7 +128,7 @@ ISBN{book.isbn} (ISBN13{book.isbn13})
         Do not change already existed files.
         """
         for series_idx, series in enumerate(book.series_full):
-            series_file_name = f"{clean_filename(series)}.md"
+            series_file_name = f"{clean_file_name(series)}.md"
             search_params = urllib.parse.urlencode(
                 {
                     "utf8": "✓",
@@ -154,7 +141,7 @@ ISBN{book.isbn} (ISBN13{book.isbn13})
             if not series_file_path.is_file():
                 with series_file_path.open("w", encoding="utf8") as md_file:
                     md_file.write(
-                        f"""[[{clean_filename(book.author)}]]
+                        f"""[[{clean_file_name(book.author)}]]
 [{book.series[series_idx]}](https://www.goodreads.com/search?{search_params})"""
                     )
 
@@ -165,26 +152,20 @@ ISBN{book.isbn} (ISBN13{book.isbn13})
 
         Return True if author file was added, False otherwise
         """
-        author_file_name = f"{clean_filename(book.author)}.md"
-        author_file_path = self.folder / SUBFOLDERS["authors"] / author_file_name
+        author_markdown = AuthorFile(
+            author=book.author,
+        )
+        author_file_path = (
+            self.folder  # type: ignore  # property and attr with the same name
+            / SUBFOLDERS["authors"]
+            / author_markdown.file_name
+        )
         if not author_file_path.is_file():
             with author_file_path.open(
                 "w",
                 encoding="utf8",
             ) as md_file:
-                search_params = urllib.parse.urlencode(
-                    {
-                        "utf8": "✓",
-                        "q": book.author,
-                        "search_type": "books",
-                        "search[field]": "author",
-                    }
-                )
-                author_article = f"""[{book.author}](https://www.goodreads.com/search?{search_params})
-
-#book/author
-"""
-                md_file.write(author_article)
+                md_file.write(author_markdown.content)  # type: ignore  # property and attr with the same name
                 return True
         return False
 
@@ -193,24 +174,25 @@ ISBN{book.isbn} (ISBN13{book.isbn13})
 
         Look for goodreads book ID inside files.
         Return {id: BookFile} for files with book ID, ignore other files.
+        This way we ignore "- series" files and unknown files.
         """
-        reviews = {}
-        for filename in folder.glob("*.md"):
-            with open(filename, "r", encoding="utf8") as review_file:
+        reviews: Dict[str, BookFile] = {}
+        for file_name in folder.glob("*.md"):
+            with open(file_name, "r", encoding="utf8") as review_file:
                 book = BookFile(
-                    title=Path(filename).stem, file_name=str(filename), content=review_file.read()
+                    title=Path(file_name).stem,
+                    file_name=str(file_name),
+                    content=review_file.read(),
                 )
-                # todo move this code to BookFile
-                pattern = (
-                    r"\[\[([^]]+)\]\]: \[([^]]*)\]\(https://www\.goodreads\.com/book/show/(\d+)\)"
-                )
-                if (book_match := re.search(pattern, book.content)) is not None:
-                    book.book_id = book_match[3]
-                    book.title = book_match[2]
-                    book.author = book_match[1]
-                    reviews[book.book_id] = book
-                else:
+                if book.book_id is None:
                     self.skipped_unknown_files += 1
+                elif book.book_id in reviews:
+                    raise ValueError(
+                        f"Duplicate book ID {book.book_id} in {file_name} "
+                        f"and {reviews[book.book_id].file_name}"
+                    )
+                else:
+                    reviews[book.book_id] = book
         return reviews
 
     def load_authors(self, folder: Path) -> Dict[str, AuthorFile]:
@@ -228,45 +210,12 @@ ISBN{book.isbn} (ISBN13{book.isbn13})
                     author=Path(filename).stem,
                     content=author_file.read(),
                 )
-                pattern = (
-                    r"\[([^]]*)\]\(https://www\.goodreads\.com/search\?utf8=%E2%9C%93&q=[^&]*"
-                    r"&search_type=books&search%5Bfield%5D=author\)"
-                )
-                if names_count := len(re.findall(pattern, author.content)):
-                    for author_match in re.finditer(pattern, author.content):
-                        if (
-                            author_match[1] in authors
-                            and names_count > 1
-                            or author_match[1] not in authors
-                        ):
+                if len(author.names):
+                    for name in author.names:
+                        if name in authors and len(author.names) > 1 or name not in authors:
                             # do not replace if there is only one link in the file to keep links
                             # to `primary` author from author files with multiple links
-                            authors[author_match[1]] = author
+                            authors[name] = author
                 else:
                     self.skipped_unknown_files += 1
         return authors
-
-
-FILE_NAME_REPLACE_MAP = {
-    "%": " percent",
-    ":": "",
-    "/": "_",
-    ",": "",
-    "\\": "_",
-    "[": "(",
-    "]": ")",
-    "<": "(",
-    ">": ")",
-    "*": "x",
-    "?": "",
-    '"': "'",
-    "|": "_",
-    "#": "@",
-}
-
-
-def clean_filename(file_name: str, replace_map: Optional[Dict[str, str]] = None) -> str:
-    """Replace chars unsafe for file name."""
-    if replace_map is None:
-        replace_map = FILE_NAME_REPLACE_MAP
-    return "".join(replace_map.get(ch, ch) for ch in file_name)
