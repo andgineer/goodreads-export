@@ -30,7 +30,7 @@ class AuthorFile:
             r"&search_type=books&search%5Bfield%5D=author\)"
         ),
     )
-    names: list[str] = field(init=False)
+    names: Optional[list[str]] = field(init=False, default=None)
 
     def __post_init__(self) -> None:
         """Extract fields from content."""
@@ -42,6 +42,7 @@ class AuthorFile:
         """Parse markdown file content."""
         if self.content is not None:
             self.names = [match[1] for match in self._name_link_pattern.finditer(self.content)]
+        # todo add filename as author name?
 
     def render(self) -> None:
         """Render markdown file content."""

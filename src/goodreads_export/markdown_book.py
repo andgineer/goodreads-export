@@ -28,9 +28,11 @@ class BooksFolder:
     def __init__(self, folder: Path):
         """Initialize."""
         self.folder = folder
+        self.reviews: Dict[str, BookFile] = {}
         for reviews_subfolder in REVIEWS_SUBFOLDERS:
-            self.reviews = self.load_reviews(folder / reviews_subfolder)
+            self.reviews |= self.load_reviews(folder / reviews_subfolder)
         self.authors = self.load_authors(folder / SUBFOLDERS["authors"])
+        # todo add authors with more that one name to self.authors_to_merge
 
     def merge_author_names(self) -> None:
         """Replace all known versions of author names (translations, misspellings) with one primary name.
@@ -110,16 +112,7 @@ class BooksFolder:
             subfolder = SUBFOLDERS["reviews"]
         if book.series:
             self.create_series_mds(book, subfolder)
-        with open(
-            (
-                self.folder  # type: ignore  # property and attr with the same name
-                / subfolder
-                / book_markdown.file_name
-            ),
-            "w",
-            encoding="utf8",
-        ) as md_file:
-            md_file.write(book_markdown.content)
+        book_markdown.write(self.folder / subfolder)
         return True
 
     def create_series_mds(self, book: Book, subfolder: str) -> None:
@@ -210,6 +203,7 @@ class BooksFolder:
                     author=Path(filename).stem,
                     content=author_file.read(),
                 )
+                assert author.names is not None  # to make mypy happy
                 if len(author.names):
                     for name in author.names:
                         if name in authors and len(author.names) > 1 or name not in authors:

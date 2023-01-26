@@ -2,6 +2,7 @@
 import re
 import urllib.parse
 from dataclasses import dataclass, field
+from pathlib import Path
 from typing import List, Optional
 
 from goodreads_export.clean_file_name import clean_file_name
@@ -17,12 +18,9 @@ class BookFile:  # pylint: disable=too-many-instance-attributes
     """
 
     title: str
-    file_name: Optional[str] = None
-    _file_name: Optional[str] = field(repr=False, init=False)
     content: Optional[str] = None
-    _content: Optional[str] = field(repr=False, init=False)
+    file_name: Optional[str] = None
     author: Optional[str] = None
-    _author: Optional[str] = field(repr=False, init=False)
     book_id: Optional[str] = None
     tags: Optional[List[str]] = None
     rating: Optional[int] = None
@@ -31,6 +29,9 @@ class BookFile:  # pylint: disable=too-many-instance-attributes
     review: Optional[int] = None
     series: Optional[List[str]] = None
 
+    _content: Optional[str] = field(repr=False, init=False)
+    _file_name: Optional[str] = field(repr=False, init=False)
+    _author: Optional[str] = field(repr=False, init=False)
     _goodreads_link_pattern: re.Pattern[str] = field(
         repr=False,
         init=False,
@@ -46,6 +47,8 @@ class BookFile:  # pylint: disable=too-many-instance-attributes
             self.render()
         if self.tags is None:
             self.tags = []
+        if self.series is None:
+            self.series = []
 
     def parse(self) -> None:
         """Parse markdown file content."""
@@ -59,11 +62,13 @@ class BookFile:  # pylint: disable=too-many-instance-attributes
 
     def render(self) -> None:
         """Render markdown file content."""
-        assert self.book_id is not None
-        assert self.title is not None
-        assert self.author is not None
-        assert self.tags is not None
-        assert self.series is not None
+        required = ["book_id", "title", "author", "tags", "series", "review", "rating"]
+        for attribute in required:
+            if getattr(self, attribute) is None:
+                raise ValueError(f"To create review file need attribute '{attribute}'")
+        assert self.tags is not None  # to please mypy
+        assert self.author is not None  # to please mypy
+        assert self.series is not None  # to please mypy
         if "#book/book" not in self.tags:
             self.tags.append("#book/book")
         if self.rating is not None and self.rating > 0:
@@ -144,3 +149,10 @@ ISBN{self.isbn} (ISBN13{self.isbn13})
             self._file_name = None
             return
         self._file_name = file_name
+
+    def write(self, folder: Path) -> None:
+        """Write markdown file to path."""
+        assert self.file_name is not None  # to please mypy
+        assert self.content is not None  # to please mypy
+        with (folder / self.file_name).open("w", encoding="utf8") as file:
+            file.write(self.content)

@@ -1,4 +1,5 @@
 from os import mkdir
+from pathlib import Path
 
 import pytest
 from click.testing import CliRunner
@@ -26,7 +27,7 @@ def test_success(test_case):
         with open("goodreads_library_export.csv", "w", encoding="utf8") as f:
             f.write(test_case.csv.open("r", encoding="utf8").read())
         mkdir("books")
-        # todo copy from test_case.books_folder to books
+        test_case.copy_existed(Path("books"))
         result = runner.invoke(
             main,
             ["-o", "books"],

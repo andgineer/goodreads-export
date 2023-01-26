@@ -39,12 +39,22 @@ class GoodreadsTestCase:
     diff: Optional[List[str]] = None
 
     def __init__(self, folder: str):
-        self.folder_expected = RESOURCES / folder / "books"
-        self.books_folder = RESOURCES / folder / "existed"
+        self.expected_folder = RESOURCES / folder / "books"
+        self.preexisted_folder = RESOURCES / folder / "existed"
         self.csv = RESOURCES / folder / "goodreads_library_export.csv"
 
     def check(self, folder: str) -> bool:
-        return paths_content_is_same(self.folder_expected, Path(folder))
+        return paths_content_is_same(self.expected_folder, Path(folder))
+
+    def copy_existed(self, folder: Path, source: Optional[Path] = None) -> None:
+        if source is None:
+            source = self.preexisted_folder
+        for subpath in source.glob("*"):
+            if subpath.is_file():
+                (folder / subpath.name).write_text(subpath.read_text())
+            else:
+                (folder / subpath.name).mkdir()
+                self.copy_existed(folder / subpath.name, subpath)
 
 
 @pytest.fixture(scope="function", params=["create", "update"])
