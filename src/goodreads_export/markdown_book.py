@@ -48,8 +48,15 @@ class BooksFolder:
         for author in self.primary_authors.values():
             assert author.names is not None  # to make mypy happy
             for name in author.names:
-                if name != author.author:
-                    os.remove(self.folder / SUBFOLDERS["authors"] / f"{clean_file_name(name)}.md")
+                if (
+                    name != author.author
+                    and (
+                        author_file_path := self.folder
+                        / SUBFOLDERS["authors"]
+                        / f"{clean_file_name(name)}.md"
+                    ).exists()
+                ):
+                    os.remove(author_file_path)
 
     def dump(self, books: GoodreadsBooks) -> Tuple[int, int]:
         """Save books and authors as md-files.

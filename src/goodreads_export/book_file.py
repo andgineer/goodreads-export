@@ -140,7 +140,8 @@ ISBN{self.isbn} (ISBN13{self.isbn13})
         assert (
             self.folder is not None and self.file_name is not None
         ), "Can not delete file without folder"
-        os.remove(self.folder / self.file_name)
+        if (self.folder / self.file_name).exists():
+            os.remove(self.folder / self.file_name)
 
     def delete_series_files(self) -> Dict[str, str]:
         """Delete series files for review.
@@ -153,7 +154,8 @@ ISBN{self.isbn} (ISBN13{self.isbn13})
         for series in self.series:
             old_series_names[series] = self.series_full_name(series)
             series_file_name = self.series_file_name(series)
-            os.remove(self.folder / series_file_name)
+            if (self.folder / series_file_name).exists():
+                os.remove(self.folder / series_file_name)
         return old_series_names
 
     def rename_author(self, new_author: str) -> None:
