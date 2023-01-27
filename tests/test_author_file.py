@@ -67,5 +67,6 @@ def test_author_file_defaults_from_class(author_markdown):
     assert author_file.names == ["Author"]
 
     author_file.content = author_markdown
+    author_file.parse()
     assert author_file.content == author_markdown
     assert all(f"[{name}]" in author_markdown for name in author_file.names)

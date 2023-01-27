@@ -20,6 +20,7 @@ def test_book_file_initial_nonbook_content(book_markdown):
     assert book_file.content == content
 
     book_file.content = book_markdown
+    book_file.parse()
     assert book_file.author != initial_author
     assert f"[[{book_file.author}]]" in book_markdown
 
@@ -81,8 +82,14 @@ def test_book_file_defaults_from_class(book_markdown):
     assert book_file._file_name is None
     assert book_file.content == initial_content
 
+    fields = BookFile(content=book_markdown, title=title)
     book_file.content = book_markdown
-    assert f"[[{book_file.author}]]" in book_markdown
-    assert f"www.goodreads.com/book/show/{book_file.book_id}" in book_markdown
-    assert f"[{book_file.title}]" in book_markdown
+    book_file.book_id = fields.book_id
+    book_file.author = fields.author
+    book_file.review = "Review"
+    book_file.rating = 1
+    book_file.render()
+    assert f"[[{book_file.author}]]" in book_file.content
+    assert f"www.goodreads.com/book/show/{book_file.book_id}" in book_file.content
+    assert f"[{book_file.title}]" in book_file.content
     assert book_file.file_name == clean_file_name(f"{book_file.author} - {book_file.title}.md")

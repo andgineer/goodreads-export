@@ -11,16 +11,15 @@ from goodreads_export.clean_file_name import clean_file_name
 class AuthorFile:
     """Author's file.
 
-    On `content` assign (including init) extract fields from `content`.
-    Data extracted from content will override init parameters.
-    With `render()` can generate `content` from fields.
+    On init extract fields from `content` - override other parameters.
+    To re-parse the `content` call `parse()`.
+    `render()` generate `content` from fields.
     """
 
     author: str
     file_name: Optional[str] = None
     _file_name: Optional[str] = field(repr=False, init=False)
     content: Optional[str] = None
-    _content: Optional[str] = field(repr=False, init=False)
 
     _name_link_pattern: re.Pattern[str] = field(
         repr=False,
@@ -35,14 +34,15 @@ class AuthorFile:
     def __post_init__(self) -> None:
         """Extract fields from content."""
         self.parse()  # we do not run parse on content assign during __init__()
-        if self._content is None:
+        if self.content is None:
             self.render()
 
     def parse(self) -> None:
         """Parse markdown file content."""
         if self.content is not None:
             self.names = [match[1] for match in self._name_link_pattern.finditer(self.content)]
-        # todo add filename as author name?
+        elif self.names is None:
+            self.names = [self.author]
 
     def render(self) -> None:
         """Render markdown file content."""
@@ -54,27 +54,10 @@ class AuthorFile:
                 "search[field]": "author",
             }
         )
-        self._content = f"""[{self.author}](https://www.goodreads.com/search?{search_params})
+        self.content = f"""[{self.author}](https://www.goodreads.com/search?{search_params})
 
 #book/author
 """
-
-    @property  # type: ignore
-    def content(self) -> str:
-        """Markdown file content."""
-        if self._content is None:
-            self.render()
-        assert self._content is not None
-        return self._content
-
-    @content.setter
-    def content(self, content: str) -> None:
-        if isinstance(content, property):
-            # do not run parse during __init__() - attributes values will be overwritten anyway
-            self._content = None  # Set None by default (if not in __init__() params)
-        else:
-            self._content = content
-            self.parse()
 
     @property  # type: ignore
     def file_name(self) -> str:
