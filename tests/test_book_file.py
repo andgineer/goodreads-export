@@ -1,3 +1,5 @@
+from pathlib import Path
+
 from goodreads_export.book_file import BookFile
 from goodreads_export.clean_file_name import clean_file_name
 
@@ -9,6 +11,7 @@ def test_book_file_initial_nonbook_content(book_markdown):
     book_file = BookFile(
         book_id="123",
         title="Title",
+        folder=Path(),
         author=initial_author,
         file_name=file_name,
         content=content,
@@ -33,6 +36,7 @@ def test_book_file_initial_book_content(book_markdown):
         content=content,
         book_id="123",
         title="Title",
+        folder=Path(),
         author=initial_author,
         file_name=file_name,
     )
@@ -54,6 +58,7 @@ def test_book_file_defaults_from_content(book_markdown):
     book_file = BookFile(
         content=initial_content,
         title="Title",
+        folder=Path(),
         file_name=file_name,
     )
     assert f"www.goodreads.com/book/show/{book_file.book_id}" in initial_content
@@ -75,6 +80,7 @@ def test_book_file_defaults_from_class(book_markdown):
     book_file = BookFile(
         content=initial_content,
         title=title,
+        folder=Path(),
     )
     assert book_file.book_id is None
     assert book_file.title == title
@@ -82,7 +88,7 @@ def test_book_file_defaults_from_class(book_markdown):
     assert book_file._file_name is None
     assert book_file.content == initial_content
 
-    fields = BookFile(content=book_markdown, title=title)
+    fields = BookFile(content=book_markdown, title=title, folder=Path())
     book_file.content = book_markdown
     book_file.book_id = fields.book_id
     book_file.author = fields.author

@@ -4,8 +4,8 @@ from pathlib import Path
 import pytest
 from click.testing import CliRunner
 
+from goodreads_export.clean_file_name import clean_file_name
 from goodreads_export.main import main
-from goodreads_export.markdown_book import clean_file_name
 
 
 @pytest.mark.parametrize(

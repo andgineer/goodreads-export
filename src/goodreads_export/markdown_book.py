@@ -7,7 +7,6 @@ from tqdm import tqdm
 
 from goodreads_export.author_file import AuthorFile
 from goodreads_export.book_file import BookFile
-from goodreads_export.clean_file_name import clean_file_name
 from goodreads_export.goodreads_book import Book, GoodreadsBooks
 
 SUBFOLDERS = {
@@ -38,6 +37,8 @@ class BooksFolder:
         All author name versions should be listed as links in one author file -
         just copy them from other author files to that `primary` author file.
         Reviews will be relinked to this file.
+        Author files of this author with one name in them will be deleted.
+        Also recreate series files with new author name in the file names.
         """
         for review in self.reviews.values():
             if (
@@ -46,17 +47,7 @@ class BooksFolder:
             ):
                 review.rename_author(self.authors[review.author].author)
         for author in self.primary_authors.values():
-            assert author.names is not None  # to make mypy happy
-            for name in author.names:
-                if (
-                    name != author.author
-                    and (
-                        author_file_path := self.folder
-                        / SUBFOLDERS["authors"]
-                        / f"{clean_file_name(name)}.md"
-                    ).exists()
-                ):
-                    os.remove(author_file_path)
+            author.remove_non_primary_files()
 
     def dump(self, books: GoodreadsBooks) -> Tuple[int, int]:
         """Save books and authors as md-files.
@@ -99,8 +90,13 @@ class BooksFolder:
 
         Return True if book file was added or updated, False otherwise
         """
+        if book.review == "" and book.rating == 0:
+            subfolder = SUBFOLDERS["toread"]
+        else:
+            subfolder = SUBFOLDERS["reviews"]
         book_markdown = BookFile(
             title=book.title,
+            folder=self.folder / subfolder,
             tags=book.tags,
             author=self.authors[book.author].author
             if book.author in self.authors
@@ -112,13 +108,7 @@ class BooksFolder:
             series=book.series,
             review=book.review,
         )
-        if book.review == "" and book.rating == 0:
-            subfolder = SUBFOLDERS["toread"]
-        else:
-            subfolder = SUBFOLDERS["reviews"]
-        book_markdown.folder = self.folder / subfolder
-        if book.series:
-            book_markdown.create_series_files()
+        book_markdown.create_series_files()
         book_markdown.write()
         return True
 
@@ -131,19 +121,12 @@ class BooksFolder:
         """
         author_markdown = AuthorFile(
             author=book.author,
+            folder=self.folder / SUBFOLDERS["authors"],
         )
-        author_file_path = (
-            self.folder  # type: ignore  # property and attr with the same name
-            / SUBFOLDERS["authors"]
-            / author_markdown.file_name
-        )
-        if not author_file_path.is_file():
-            with author_file_path.open(
-                "w",
-                encoding="utf8",
-            ) as md_file:
-                md_file.write(author_markdown.content)  # type: ignore  # property and attr with the same name
-                return True
+        assert author_markdown.file_name is not None  # to make mypy happy
+        if not (author_markdown.folder / author_markdown.file_name).is_file():
+            author_markdown.write()
+            return True
         return False
 
     def load_reviews(self, folder: Path) -> Dict[str, BookFile]:
@@ -155,7 +138,7 @@ class BooksFolder:
         """
         reviews: Dict[str, BookFile] = {}
         for file_name in folder.glob("*.md"):
-            with open(file_name, "r", encoding="utf8") as review_file:
+            with file_name.open("r", encoding="utf8") as review_file:
                 book = BookFile(
                     title=Path(file_name).stem,
                     folder=folder,
@@ -183,11 +166,12 @@ class BooksFolder:
         """
         authors: Dict[str, AuthorFile] = {}
         primary_authors: Dict[str, AuthorFile] = {}
-        for filename in folder.glob("*.md"):
-            with open(filename, "r", encoding="utf8") as author_file:
+        for file_name in folder.glob("*.md"):
+            with file_name.open("r", encoding="utf8") as author_file:
                 author = AuthorFile(
-                    file_name=str(filename),
-                    author=Path(filename).stem,
+                    folder=folder,
+                    file_name=file_name.name,
+                    author=Path(file_name).stem,
                     content=author_file.read(),
                 )
                 assert author.names is not None  # to make mypy happy

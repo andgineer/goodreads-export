@@ -19,8 +19,8 @@ class BookFile:  # pylint: disable=too-many-instance-attributes
     """
 
     title: str
+    folder: Path
     content: Optional[str] = None
-    folder: Optional[Path] = None
     file_name: Optional[str] = None
     author: Optional[str] = None
     book_id: Optional[str] = None
@@ -131,7 +131,6 @@ ISBN{self.isbn} (ISBN13{self.isbn13})
         """Write markdown file to path."""
         assert self.file_name is not None  # to please mypy
         assert self.content is not None  # to please mypy
-        assert self.folder is not None  # to please mypy
         with (self.folder / self.file_name).open("w", encoding="utf8") as file:
             file.write(self.content)
 
@@ -150,7 +149,6 @@ ISBN{self.isbn} (ISBN13{self.isbn13})
         """
         old_series_names = {}
         assert self.series is not None
-        assert self.folder is not None, "Can not delete series without folder"
         for series in self.series:
             old_series_names[series] = self.series_full_name(series)
             series_file_name = self.series_file_name(series)
@@ -161,7 +159,8 @@ ISBN{self.isbn} (ISBN13{self.isbn13})
     def rename_author(self, new_author: str) -> None:
         """Rename author in review file.
 
-        In content replace links only, do not re-render content to keep user changes
+        In content replace links only, do not re-render content to keep user changes.
+        Also recreate series files with new author name in the file names.
         """
         assert self.author is not None
         assert self.content is not None
@@ -182,7 +181,6 @@ ISBN{self.isbn} (ISBN13{self.isbn13})
         """
         assert self.series is not None
         assert self.author is not None
-        assert self.folder is not None, "Can not create series without folder"
         for series_idx, series in enumerate(self.series):
             series_file_name = self.series_file_name(series)
             search_params = urllib.parse.urlencode(

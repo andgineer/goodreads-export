@@ -1,7 +1,9 @@
 """Author's file."""  # pylint: disable=duplicate-code
+import os
 import re
 import urllib.parse
 from dataclasses import dataclass, field
+from pathlib import Path
 from typing import Optional
 
 from goodreads_export.clean_file_name import clean_file_name
@@ -17,6 +19,7 @@ class AuthorFile:
     """
 
     author: str
+    folder: Path
     file_name: Optional[str] = None
     _file_name: Optional[str] = field(repr=False, init=False)
     content: Optional[str] = None
@@ -79,3 +82,20 @@ class AuthorFile:
             self._file_name = None
             return
         self._file_name = file_name
+
+    def remove_non_primary_files(self) -> None:
+        """Remove files with non-primary author names."""
+        assert self.names is not None  # to make mypy happy
+        for name in self.names:
+            if (
+                name != self.author
+                and (author_file_path := self.folder / f"{clean_file_name(name)}.md").exists()
+            ):
+                os.remove(author_file_path)
+
+    def write(self) -> None:
+        """Write markdown file to path."""
+        assert self.file_name is not None  # to please mypy
+        assert self.content is not None  # to please mypy
+        with (self.folder / self.file_name).open("w", encoding="utf8") as file:
+            file.write(self.content)
