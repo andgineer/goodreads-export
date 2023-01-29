@@ -78,3 +78,17 @@ def test_main_merge():
         )
     assert result.exit_code == 0, f"stdout: {result.output}"
     assert "loaded 0 books, 0 authors, skipped 0 unknown files" in result.output
+
+
+def test_main_verbose(test_case):
+    runner = CliRunner()
+    with runner.isolated_filesystem():
+        with open("goodreads_library_export.csv", "w", encoding="utf8") as f:
+            f.write(test_case.csv.open("r", encoding="utf8").read())
+        result = runner.invoke(
+            main,
+            ["--verbose"],
+        )
+    assert result.exit_code == 0, f"stdout: {result.output}"
+    assert "loaded 0 books, 0 authors, skipped 0 unknown files" in result.output
+    assert "Added review" in result.output
