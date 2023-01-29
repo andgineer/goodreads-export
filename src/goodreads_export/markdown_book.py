@@ -3,11 +3,10 @@ import os
 from pathlib import Path
 from typing import Dict, Tuple
 
-from tqdm import tqdm
-
 from goodreads_export.author_file import AuthorFile
 from goodreads_export.book_file import BookFile
 from goodreads_export.goodreads_book import Book, GoodreadsBooks
+from goodreads_export.log import Log
 
 SUBFOLDERS = {
     "toread": "toread",  # for books without review and rating - supposedly this is from to-read
@@ -49,7 +48,7 @@ class BooksFolder:
         for author in self.primary_authors.values():
             author.remove_non_primary_files()
 
-    def dump(self, books: GoodreadsBooks) -> Tuple[int, int]:
+    def dump(self, books: GoodreadsBooks, log: Log) -> Tuple[int, int]:
         """Save books and authors as md-files.
 
         Returns (reviews_added, authors_added)
@@ -59,13 +58,12 @@ class BooksFolder:
 
         reviews_added = 0
         authors_added = 0
-        progress_reviews_title = tqdm(bar_format="{desc}", leave=False, position=1)
-        progress_reviews = tqdm(books, desc="Reviews", unit=" book", leave=False, position=2)
-        progress_authors_title = tqdm(bar_format="{desc}", leave=False, position=3)
-        progress_authors = tqdm(desc="Authors", unit=" author", leave=False, position=4)
+        log.open_progress("Reviews", "books", len(books))
+        log.open_progress("Authors", "authors")
+
         for book in books:
-            progress_reviews_title.set_description_str(book.title)
-            progress_authors_title.set_description_str(book.author)
+            log.progress_description("Reviews", book.title)
+            log.progress_description("Authors", book.author)
             if book.author in self.authors:
                 book.author = self.authors[
                     book.author
@@ -73,15 +71,15 @@ class BooksFolder:
             if book.book_id not in self.reviews:
                 if book.author not in self.authors and self.create_author_md(book):
                     authors_added += 1
-                    progress_authors.update()
+                    log.progress("Authors")
+                    log.debug(f"Added author {book.author}")
                 if self.create_book_md(book):
                     reviews_added += 1
-            progress_reviews.update()
+                    log.debug(f"Added review {book.title}")
+            log.progress("Reviews")
 
-        progress_reviews.close()
-        progress_authors.close()
-        progress_reviews_title.close()
-        progress_authors_title.close()
+        log.close_progress("Reviews")
+        log.close_progress("Authors")
 
         return reviews_added, authors_added
 

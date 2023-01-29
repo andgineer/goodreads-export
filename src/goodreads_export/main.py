@@ -6,6 +6,7 @@ from pathlib import Path
 import click
 
 from goodreads_export.goodreads_book import GoodreadsBooks
+from goodreads_export.log import Log
 from goodreads_export.markdown_book import BooksFolder
 from goodreads_export.version import VERSION
 
@@ -45,7 +46,16 @@ GOODREAD_EXPORT_FILE_NAME = "goodreads_library_export.csv"
 without importing goodreads file. See https://andgineer.github.io/goodreads-export/ for details.""",
     nargs=1,
 )
-def main(csv_file: str, output_folder: Path, version: bool, merge: bool) -> None:
+@click.option(
+    "--verbose",
+    "-v",
+    "verbose",
+    is_flag=True,
+    default=False,
+    help="""Increase verbosity.""",
+    nargs=1,
+)
+def main(csv_file: str, output_folder: Path, version: bool, merge: bool, verbose: bool) -> None:
     """Convert reviews and authors from goodreads export CSV file to markdown files.
 
     For example you can create nice structure in Obsidian.
@@ -60,6 +70,7 @@ def main(csv_file: str, output_folder: Path, version: bool, merge: bool) -> None
     Documentation https://andgineer.github.io/goodreads-export/
     """
     try:
+        log = Log(verbose)
         if version:
             print(f"{VERSION}")
             sys.exit(0)
@@ -74,18 +85,18 @@ def main(csv_file: str, output_folder: Path, version: bool, merge: bool) -> None
             if not os.path.isfile(csv_file):
                 print(f"Goodreads export file '{csv_file}' not found.")
                 sys.exit(1)
-            print(f"Loading reviews from {csv_file}...", end="")
+            log.start(f"Loading reviews from {csv_file}...")
             books = GoodreadsBooks(csv_file)
             print(f" loaded {len(books)} reviews.")
 
         books_folder = BooksFolder(output_folder)
-        print(f"Reading existing files from {output_folder}...", end="")
+        log.start(f"Reading existing files from {output_folder}...")
         print(
             f" loaded {len(books_folder.reviews)} books, {len(books_folder.authors)} authors, "
             f"skipped {books_folder.skipped_unknown_files} unknown files"
         )
         books_folder.merge_author_names()
-        reviews_added, authors_added = books_folder.dump(books)
+        reviews_added, authors_added = books_folder.dump(books, log)
         print(f"\nAdded {reviews_added} review files, {authors_added} author files")
 
     except Exception as exc:  # pylint: disable=broad-except
