@@ -73,9 +73,10 @@ class BooksFolder:
                     authors_added += 1
                     log.progress("Authors")
                     log.debug(f"Added author {book.author}")
-                if self.create_book_md(book):
-                    reviews_added += 1
-                    log.debug(f"Added review {book.title}")
+                added_file_path = self.create_book_md(book)
+                # we know there was no file with this book ID so we added it for sure
+                reviews_added += 1
+                log.debug(f"Added review {book.title}, {added_file_path} ")
             log.progress("Reviews")
 
         log.close_progress("Reviews")
@@ -83,10 +84,10 @@ class BooksFolder:
 
         return reviews_added, authors_added
 
-    def create_book_md(self, book: Book) -> bool:
+    def create_book_md(self, book: Book) -> str:
         """Create book markdown file.
 
-        Return True if book file was added or updated, False otherwise
+        Return the filename.
         """
         if book.review == "" and book.rating == 0:
             subfolder = SUBFOLDERS["toread"]
@@ -108,7 +109,8 @@ class BooksFolder:
         )
         book_markdown.create_series_files()
         book_markdown.write()
-        return True
+        assert book_markdown.file_name is not None  # to make mypy happy
+        return os.path.join(subfolder, book_markdown.file_name)
 
     def create_author_md(self, book: Book) -> bool:
         """Create author markdown if id does not exist.

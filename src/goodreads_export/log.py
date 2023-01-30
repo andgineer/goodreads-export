@@ -12,15 +12,15 @@ class Log:
 
     def __init__(self, verbose: bool = False) -> None:
         """Initialize logger."""
-        self.verbose = verbose
+        self._verbose = verbose
 
     def start(self, message: str) -> None:
         """Start message."""
-        print(f"{message}...", **({} if self.verbose else {"end": ""}))  # type: ignore
+        print(f"{message}...", **({} if self._verbose else {"end": ""}))  # type: ignore
 
     def open_progress(self, title: str, unit: str, num: Optional[int] = None) -> None:
         """Open progress bar."""
-        if not self.verbose:
+        if not self._verbose:
             self.progress_bar[title] = {
                 "title": tqdm(bar_format="{desc}", leave=False, position=self.position + 1),
                 "bar": tqdm(
@@ -31,17 +31,17 @@ class Log:
 
     def progress_description(self, title: str, message: str) -> None:
         """Update progress bar description."""
-        if not self.verbose:
+        if not self._verbose:
             self.progress_bar[title]["title"].set_description_str(message)
 
     def progress(self, title: str) -> None:
         """Update progress bar."""
-        if not self.verbose:
+        if not self._verbose:
             self.progress_bar[title]["bar"].update()
 
     def close_progress(self, title: str) -> None:
         """Close progress bar."""
-        if not self.verbose:
+        if not self._verbose:
             self.progress_bar[title]["bar"].close()
             self.progress_bar[title]["title"].close()
             del self.progress_bar[title]
@@ -49,5 +49,5 @@ class Log:
 
     def debug(self, message: str) -> None:
         """Do not print debug messages in non-verbose mode."""
-        if self.verbose:
+        if self._verbose:
             print(message)

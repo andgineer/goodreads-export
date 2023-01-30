@@ -1,5 +1,7 @@
 from pathlib import Path
+from unittest.mock import patch
 
+import goodreads_export.book_file
 from goodreads_export.book_file import BookFile
 from goodreads_export.clean_file_name import clean_file_name
 
@@ -99,3 +101,21 @@ def test_book_file_defaults_from_class(book_markdown):
     assert f"www.goodreads.com/book/show/{book_file.book_id}" in book_file.content
     assert f"[{book_file.title}]" in book_file.content
     assert book_file.file_name == clean_file_name(f"{book_file.author} - {book_file.title}.md")
+
+
+def test_book_file_duplicate_name(book_markdown):
+    book_file = BookFile(
+        content=book_markdown,
+        book_id="123",
+        title="Title",
+        folder=Path(),
+    )
+    initial_filename = book_file.file_name
+    assert book_file.book_id not in book_file.file_name
+    with patch.object(goodreads_export.book_file.Path, "exists", return_value=True):
+        book_file.write()
+    assert (renamed_filename := book_file.file_name) != initial_filename
+    assert book_file.book_id in book_file.file_name
+    with patch.object(goodreads_export.book_file.Path, "exists", return_value=True):
+        book_file.write()
+    assert book_file.file_name == renamed_filename  # do not add IT int the file name twice

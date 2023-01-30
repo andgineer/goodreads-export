@@ -128,9 +128,20 @@ ISBN{self.isbn} (ISBN13{self.isbn13})
         self._file_name = file_name
 
     def write(self) -> None:
-        """Write markdown file to path."""
+        """Write markdown file to path.
+
+        If the file with `author - title.md` already exists, append book ID to the file name.
+        Even if this file also exists that does not matter because this it the book
+        with the same ID.
+        """
         assert self.file_name is not None  # to please mypy
         assert self.content is not None  # to please mypy
+        if (
+            (self.folder / self.file_name).exists()
+            and self.book_id is not None
+            and self.book_id not in self.file_name
+        ):
+            self.file_name = f"{self.file_name} - {self.book_id}.md"
         with (self.folder / self.file_name).open("w", encoding="utf8") as file:
             file.write(self.content)
 
