@@ -58,26 +58,31 @@ class BooksFolder:
 
         reviews_added = 0
         authors_added = 0
+        unique_authors = set()
         log.open_progress("Reviews", "books", len(books))
-        log.open_progress("Authors", "authors")
+        log.open_progress("Authors", "authors", bar_format="{desc}: {n_fmt}")
 
         for book in books:
-            log.progress_description("Reviews", book.title)
+            log.progress("Reviews")
+            log.progress_description("Reviews", f"{book.title}")
             log.progress_description("Authors", book.author)
-            if book.author in self.authors:
-                book.author = self.authors[
-                    book.author
-                ].author  # use the same author name for all synonyms
+            if book.author not in unique_authors:
+                unique_authors.add(book.author)
+                log.progress("Authors")
+            if book.author in self.authors and book.author != (
+                primary_author := self.authors[book.author].author
+            ):
+                log.debug(f"Author {book.author} changed to {primary_author}")
+                book.author = primary_author  # use the same author name for all synonyms
+
             if book.book_id not in self.reviews:
                 if book.author not in self.authors and self.create_author_md(book):
                     authors_added += 1
-                    log.progress("Authors")
                     log.debug(f"Added author {book.author}")
                 added_file_path = self.create_book_md(book)
                 # we know there was no file with this book ID so we added it for sure
                 reviews_added += 1
                 log.debug(f"Added review {book.title}, {added_file_path} ")
-            log.progress("Reviews")
 
         log.close_progress("Reviews")
         log.close_progress("Authors")

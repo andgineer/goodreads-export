@@ -85,12 +85,12 @@ def main(csv_file: str, output_folder: Path, version: bool, merge: bool, verbose
             if not os.path.isfile(csv_file):
                 print(f"Goodreads export file '{csv_file}' not found.")
                 sys.exit(1)
-            log.start(f"Loading reviews from {csv_file}...")
+            log.start(f"Loading reviews from {csv_file}")
             books = GoodreadsBooks(csv_file)
             print(f" loaded {len(books)} reviews.")
 
         books_folder = BooksFolder(output_folder)
-        log.start(f"Reading existing files from {output_folder}...")
+        log.start(f"Reading existing files from {output_folder}")
         print(
             f" loaded {len(books_folder.reviews)} books, {len(books_folder.authors)} authors, "
             f"skipped {books_folder.skipped_unknown_files} unknown files"
