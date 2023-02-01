@@ -33,8 +33,7 @@ def test_success(test_case):
             [
                 "-o",
                 "books",
-                "-v",
-            ],  # need -v because tqdm does not work well with the stdout emulated by click
+            ],
         )
         assert result.exit_code == 0, f"stdout: {result.output}"
         assert test_case.check("./books"), test_case.diff

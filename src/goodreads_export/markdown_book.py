@@ -59,33 +59,35 @@ class BooksFolder:
         reviews_added = 0
         authors_added = 0
         unique_authors = set()
-        log.open_progress("Reviews", "books", len(books))
-        log.open_progress("Authors", "authors", bar_format="{desc}: {n_fmt}")
+        reviews_bar_title = "Review"
+        authors_bar_title = "Author"
+        log.open_progress(reviews_bar_title, "books", len(books))
+        log.open_progress(authors_bar_title, "authors", bar_format="{desc}: {n_fmt}")
 
         for book in books:
-            log.progress("Reviews")
-            log.progress_description("Reviews", f"{book.title}")
-            log.progress_description("Authors", book.author)
+            log.progress(reviews_bar_title)
+            log.progress_description(reviews_bar_title, f"{book.title}")
             if book.author not in unique_authors:
                 unique_authors.add(book.author)
-                log.progress("Authors")
+                log.progress(authors_bar_title)
             if book.author in self.authors and book.author != (
                 primary_author := self.authors[book.author].author
             ):
-                log.debug(f"Author {book.author} changed to {primary_author}")
+                log.progress_description(
+                    authors_bar_title, f"Author {book.author} changed to {primary_author}"
+                )
                 book.author = primary_author  # use the same author name for all synonyms
 
             if book.book_id not in self.reviews:
                 if book.author not in self.authors and self.create_author_md(book):
                     authors_added += 1
-                    log.debug(f"Added author {book.author}")
+                    log.progress_description(authors_bar_title, f"Added author {book.author}")
                 added_file_path = self.create_book_md(book)
                 # we know there was no file with this book ID so we added it for sure
                 reviews_added += 1
                 log.debug(f"Added review {book.title}, {added_file_path} ")
 
-        log.close_progress("Reviews")
-        log.close_progress("Authors")
+        log.close_progress()
 
         return reviews_added, authors_added
 

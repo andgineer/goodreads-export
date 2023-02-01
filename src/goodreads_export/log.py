@@ -16,6 +16,14 @@ class Log:
         """Initialize logger."""
         self._verbose = verbose
 
+    @staticmethod
+    def get_terminal_width() -> int:
+        """Get terminal size."""
+        try:
+            return os.get_terminal_size().columns
+        except OSError:
+            return 80  # something capturing stdout, most likely Click test runner
+
     def start(self, message: str) -> None:
         """Start message."""
         print(f"{message}...", **({} if self._verbose else {"end": ""}))  # type: ignore
@@ -39,7 +47,7 @@ class Log:
         """Update progress bar description."""
         if not self._verbose:
             self.progress_bar[title]["title"].set_description_str(
-                shorten(message, os.get_terminal_size().columns)
+                shorten(message, self.get_terminal_width())
             )
         else:
             print(f"{title}: {message}")
@@ -49,13 +57,21 @@ class Log:
         if not self._verbose:
             self.progress_bar[title]["bar"].update()
 
-    def close_progress(self, title: str) -> None:
-        """Close progress bar."""
+    def close_progress(self) -> None:
+        """Close progress bars."""
         if not self._verbose:
-            self.progress_bar[title]["bar"].close()
-            self.progress_bar[title]["title"].close()
-            del self.progress_bar[title]
-            self.position -= 2
+            for progress_bar in self.progress_bar.values():
+                progress_bar["bar"].close()
+                progress_bar["title"].close()
+            self.progress_bar = {}
+            self.position = 0
+
+    def progress_refresh(self) -> None:
+        """Refresh progress bars."""
+        if not self._verbose:
+            for progress_bar in self.progress_bar.values():
+                progress_bar["bar"].refresh()
+                progress_bar["title"].refresh()
 
     def debug(self, message: str) -> None:
         """Do not print debug messages in non-verbose mode."""
