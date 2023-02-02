@@ -23,9 +23,10 @@ class BooksFolder:
 
     stat = Stat()
 
-    def __init__(self, folder: Path):
+    def __init__(self, folder: Path, log: Log) -> None:
         """Initialize."""
         self.folder = folder
+        self.log = log
         self.reviews: Dict[str, BookFile] = {}
         for reviews_subfolder in REVIEWS_SUBFOLDERS:
             self.reviews |= self.load_reviews(folder / reviews_subfolder)
@@ -45,30 +46,36 @@ class BooksFolder:
                 review.author in self.authors
                 and review.author != self.authors[review.author].author
             ):
+                self.log.debug(
+                    f"Modified review {review.file_name}: renamed author {review.author}"
+                    f" to {self.authors[review.author].author}"
+                )
                 review.rename_author(self.authors[review.author].author)
                 self.stat.authors_renamed += 1
         for author in self.primary_authors.values():
-            self.stat.author_names_removed += author.remove_non_primary_files()
+            removed_names = author.remove_non_primary_files()
+            self.log.debug(f"Removed {author.author}'s duplicate names: {removed_names}")
+            self.stat.author_removed_names += removed_names
 
-    def dump(self, books: GoodreadsBooks, log: Log) -> None:
+    def dump(self, books: GoodreadsBooks) -> None:
         """Save books and authors as md-files."""
         for subfolder in SUBFOLDERS.values():
             os.makedirs(self.folder / subfolder, exist_ok=True)
 
         reviews_bar_title = "Review"
         authors_bar_title = "Author"
-        log.open_progress(reviews_bar_title, "books", len(books))
-        log.open_progress(authors_bar_title, "authors", bar_format="{desc}: {n_fmt}")
+        self.log.open_progress(reviews_bar_title, "books", len(books))
+        self.log.open_progress(authors_bar_title, "authors", bar_format="{desc}: {n_fmt}")
 
         for book in books:
-            log.progress(reviews_bar_title)
-            log.progress_description(reviews_bar_title, f"{book.title}")
+            self.log.progress(reviews_bar_title)
+            self.log.progress_description(reviews_bar_title, f"{book.title}")
             if self.stat.unique_author(book.author):
-                log.progress(authors_bar_title)
+                self.log.progress(authors_bar_title)
             if book.author in self.authors and book.author != (
                 primary_author := self.authors[book.author].author
             ):
-                log.progress_description(
+                self.log.progress_description(
                     authors_bar_title, f"Author {book.author} changed to {primary_author}"
                 )
                 book.author = primary_author  # use the same author name for all synonyms
@@ -76,12 +83,12 @@ class BooksFolder:
             if book.book_id not in self.reviews:
                 if book.author not in self.authors and self.create_author_md(book):
                     self.stat.authors_added += 1
-                    log.progress_description(authors_bar_title, f"Added author {book.author}")
+                    self.log.progress_description(authors_bar_title, f"Added author {book.author}")
                 added_file_path = self.create_book_md(book)
                 # we know there was no file with this book ID so we added it for sure
                 self.stat.reviews_added += 1
-                log.debug(f"Added review {book.title}, {added_file_path} ")
-        log.close_progress()
+                self.log.debug(f"Added review {book.title}, {added_file_path} ")
+        self.log.close_progress()
 
     def create_book_md(self, book: Book) -> str:
         """Create book markdown file.

@@ -4,7 +4,7 @@ import re
 import urllib.parse
 from dataclasses import dataclass, field
 from pathlib import Path
-from typing import Optional
+from typing import List, Optional
 
 from goodreads_export.clean_file_name import clean_file_name
 
@@ -83,21 +83,21 @@ class AuthorFile:
             return
         self._file_name = file_name
 
-    def remove_non_primary_files(self) -> int:
+    def remove_non_primary_files(self) -> List[str]:
         """Remove files with non-primary author names.
 
-        Return number of removed files.
+        Return list of removed names.
         """
         assert self.names is not None  # to make mypy happy
-        names_removed_count = 0
+        removed_names = []
         for name in self.names:
             if (
                 name != self.author
                 and (author_file_path := self.folder / f"{clean_file_name(name)}.md").exists()
             ):
                 os.remove(author_file_path)
-                names_removed_count += 1
-        return names_removed_count
+                removed_names += [name]
+        return removed_names
 
     def write(self) -> None:
         """Write markdown file to path."""

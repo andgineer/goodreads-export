@@ -89,7 +89,7 @@ def main(csv_file: str, output_folder: Path, version: bool, merge: bool, verbose
             books = GoodreadsBooks(csv_file)
             print(f" loaded {len(books)} reviews.")
 
-        books_folder = BooksFolder(output_folder)
+        books_folder = BooksFolder(output_folder, log)
         log.start(f"Reading existing files from {output_folder}")
         print(
             f" loaded {len(books_folder.reviews)} books, {len(books_folder.authors)} authors, "
@@ -97,12 +97,12 @@ def main(csv_file: str, output_folder: Path, version: bool, merge: bool, verbose
             f" and {books_folder.stat.series_added} series files.",
         )
         books_folder.merge_author_names()
-        books_folder.dump(books, log)
+        books_folder.dump(books)
         print(
             f"\nAdded {books_folder.stat.reviews_added} review files, "
             f"{books_folder.stat.authors_added} author files.",
             f"Renamed {books_folder.stat.authors_renamed} authors, "
-            f"removed {books_folder.stat.author_names_removed} author names.",
+            f"removed duplicate {len(books_folder.stat.author_removed_names)} author names.",
         )
 
     except Exception as exc:  # pylint: disable=broad-except

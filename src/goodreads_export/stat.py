@@ -1,5 +1,5 @@
 """Loading statistics."""
-from typing import Set
+from typing import List, Set
 
 
 class Stat:  # pylint: disable=too-few-public-methods
@@ -10,7 +10,7 @@ class Stat:  # pylint: disable=too-few-public-methods
     skipped_unknown_files: int = 0
     series_added: int = 0
     authors_renamed: int = 0
-    author_names_removed: int = 0
+    author_removed_names: List[str] = []
     unique_authors: Set[str] = set()
 
     def unique_author(self, author: str) -> bool:
