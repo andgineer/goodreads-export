@@ -83,15 +83,21 @@ class AuthorFile:
             return
         self._file_name = file_name
 
-    def remove_non_primary_files(self) -> None:
-        """Remove files with non-primary author names."""
+    def remove_non_primary_files(self) -> int:
+        """Remove files with non-primary author names.
+
+        Return number of removed files.
+        """
         assert self.names is not None  # to make mypy happy
+        names_removed_count = 0
         for name in self.names:
             if (
                 name != self.author
                 and (author_file_path := self.folder / f"{clean_file_name(name)}.md").exists()
             ):
                 os.remove(author_file_path)
+                names_removed_count += 1
+        return names_removed_count
 
     def write(self) -> None:
         """Write markdown file to path."""

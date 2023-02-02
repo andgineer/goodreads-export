@@ -7,6 +7,7 @@ from goodreads_export.author_file import AuthorFile
 from goodreads_export.book_file import BookFile
 from goodreads_export.goodreads_book import Book, GoodreadsBooks
 from goodreads_export.log import Log
+from goodreads_export.stat import Stat
 
 SUBFOLDERS = {
     "toread": "toread",  # for books without review and rating - supposedly this is from to-read
@@ -20,7 +21,7 @@ REVIEWS_SUBFOLDERS = [SUBFOLDERS["reviews"], SUBFOLDERS["toread"]]
 class BooksFolder:
     """Create markdown files for book review and author."""
 
-    skipped_unknown_files = 0
+    stat = Stat()
 
     def __init__(self, folder: Path):
         """Initialize."""
@@ -45,20 +46,15 @@ class BooksFolder:
                 and review.author != self.authors[review.author].author
             ):
                 review.rename_author(self.authors[review.author].author)
+                self.stat.authors_renamed += 1
         for author in self.primary_authors.values():
-            author.remove_non_primary_files()
+            self.stat.author_names_removed += author.remove_non_primary_files()
 
-    def dump(self, books: GoodreadsBooks, log: Log) -> Tuple[int, int]:
-        """Save books and authors as md-files.
-
-        Returns (reviews_added, authors_added)
-        """
+    def dump(self, books: GoodreadsBooks, log: Log) -> None:
+        """Save books and authors as md-files."""
         for subfolder in SUBFOLDERS.values():
             os.makedirs(self.folder / subfolder, exist_ok=True)
 
-        reviews_added = 0
-        authors_added = 0
-        unique_authors = set()
         reviews_bar_title = "Review"
         authors_bar_title = "Author"
         log.open_progress(reviews_bar_title, "books", len(books))
@@ -67,8 +63,7 @@ class BooksFolder:
         for book in books:
             log.progress(reviews_bar_title)
             log.progress_description(reviews_bar_title, f"{book.title}")
-            if book.author not in unique_authors:
-                unique_authors.add(book.author)
+            if self.stat.unique_author(book.author):
                 log.progress(authors_bar_title)
             if book.author in self.authors and book.author != (
                 primary_author := self.authors[book.author].author
@@ -80,16 +75,13 @@ class BooksFolder:
 
             if book.book_id not in self.reviews:
                 if book.author not in self.authors and self.create_author_md(book):
-                    authors_added += 1
+                    self.stat.authors_added += 1
                     log.progress_description(authors_bar_title, f"Added author {book.author}")
                 added_file_path = self.create_book_md(book)
                 # we know there was no file with this book ID so we added it for sure
-                reviews_added += 1
+                self.stat.reviews_added += 1
                 log.debug(f"Added review {book.title}, {added_file_path} ")
-
         log.close_progress()
-
-        return reviews_added, authors_added
 
     def create_book_md(self, book: Book) -> str:
         """Create book markdown file.
@@ -153,7 +145,10 @@ class BooksFolder:
                     content=review_file.read(),
                 )
                 if book.book_id is None:
-                    self.skipped_unknown_files += 1
+                    if book.is_series_file_name():
+                        self.stat.series_added += 1
+                    else:
+                        self.stat.skipped_unknown_files += 1
                 elif book.book_id in reviews:
                     raise ValueError(
                         f"Duplicate book ID {book.book_id} in {file_name} "
@@ -202,5 +197,5 @@ class BooksFolder:
                             )
                             authors[name] = author
                 else:
-                    self.skipped_unknown_files += 1
+                    self.stat.skipped_unknown_files += 1
         return authors, primary_authors

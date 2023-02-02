@@ -93,11 +93,17 @@ def main(csv_file: str, output_folder: Path, version: bool, merge: bool, verbose
         log.start(f"Reading existing files from {output_folder}")
         print(
             f" loaded {len(books_folder.reviews)} books, {len(books_folder.authors)} authors, "
-            f"skipped {books_folder.skipped_unknown_files} unknown files"
+            f"skipped {books_folder.stat.skipped_unknown_files} unknown files"
+            f" and {books_folder.stat.series_added} series files.",
         )
         books_folder.merge_author_names()
-        reviews_added, authors_added = books_folder.dump(books, log)
-        print(f"\nAdded {reviews_added} review files, {authors_added} author files")
+        books_folder.dump(books, log)
+        print(
+            f"\nAdded {books_folder.stat.reviews_added} review files, "
+            f"{books_folder.stat.authors_added} author files.",
+            f"Renamed {books_folder.stat.authors_renamed} authors, "
+            f"removed {books_folder.stat.author_names_removed} author names.",
+        )
 
     except Exception as exc:  # pylint: disable=broad-except
         print(f"\n{exc}")

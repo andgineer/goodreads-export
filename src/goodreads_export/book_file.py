@@ -112,6 +112,11 @@ ISBN{self.isbn} (ISBN13{self.isbn13})
         assert self.author is not None
         return clean_file_name(f"{self.author} - {series} - series")
 
+    def is_series_file_name(self) -> bool:
+        """Return True if file name if indicate this is series description file."""
+        assert self.file_name is not None
+        return re.match(r".* - .* - series\.md$", self.file_name) is not None
+
     def series_file_name(self, series: str) -> str:
         """Return file name for series."""
         return f"{self.series_full_name(series)}.md"
