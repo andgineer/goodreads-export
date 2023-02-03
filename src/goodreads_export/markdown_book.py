@@ -46,11 +46,17 @@ class BooksFolder:
                 review.author in self.authors
                 and review.author != self.authors[review.author].author
             ):
-                self.log.debug(
+                self.log.debug(  # should be before rename to log old author name
                     f"Modified review {review.file_name}: renamed author {review.author}"
                     f" to {self.authors[review.author].author}"
                 )
-                review.rename_author(self.authors[review.author].author)
+                deleted_series_files, created_series_files = review.rename_author(
+                    self.authors[review.author].author
+                )
+                self.log.debug(
+                    f"Deleted series files: {[str(path) for path in deleted_series_files.values()]}, "
+                    f"created: {[str(path) for path in created_series_files.values()]}."
+                )
                 self.stat.authors_renamed += 1
         for author in self.primary_authors.values():
             removed_names = author.remove_non_primary_files()

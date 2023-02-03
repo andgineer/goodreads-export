@@ -4,7 +4,7 @@ import re
 import urllib.parse
 from dataclasses import dataclass, field
 from pathlib import Path
-from typing import Dict, List, Optional
+from typing import Dict, List, Optional, Tuple
 
 from goodreads_export.clean_file_name import clean_file_name
 
@@ -158,51 +158,62 @@ ISBN{self.isbn} (ISBN13{self.isbn13})
         if (self.folder / self.file_name).exists():
             os.remove(self.folder / self.file_name)
 
-    def delete_series_files(self) -> Dict[str, str]:
+    def series_list_full_names(self) -> Dict[str, str]:
+        """Return dict of series full names."""
+        assert self.series is not None  # to please mypy
+        return {series: self.series_full_name(series) for series in self.series}
+
+    def delete_series_files(self) -> Dict[str, Path]:
         """Delete series files for review.
 
-        Return deleted series {series name: series link}
+        Return deleted series files {series name: series file path}
         """
-        old_series_names = {}
+        deleted_series_files = {}
         assert self.series is not None
-        for series in self.series:
-            old_series_names[series] = self.series_full_name(series)
-            series_file_name = self.series_file_name(series)
-            if (self.folder / series_file_name).exists():
-                os.remove(self.folder / series_file_name)
-        return old_series_names
+        for series, series_full_name in self.series_list_full_names().items():
+            series_file_path = self.folder / f"{series_full_name}.md"
+            if series_file_path.exists():
+                os.remove(series_file_path)
+                deleted_series_files[series] = series_file_path
+        return deleted_series_files
 
-    def rename_author(self, new_author: str) -> None:
+    def rename_author(self, new_author: str) -> Tuple[Dict[str, Path], Dict[str, Path]]:
         """Rename author in review file.
 
         In content replace links only, do not re-render content to keep user changes.
         Also recreate series files with new author name in the file names.
+
+        Return (deleted series files, created series files)
         """
         assert self.author is not None
         assert self.content is not None
-        old_series_names = self.delete_series_files()
+        old_series_names = self.series_list_full_names()
+        deleted_series_files = self.delete_series_files()
         self.delete_file()
         self.content = self.content.replace(f"[[{self.author}]]", f"[[{new_author}]]")
         self.author = new_author
         self._file_name = None  # to recreate from fields
         for series_name, series_full in old_series_names.items():
             self.content = self.content.replace(series_full, self.series_full_name(series_name))
-        self.create_series_files()
+        created_series_files = self.create_series_files()
         self.write()
+        return deleted_series_files, created_series_files
 
-    def create_series_files(self) -> None:
+    def create_series_files(self) -> Dict[str, Path]:
         """Create series files if they do not exist.
 
         Do not change already existed files.
+        Return created series files {series name: series file path}
         """
         assert self.series is not None
         assert self.author is not None
-        for series_idx, series in enumerate(self.series):
+        created_series_files = {}
+        for series in self.series:
             series_file_name = self.series_file_name(series)
             search_params = urllib.parse.urlencode(
                 {
                     "utf8": "✓",
-                    "q": f"{self.series[series_idx]}, #",
+                    "q": f"{series}, #",
                     "search_type": "books",
                     "search[field]": "title",
                 }
@@ -212,5 +223,7 @@ ISBN{self.isbn} (ISBN13{self.isbn13})
                 with series_file_path.open("w", encoding="utf8") as md_file:
                     md_file.write(
                         f"""[[{clean_file_name(self.author)}]]
-[{self.series[series_idx]}](https://www.goodreads.com/search?{search_params})"""
+[{series}](https://www.goodreads.com/search?{search_params})"""
                     )
+                created_series_files[series] = series_file_path
+        return created_series_files
