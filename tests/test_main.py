@@ -41,7 +41,6 @@ def test_main_wrong_columns():
             [],
         )
     assert result.exit_code == 1, f"stdout: {result.output}"
-    print("%" * 50, result.output)
     assert "Wrong goodreads export file" in result.output
     assert "Book Id" in result.output
     assert "Author" not in result.output

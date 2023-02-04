@@ -112,10 +112,14 @@ def test_book_file_duplicate_name(book_markdown):
     )
     initial_filename = book_file.file_name
     assert book_file.book_id not in book_file.file_name
-    with patch.object(goodreads_export.book_file.Path, "exists", return_value=True):
+    with patch.object(goodreads_export.book_file.Path, "exists", return_value=True), patch.object(
+        goodreads_export.book_file.Path, "open"
+    ):
         book_file.write()
     assert (renamed_filename := book_file.file_name) != initial_filename
     assert book_file.book_id in book_file.file_name
-    with patch.object(goodreads_export.book_file.Path, "exists", return_value=True):
+    with patch.object(goodreads_export.book_file.Path, "exists", return_value=True), patch.object(
+        goodreads_export.book_file.Path, "open"
+    ):
         book_file.write()
     assert book_file.file_name == renamed_filename  # do not add IT int the file name twice
