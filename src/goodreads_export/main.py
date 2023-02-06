@@ -13,27 +13,61 @@ from goodreads_export.version import VERSION
 GOODREAD_EXPORT_FILE_NAME = "goodreads_library_export.csv"
 
 
-@click.command()
-@click.argument(
-    "csv_file",
-    default=GOODREAD_EXPORT_FILE_NAME,
-    nargs=1,
-)
-@click.option(
-    "--out",
-    "-o",
-    "output_folder",
-    default=".",
-    type=click.Path(exists=True, path_type=Path),
-    help="Folder where we put result. By default current folder.",
-    nargs=1,
-)
+@click.group(invoke_without_command=True)
+@click.pass_context
 @click.option(
     "--version",
     "version",
     is_flag=True,
     default=False,
     help="Show version.",
+    nargs=1,
+)
+@click.option(
+    "--verbose",
+    "-v",
+    "verbose",
+    is_flag=True,
+    default=False,
+    help="""Increase verbosity.""",
+    nargs=1,
+)
+def main(ctx: click.Context, verbose: bool, version: bool) -> None:
+    """Create md-files from https://www.goodreads.com/ CSV export.
+
+    To see help on the commands use `goodreads-export COMMAND --help`.
+    For example: `goodreads-export import --help`.
+    """
+    try:
+        ctx.ensure_object(dict)
+        ctx.obj["log"] = Log(verbose)
+        if version:
+            print(f"{VERSION}")
+            sys.exit(0)
+        if not ctx.invoked_subcommand:
+            click.echo("Error: Missing command.")
+            click.echo(main.get_help(ctx))
+            sys.exit(1)
+    except Exception as exc:  # pylint: disable=broad-except
+        print(f"\n{exc}")
+        sys.exit(1)
+
+
+@main.command(name="import")
+@click.pass_context
+@click.argument(
+    "output_folder",
+    default=".",
+    type=click.Path(exists=True, path_type=Path),
+    nargs=1,
+)
+@click.option(
+    "--in",
+    "-i",
+    "csv_file",
+    default=GOODREAD_EXPORT_FILE_NAME,
+    help="""Goodreads export file. By default `goodreads_library_export.csv`.
+if you specify just folder it will look for file with this name in that folder.""",
     nargs=1,
 )
 @click.option(
@@ -46,16 +80,7 @@ GOODREAD_EXPORT_FILE_NAME = "goodreads_library_export.csv"
 without importing goodreads file. See https://andgineer.github.io/goodreads-export/ for details.""",
     nargs=1,
 )
-@click.option(
-    "--verbose",
-    "-v",
-    "verbose",
-    is_flag=True,
-    default=False,
-    help="""Increase verbosity.""",
-    nargs=1,
-)
-def main(csv_file: str, output_folder: Path, version: bool, merge: bool, verbose: bool) -> None:
+def import_(ctx: click.Context, csv_file: str, output_folder: Path, merge: bool) -> None:
     """Convert reviews and authors from goodreads export CSV file to markdown files.
 
     For example you can create nice structure in Obsidian.
@@ -64,16 +89,13 @@ def main(csv_file: str, output_folder: Path, version: bool, merge: bool, verbose
     In 2022 they declare it to be removed by August,
     but at least at the end of 2022 it still works.
 
-    CSV_FILE: Goodreads export file. By default `goodreads_library_export.csv`.
-    if you specify just folder it will look for file with this name in that folder.
+    OUTPUT_FOLDER
+    Folder where we put result. By default current folder.
 
     Documentation https://andgineer.github.io/goodreads-export/
     """
     try:
-        log = Log(verbose)
-        if version:
-            print(f"{VERSION}")
-            sys.exit(0)
+        log = ctx.obj["log"]
 
         if merge:  # merge only without import from goodreads file
             books = GoodreadsBooks(None)
@@ -105,6 +127,28 @@ def main(csv_file: str, output_folder: Path, version: bool, merge: bool, verbose
             f"removed duplicate {len(books_folder.stat.author_removed_names)} author names.",
         )
 
+    except Exception as exc:  # pylint: disable=broad-except
+        print(f"\n{exc}")
+        sys.exit(1)
+
+
+@main.command()
+@click.pass_context
+@click.argument(
+    "output_folder",
+    default=".",
+    nargs=1,
+)
+def check(ctx: click.Context, output_folder: Path) -> None:
+    """Check templates consistency with extraction regexes.
+
+    Loads templates and regexes from OUTPUT_FOLDER/templates.
+    To create initial files from embedded default use command `goodreads-export init`.
+    """
+    try:
+        assert output_folder
+        log = ctx.obj["log"]
+        log.debug("Check")
     except Exception as exc:  # pylint: disable=broad-except
         print(f"\n{exc}")
         sys.exit(1)

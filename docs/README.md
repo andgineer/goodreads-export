@@ -95,9 +95,18 @@ It will install Linux or Windows script `goodreads-export`.
       removed by August, but at least at the end of 2022 it still works.
 
       CSV_FILE: Goodreads export file. By default `goodreads_library_export.csv`.
+      if you specify just folder it will look for file with this name in that
+      folder.
+
+      Documentation https://andgineer.github.io/goodreads-export/
 
     Options:
       -o, --out PATH  Folder where we put result. By default current folder.
+      --version       Show version.
+      -m, --merge     Merge only. Use it if you need only re-link to primary
+                      author names without importing goodreads file. See
+                      https://andgineer.github.io/goodreads-export/ for details.
+      -v, --verbose   Increase verbosity.
       --help          Show this message and exit.
 
 If we run in the folder with goodreads export file (goodreads_library_export.csv) the

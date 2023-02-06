@@ -31,7 +31,7 @@ def test_success(test_case):
         result = runner.invoke(
             main,
             [
-                "-o",
+                "import",
                 "books",
             ],
         )
