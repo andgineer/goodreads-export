@@ -73,7 +73,7 @@ def test_main_merge():
     with runner.isolated_filesystem():
         result = runner.invoke(
             main,
-            ["import", "--merge"],
+            ["merge"],
         )
     assert result.exit_code == 0, f"stdout: {result.output}"
     assert "loaded 0 books, 0 authors, skipped 0 unknown files" in result.output

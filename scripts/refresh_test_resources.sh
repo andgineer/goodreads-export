@@ -4,5 +4,5 @@
 for testcase in tests/resources/*/; do
   rm -rf ${testcase}books/*
   cp -r ${testcase}existed/ ${testcase}books
-  goodreads-export ${testcase}goodreads_library_export.csv -o ${testcase}books
+  goodreads-export import ${testcase}books -i ${testcase}goodreads_library_export.csv
 done

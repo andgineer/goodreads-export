@@ -83,36 +83,53 @@ It will install Linux or Windows script `goodreads-export`.
 
     $> goodreads-export --help
 
-    Usage: goodreads-export [OPTIONS] [CSV_FILE]
+    Usage: goodreads-export [OPTIONS] COMMAND [ARGS]...
 
-      Convert reviews and authors from goodreads export CSV file to markdown
-      files.
+      Create md-files from https://www.goodreads.com/ CSV export.
 
-      For example you can create nice structure in Obsidian.
+      For example, you can create nice structure in Obsidian.
 
       How to create goodreads export see in
       https://www.goodreads.com/review/import In 2022 they declare it to be
       removed by August, but at least at the end of 2022 it still works.
 
-      CSV_FILE: Goodreads export file. By default `goodreads_library_export.csv`.
-      if you specify just folder it will look for file with this name in that
-      folder.
+      Documentation https://andgineer.github.io/goodreads-export/
+
+      To see help on the commands use `goodreads-export COMMAND --help`. For
+      example: `goodreads-export import --help`.
+
+    Options:
+      --version      Show version.
+      -v, --verbose  Increase verbosity.
+      --help         Show this message and exit.
+
+    Commands:
+      check   Check templates consistency with extraction regexes.
+      import  Convert goodreads export CSV file to markdown files.
+      merge   Merge authors only.
+
+    $> goodreads-export import --help
+
+    Usage: goodreads-export import [OPTIONS] [OUTPUT_FOLDER]
+
+      Convert goodreads export CSV file to markdown files.
+
+      OUTPUT_FOLDER Folder where we put result. By default, current folder. If the
+      folder already exists also merge authors if found author files with many
+      names.
 
       Documentation https://andgineer.github.io/goodreads-export/
 
     Options:
-      -o, --out PATH  Folder where we put result. By default current folder.
-      --version       Show version.
-      -m, --merge     Merge only. Use it if you need only re-link to primary
-                      author names without importing goodreads file. See
-                      https://andgineer.github.io/goodreads-export/ for details.
-      -v, --verbose   Increase verbosity.
-      --help          Show this message and exit.
+      -i, --in TEXT  Goodreads export file. By default
+                     `goodreads_library_export.csv`. if you specify just folder it
+                     will look for file with this name in that folder.
+      --help         Show this message and exit.
 
 If we run in the folder with goodreads export file (goodreads_library_export.csv) the
 script without parameters, like that
 
-    goodreads-export
+    goodreads-export import
 
 It will create in this folder subfolders `reviws`, `toread`, `authors` with the md-files.
 If you copy them into Obsidian vault, the files will be inside your Obsidian knowledgebase.
