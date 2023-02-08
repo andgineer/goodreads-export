@@ -123,3 +123,7 @@ def test_book_file_duplicate_name(book_markdown):
     ):
         book_file.write()
     assert book_file.file_name == renamed_filename  # do not add IT int the file name twice
+
+
+def test_book_file_check():
+    assert BookFile.check()

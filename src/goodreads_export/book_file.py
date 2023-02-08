@@ -28,7 +28,7 @@ class BookFile:  # pylint: disable=too-many-instance-attributes
     rating: Optional[int] = None
     isbn: Optional[int] = None
     isbn13: Optional[int] = None
-    review: Optional[int] = None
+    review: Optional[str] = None
     series: Optional[List[str]] = None
 
     _file_name: Optional[str] = field(repr=False, init=False)
@@ -227,3 +227,34 @@ ISBN{self.isbn} (ISBN13{self.isbn13})
                     )
                 created_series_files[series] = series_file_path
         return created_series_files
+
+    @classmethod
+    def check(cls) -> bool:
+        """Check regexps for the template."""
+        author = "Jules Verne"
+        book_id = "54479"
+        title = "Around the World in Eighty Days"
+        tags = ["adventure", "classics", "fiction", "novel", "travel"]
+        series = ["Voyages extraordinaires"]
+        review = "This is a review\nin two lines"
+        book_file = cls(
+            book_id=book_id,
+            title=title,
+            folder=Path(),
+            author=author,
+            tags=tags,
+            series=series,
+            review=review,
+            rating=5,
+        )
+        book_file.book_id = ""
+        book_file.title = ""
+        book_file.author = ""
+        book_file.series = []
+        book_file.parse()
+        is_book_id_parsed = book_file.book_id == book_id
+        is_title_parsed = book_file.title == title
+        is_author_parsed = book_file.author == author
+        is_series_parsed = book_file.series == series
+        # todo detailed error diagnostics like in AuthorFile
+        return is_book_id_parsed and is_title_parsed and is_author_parsed and is_series_parsed

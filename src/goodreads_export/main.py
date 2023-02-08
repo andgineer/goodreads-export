@@ -5,6 +5,8 @@ from pathlib import Path
 
 import click
 
+from goodreads_export.author_file import AuthorFile
+from goodreads_export.book_file import BookFile
 from goodreads_export.goodreads_book import GoodreadsBooks
 from goodreads_export.log import Log
 from goodreads_export.markdown_book import BooksFolder
@@ -88,7 +90,7 @@ def import_(ctx: click.Context, csv_file: str, output_folder: Path) -> None:
     Documentation https://andgineer.github.io/goodreads-export/
     """
     try:
-        log = ctx.obj["log"]
+        log: Log = ctx.obj["log"]
 
         if os.path.isdir(
             csv_file
@@ -144,8 +146,10 @@ def check(ctx: click.Context, output_folder: Path) -> None:
     """
     try:
         assert output_folder
-        log = ctx.obj["log"]
-        log.debug("Check")
+        log: Log = ctx.obj["log"]
+        assert BookFile.check()
+        assert AuthorFile.check()
+        log.info("Templates are consistent with extraction regexes.")
     except Exception as exc:  # pylint: disable=broad-except
         print(f"\n{exc}")
         sys.exit(1)
@@ -172,7 +176,7 @@ def merge(ctx: click.Context, output_folder: Path) -> None:
     """
     try:
         assert output_folder
-        log = ctx.obj["log"]
+        log: Log = ctx.obj["log"]
         books_folder = merge_authors(log, output_folder)
         print(
             f"Renamed {books_folder.stat.authors_renamed} authors, "

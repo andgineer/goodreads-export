@@ -105,3 +105,16 @@ class AuthorFile:
         assert self.content is not None  # to please mypy
         with (self.folder / self.file_name).open("w", encoding="utf8") as file:
             file.write(self.content)
+
+    @classmethod
+    def check(cls: type["AuthorFile"]) -> bool:
+        """Check regex work for the template."""
+        author_name = "Mark Twain"
+        book_file = cls(author_name, Path())
+        book_file.names = []
+        book_file.parse()
+        is_author_parsed = book_file.names == [author_name]
+        if not is_author_parsed:
+            print(f"Author name {author_name} is not parsed from content\n{book_file.content}")
+            print(f"using the pattern\n{book_file._name_link_pattern.pattern}")
+        return is_author_parsed

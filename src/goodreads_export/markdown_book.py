@@ -27,7 +27,10 @@ class BooksFolder:
         """Initialize."""
         self.folder = folder
         self.log = log
+
         self.reviews: Dict[str, BookFile] = {}
+        self.authors: Dict[str, AuthorFile] = {}
+        self.primary_authors: Dict[str, AuthorFile] = {}
         for reviews_subfolder in REVIEWS_SUBFOLDERS:
             self.reviews |= self.load_reviews(folder / reviews_subfolder)
         self.authors, self.primary_authors = self.load_authors(folder / SUBFOLDERS["authors"])

@@ -77,3 +77,7 @@ class Log:
         """Do not print debug messages in non-verbose mode."""
         if self._verbose:
             print(message)
+
+    def info(self, message: str) -> None:
+        """Print info messages."""
+        print(message)

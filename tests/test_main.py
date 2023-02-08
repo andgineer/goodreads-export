@@ -91,3 +91,14 @@ def test_main_verbose(test_case):
     assert result.exit_code == 0, f"stdout: {result.output}"
     assert "loaded 0 books, 0 authors, skipped 0 unknown files" in result.output
     assert "Added review" in result.output
+
+
+def test_main_check():
+    runner = CliRunner()
+    with runner.isolated_filesystem():
+        result = runner.invoke(
+            main,
+            ["check"],
+        )
+    assert result.exit_code == 0, f"stdout: {result.output}"
+    assert "Templates are consistent" in result.output
