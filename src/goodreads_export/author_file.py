@@ -3,6 +3,7 @@ import os
 import re
 import urllib.parse
 from dataclasses import dataclass, field
+from importlib.resources import files
 from pathlib import Path
 from typing import List, Optional
 
@@ -10,7 +11,7 @@ from goodreads_export.clean_file_name import clean_file_name
 
 
 @dataclass
-class AuthorFile:
+class AuthorFile:  # pylint: disable=too-many-instance-attributes
     """Author's file.
 
     On init extract fields from `content` - override other parameters.
@@ -39,6 +40,14 @@ class AuthorFile:
         self.parse()  # we do not run parse on content assign during __init__()
         if self.content is None:
             self.render()
+        # todo inject Template
+        self.template = (
+            files(__package__)
+            .joinpath("themes")
+            .joinpath("default")
+            .joinpath("author.md")
+            .read_text()
+        )
 
     def parse(self) -> None:
         """Parse markdown file content."""
@@ -68,6 +77,7 @@ class AuthorFile:
 
         Automatically generate file name from book's fields if not assigned.
         """
+        # todo read template from file
         if self._file_name is None:
             self._file_name = f"{clean_file_name(self.author)}.md"
         return self._file_name

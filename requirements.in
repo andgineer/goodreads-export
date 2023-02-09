@@ -4,3 +4,4 @@ requests
 markdownify
 click
 tqdm
+Jinja2

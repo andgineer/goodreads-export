@@ -4,11 +4,11 @@
 #
 #    pip-compile requirements.dev.in
 #
-astroid==2.13.3
+astroid==2.14.1
     # via pylint
 attrs==22.2.0
     # via pytest
-black==22.12.0
+black==23.1.0
     # via -r requirements.dev.in
 bleach==6.0.0
     # via readme-renderer
@@ -46,7 +46,7 @@ filelock==3.9.0
     # via virtualenv
 ghp-import==2.1.0
     # via mkdocs
-identify==2.5.15
+identify==2.5.17
     # via pre-commit
 idna==3.4
     # via requests
@@ -56,7 +56,7 @@ importlib-metadata==6.0.0
     #   twine
 iniconfig==2.0.0
     # via pytest
-isort==5.11.4
+isort==5.12.0
     # via pylint
 jaraco-classes==3.2.3
     # via keyring
@@ -88,9 +88,9 @@ mkdocs-awesome-pages-plugin==2.8.0
     # via -r requirements.dev.in
 more-itertools==9.0.0
     # via jaraco-classes
-mypy==0.991
+mypy==1.0.0
     # via -r requirements.dev.in
-mypy-extensions==0.4.3
+mypy-extensions==1.0.0
     # via
     #   black
     #   mypy
@@ -100,23 +100,24 @@ nodeenv==1.7.0
     # via pre-commit
 packaging==23.0
     # via
+    #   black
     #   build
     #   mkdocs
     #   pytest
-pathspec==0.10.3
+pathspec==0.11.0
     # via black
-pip-tools==6.12.1
+pip-tools==6.12.2
     # via -r requirements.dev.in
 pkginfo==1.9.6
     # via twine
-platformdirs==2.6.2
+platformdirs==3.0.0
     # via
     #   black
     #   pylint
     #   virtualenv
 pluggy==1.0.0
     # via pytest
-pre-commit==3.0.0
+pre-commit==3.0.4
     # via -r requirements.dev.in
 pydocstyle==6.3.0
     # via -r requirements.dev.in
@@ -124,7 +125,7 @@ pygments==2.14.0
     # via
     #   readme-renderer
     #   rich
-pylint==2.15.10
+pylint==2.16.1
     # via -r requirements.dev.in
 pyproject-hooks==1.0.0
     # via build
@@ -157,7 +158,7 @@ requests-toolbelt==0.10.1
     # via twine
 rfc3986==2.0.0
     # via twine
-rich==13.2.0
+rich==13.3.1
     # via twine
 six==1.16.0
     # via
@@ -177,7 +178,7 @@ urllib3==1.26.14
     # via
     #   requests
     #   twine
-virtualenv==20.17.1
+virtualenv==20.19.0
     # via pre-commit
 watchdog==2.2.1
     # via mkdocs
@@ -189,7 +190,7 @@ wheel==0.38.4
     # via pip-tools
 wrapt==1.14.1
     # via astroid
-zipp==3.11.0
+zipp==3.12.1
     # via importlib-metadata
 
 # The following packages are considered to be unsafe in a requirements file:
