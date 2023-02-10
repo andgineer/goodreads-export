@@ -3,7 +3,6 @@ import os
 import re
 import urllib.parse
 from dataclasses import dataclass, field
-from importlib.resources import files
 from pathlib import Path
 from typing import List, Optional
 
@@ -41,13 +40,6 @@ class AuthorFile:  # pylint: disable=too-many-instance-attributes
         if self.content is None:
             self.render()
         # todo inject Template
-        self.template = (
-            files(__package__)
-            .joinpath("themes")
-            .joinpath("default")
-            .joinpath("author.md")
-            .read_text()
-        )
 
     def parse(self) -> None:
         """Parse markdown file content."""

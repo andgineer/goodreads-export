@@ -1,2 +1,2 @@
 include LICENSE.txt
-include src/goodreads_export/themes/default/*.md
+include src/goodreads_export/templates/default/*.md
