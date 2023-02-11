@@ -8,6 +8,7 @@ from goodreads_export.book_file import BookFile
 from goodreads_export.goodreads_book import Book, GoodreadsBooks
 from goodreads_export.log import Log
 from goodreads_export.stat import Stat
+from goodreads_export.templates import Templates
 
 SUBFOLDERS = {
     "toread": "toread",  # for books without review and rating - supposedly this is from to-read
@@ -27,6 +28,7 @@ class BooksFolder:
         """Initialize."""
         self.folder = folder
         self.log = log
+        self.templates = Templates()
 
         self.reviews: Dict[str, BookFile] = {}
         self.authors: Dict[str, AuthorFile] = {}
@@ -135,6 +137,7 @@ class BooksFolder:
         Return True if author file was added, False otherwise
         """
         author_markdown = AuthorFile(
+            template=self.templates.author,
             author=book.author,
             folder=self.folder / SUBFOLDERS["authors"],
         )
@@ -187,6 +190,7 @@ class BooksFolder:
         for file_name in folder.glob("*.md"):
             with file_name.open("r", encoding="utf8") as author_file:
                 author = AuthorFile(
+                    template=self.templates.author,
                     folder=folder,
                     file_name=file_name.name,
                     author=Path(file_name).stem,

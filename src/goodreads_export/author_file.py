@@ -7,6 +7,7 @@ from pathlib import Path
 from typing import List, Optional
 
 from goodreads_export.clean_file_name import clean_file_name
+from goodreads_export.templates import AuthorTemplate, Templates
 
 
 @dataclass
@@ -18,34 +19,35 @@ class AuthorFile:  # pylint: disable=too-many-instance-attributes
     `render()` generate `content` from fields.
     """
 
+    template: AuthorTemplate
     author: str
     folder: Path
     file_name: Optional[str] = None
     _file_name: Optional[str] = field(repr=False, init=False)
     content: Optional[str] = None
 
-    _name_link_pattern: re.Pattern[str] = field(
-        repr=False,
-        init=False,
-        default=re.compile(
-            r"\[([^]]*)\]\(https://www\.goodreads\.com/search\?utf8=%E2%9C%93&q=[^&]*"
-            r"&search_type=books&search%5Bfield%5D=author\)"
-        ),
-    )
     names: Optional[list[str]] = field(init=False, default=None)
 
     def __post_init__(self) -> None:
         """Extract fields from content."""
+        for regex in self.template.names_regexes:  # todo compile on demand in regex superclass
+            regex.compiled = re.compile(regex.regex)  # pylint: disable=protected-access
         self.parse()  # we do not run parse on content assign during __init__()
         if self.content is None:
             self.render()
-        # todo inject Template
 
     def parse(self) -> None:
         """Parse markdown file content."""
+        self.names = None
         if self.content is not None:
-            self.names = [match[1] for match in self._name_link_pattern.finditer(self.content)]
-        elif self.names is None:
+            for (
+                regex
+            ) in self.template.names_regexes:  # todo put all this logic to regex superclass
+                assert regex.compiled is not None  # to please mypy
+                if regex.compiled.search(self.content) is not None:
+                    self.names = [match[1] for match in regex.compiled.finditer(self.content)]
+                    break
+        if self.names is None:
             self.names = [self.author]
 
     def render(self) -> None:
@@ -112,11 +114,11 @@ class AuthorFile:  # pylint: disable=too-many-instance-attributes
     def check(cls: type["AuthorFile"]) -> bool:
         """Check regex work for the template."""
         author_name = "Mark Twain"
-        book_file = cls(author_name, Path())
-        book_file.names = []
-        book_file.parse()
-        is_author_parsed = book_file.names == [author_name]
+        author_file = cls(Templates().author, author_name, Path())
+        author_file.names = []
+        author_file.parse()
+        is_author_parsed = author_file.names == [author_name]
         if not is_author_parsed:
-            print(f"Author name {author_name} is not parsed from content\n{book_file.content}")
-            print(f"using the pattern\n{book_file._name_link_pattern.pattern}")
+            print(f"Author name {author_name} is not parsed from content\n{author_file.content}")
+            print(f"using the pattern\n{author_file.template.names_regexes[0].regex}")
         return is_author_parsed
