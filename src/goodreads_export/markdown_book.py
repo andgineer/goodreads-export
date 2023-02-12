@@ -111,6 +111,7 @@ class BooksFolder:
         else:
             subfolder = SUBFOLDERS["reviews"]
         book_markdown = BookFile(
+            template=self.templates.review,
             title=book.title,
             folder=self.folder / subfolder,
             tags=book.tags,
@@ -158,6 +159,7 @@ class BooksFolder:
         for file_name in folder.glob("*.md"):
             with file_name.open("r", encoding="utf8") as review_file:
                 book = BookFile(
+                    template=self.templates.review,
                     title=Path(file_name).stem,
                     folder=folder,
                     file_name=file_name.name,

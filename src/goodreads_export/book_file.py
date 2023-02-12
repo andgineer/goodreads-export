@@ -7,6 +7,7 @@ from pathlib import Path
 from typing import Dict, List, Optional, Tuple
 
 from goodreads_export.clean_file_name import clean_file_name
+from goodreads_export.templates import ReviewTemplate, Templates
 
 
 @dataclass
@@ -18,6 +19,7 @@ class BookFile:  # pylint: disable=too-many-instance-attributes
     `render()` generate `content` from fields.
     """
 
+    template: ReviewTemplate
     title: str
     folder: Path
     content: Optional[str] = None
@@ -32,18 +34,6 @@ class BookFile:  # pylint: disable=too-many-instance-attributes
     series: Optional[List[str]] = None
 
     _file_name: Optional[str] = field(repr=False, init=False)
-    _goodreads_link_pattern: re.Pattern[str] = field(
-        repr=False,
-        init=False,
-        default=re.compile(
-            r"\[\[([^]]+)\]\](: \[([^]]*)\]\(https://www\.goodreads\.com/book/show/(\d+)\))"
-        ),
-    )
-    _series_link_pattern: re.Pattern[str] = field(
-        repr=False,
-        init=False,
-        default=re.compile(r"\[\[[^-]* - ([^-]*) - series\]\]"),
-    )
 
     def __post_init__(self) -> None:
         """Extract fields from content."""
@@ -58,15 +48,17 @@ class BookFile:  # pylint: disable=too-many-instance-attributes
     def parse(self) -> None:
         """Parse markdown file content."""
         if self.content is not None:
-            if (series_match := self._goodreads_link_pattern.search(self.content)) is not None:
-                self.book_id = series_match[4]
-                self.title = series_match[3]
-                self.author = series_match[1]
-
-            self.series = [
-                series_match[1]
-                for series_match in self._series_link_pattern.finditer(self.content)
-            ]
+            if book_regex := self.template.goodreads_link_regexes.choose_regex(self.content):
+                link_match = book_regex.compiled.search(self.content)
+                assert link_match is not None  # to please mypy
+                self.book_id = link_match[book_regex.book_id_group]
+                self.title = link_match[book_regex.title_group]
+                self.author = link_match[book_regex.author_group]
+            if series_regex := self.template.series_regexes.choose_regex(self.content):
+                self.series = [
+                    series_match[series_regex.series_group]
+                    for series_match in series_regex.compiled.finditer(self.content)
+                ]
 
     def render(self) -> None:
         """Render markdown file content."""
@@ -238,6 +230,7 @@ ISBN{self.isbn} (ISBN13{self.isbn13})
         series = ["Voyages extraordinaires"]
         review = "This is a review\nin two lines"
         book_file = cls(
+            template=Templates().review,
             book_id=book_id,
             title=title,
             folder=Path(),

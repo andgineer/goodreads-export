@@ -2,7 +2,7 @@
 import re
 from dataclasses import dataclass, field
 from importlib.resources import files
-from typing import Dict, List, Optional
+from typing import Dict, List, Optional, TypeVar
 
 try:
     import tomllib
@@ -14,17 +14,77 @@ TEMPLATES_PACKAGE_DATA_FOLDER = "templates"
 
 
 @dataclass
-class AuthorNamesRegEx:
-    """Regular expressions for author's file."""
+class RegEx:
+    """Regular expression."""
 
     regex: str
-    name_group: int
 
-    compiled: Optional[re.Pattern[str]] = field(
+    compiled: re.Pattern[str] = field(
+        repr=False,
+        init=False,
+    )
+    _compiled: Optional[re.Pattern[str]] = field(
         repr=False,
         init=False,
         default=None,
     )
+
+    @property  # type: ignore
+    def compiled(self) -> re.Pattern[str]:
+        """Return compiled regex."""
+        if self._compiled is None:
+            self._compiled = re.compile(self.regex)
+        return self._compiled
+
+    @compiled.setter
+    def compiled(self, value: re.Pattern[str]) -> None:
+        """Fake setter.
+
+        We autocompile it so this setter we need only to please dataclass.
+        """
+
+
+@dataclass
+class AuthorNamesRegEx(RegEx):
+    """Regular expressions for name links inside author's file."""
+
+    # we need defaults because we have default in base class
+    name_group: int = -1
+
+
+@dataclass
+class SeriesRegEx(RegEx):
+    """Regular expressions for series links inside review file."""
+
+    # we need defaults because we have default in base class
+    series_group: int = -1
+
+
+@dataclass
+class GoodreadsLinkRegEx(RegEx):
+    """Regular expressions for goodreads links inside review file."""
+
+    # we need defaults because we have default in base class
+    book_id_group: int = -1
+    title_group: int = -1
+    author_group: int = -1
+
+
+RegExSubClass = TypeVar("RegExSubClass", bound=RegEx)
+
+
+class RegExList(List[RegExSubClass]):
+    """List of regular expressions."""
+
+    def choose_regex(self, content: str) -> Optional[RegExSubClass]:
+        """Choose regex that matches the content."""
+        if content is not None:
+            for regex in self:
+                assert regex.compiled is not None  # to please mypy
+                if regex.compiled.search(content) is not None:
+                    assert issubclass(regex.__class__, RegEx)
+                    return regex
+        return None
 
 
 @dataclass
@@ -32,7 +92,16 @@ class AuthorTemplate:
     """Author template."""
 
     author_template: str
-    names_regexes: List[AuthorNamesRegEx]
+    names_regexes: RegExList[AuthorNamesRegEx]
+
+
+@dataclass
+class ReviewTemplate:
+    """Review template."""
+
+    review_template: str
+    goodreads_link_regexes: RegExList[GoodreadsLinkRegEx]
+    series_regexes: RegExList[SeriesRegEx]
 
 
 @dataclass
@@ -41,6 +110,7 @@ class Template:
 
     name: str
     author: AuthorTemplate
+    review: ReviewTemplate
 
 
 class Templates:  # pylint: disable=too-few-public-methods
@@ -70,10 +140,27 @@ class Templates:  # pylint: disable=too-few-public-methods
                     name=folder.name,
                     author=AuthorTemplate(
                         author_template=folder.joinpath("author.md").read_text(),
-                        names_regexes=[
-                            AuthorNamesRegEx(**regex)
-                            for regex in regex_config["regex"]["author"]["names"]
-                        ],
+                        names_regexes=RegExList(
+                            [
+                                AuthorNamesRegEx(**regex)
+                                for regex in regex_config["regex"]["author"]["names"]
+                            ]
+                        ),
+                    ),
+                    review=ReviewTemplate(
+                        review_template=folder.joinpath("review.md").read_text(),
+                        goodreads_link_regexes=RegExList(
+                            [
+                                GoodreadsLinkRegEx(**regex)
+                                for regex in regex_config["regex"]["review"]["goodreads-link"]
+                            ]
+                        ),
+                        series_regexes=RegExList(
+                            [
+                                SeriesRegEx(**regex)
+                                for regex in regex_config["regex"]["review"]["series"]
+                            ]
+                        ),
                     ),
                 )
         return result
@@ -82,3 +169,8 @@ class Templates:  # pylint: disable=too-few-public-methods
     def author(self) -> AuthorTemplate:
         """Template for author."""
         return self.templates[self.selected].author
+
+    @property
+    def review(self) -> ReviewTemplate:
+        """Template for review."""
+        return self.templates[self.selected].review

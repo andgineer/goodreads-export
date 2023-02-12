@@ -4,6 +4,7 @@ from unittest.mock import patch
 import goodreads_export.book_file
 from goodreads_export.book_file import BookFile
 from goodreads_export.clean_file_name import clean_file_name
+from goodreads_export.templates import Templates
 
 
 def test_book_file_initial_nonbook_content(book_markdown):
@@ -11,6 +12,7 @@ def test_book_file_initial_nonbook_content(book_markdown):
     file_name = "123 - Title - Author.md"
     initial_author = "Author"
     book_file = BookFile(
+        template=Templates().review,
         book_id="123",
         title="Title",
         folder=Path(),
@@ -35,6 +37,7 @@ def test_book_file_initial_book_content(book_markdown):
     file_name = "123 - Title - Author.md"
     initial_author = "Author"
     book_file = BookFile(
+        template=Templates().review,
         content=content,
         book_id="123",
         title="Title",
@@ -58,6 +61,7 @@ def test_book_file_defaults_from_content(book_markdown):
     file_name = "123 - Title - Author.md"
     initial_author = "Author"
     book_file = BookFile(
+        template=Templates().review,
         content=initial_content,
         title="Title",
         folder=Path(),
@@ -80,6 +84,7 @@ def test_book_file_defaults_from_class(book_markdown):
     initial_content = "Content"
     title = "Title"
     book_file = BookFile(
+        template=Templates().review,
         content=initial_content,
         title=title,
         folder=Path(),
@@ -90,7 +95,9 @@ def test_book_file_defaults_from_class(book_markdown):
     assert book_file._file_name is None
     assert book_file.content == initial_content
 
-    fields = BookFile(content=book_markdown, title=title, folder=Path())
+    fields = BookFile(
+        template=Templates().review, content=book_markdown, title=title, folder=Path()
+    )
     book_file.content = book_markdown
     book_file.book_id = fields.book_id
     book_file.author = fields.author
@@ -105,6 +112,7 @@ def test_book_file_defaults_from_class(book_markdown):
 
 def test_book_file_duplicate_name(book_markdown):
     book_file = BookFile(
+        template=Templates().review,
         content=book_markdown,
         book_id="123",
         title="Title",

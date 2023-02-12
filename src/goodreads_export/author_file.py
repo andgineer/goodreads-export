@@ -1,6 +1,5 @@
 """Author's file."""  # pylint: disable=duplicate-code
 import os
-import re
 import urllib.parse
 from dataclasses import dataclass, field
 from pathlib import Path
@@ -30,8 +29,6 @@ class AuthorFile:  # pylint: disable=too-many-instance-attributes
 
     def __post_init__(self) -> None:
         """Extract fields from content."""
-        for regex in self.template.names_regexes:  # todo compile on demand in regex superclass
-            regex.compiled = re.compile(regex.regex)  # pylint: disable=protected-access
         self.parse()  # we do not run parse on content assign during __init__()
         if self.content is None:
             self.render()
@@ -40,13 +37,10 @@ class AuthorFile:  # pylint: disable=too-many-instance-attributes
         """Parse markdown file content."""
         self.names = None
         if self.content is not None:
-            for (
-                regex
-            ) in self.template.names_regexes:  # todo put all this logic to regex superclass
-                assert regex.compiled is not None  # to please mypy
-                if regex.compiled.search(self.content) is not None:
-                    self.names = [match[1] for match in regex.compiled.finditer(self.content)]
-                    break
+            if regex := self.template.names_regexes.choose_regex(self.content):
+                self.names = [
+                    match[regex.name_group] for match in regex.compiled.finditer(self.content)
+                ]
         if self.names is None:
             self.names = [self.author]
 
