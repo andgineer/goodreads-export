@@ -1,4 +1,16 @@
 {clean_file_name(self.author)}.md
-[{self.author}](https://www.goodreads.com/search?{search_params})
+
+{%
+        set search_params = urlencode(
+            {
+                "utf8": "✓",
+                "q": author,
+                "search_type": "books",
+                "search[field]": "author",
+            }
+        )
+-%}
+[{{author}}](https://www.goodreads.com/search?{{search_params}})
 
 #book/author
+

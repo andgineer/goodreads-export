@@ -5,6 +5,8 @@ from dataclasses import dataclass, field
 from pathlib import Path
 from typing import List, Optional
 
+import jinja2
+
 from goodreads_export.clean_file_name import clean_file_name
 from goodreads_export.templates import AuthorTemplate, Templates
 
@@ -46,18 +48,13 @@ class AuthorFile:  # pylint: disable=too-many-instance-attributes
 
     def render(self) -> None:
         """Render markdown file content."""
-        search_params = urllib.parse.urlencode(
-            {
-                "utf8": "✓",
-                "q": self.author,
-                "search_type": "books",
-                "search[field]": "author",
-            }
-        )
-        self.content = f"""[{self.author}](https://www.goodreads.com/search?{search_params})
-
-#book/author
-"""
+        environment = jinja2.Environment()
+        template = environment.from_string(self.template.body)
+        context = {
+            "author": self.author,
+            "urlencode": urllib.parse.urlencode,
+        }
+        self.content = template.render(context)
 
     @property  # type: ignore
     def file_name(self) -> str:

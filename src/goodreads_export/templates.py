@@ -87,12 +87,20 @@ class RegExList(List[RegExSubClass]):
         return None
 
 
-@dataclass
+@dataclass(frozen=True)
 class AuthorTemplate:
     """Author template."""
 
-    author_template: str
+    template: str
     names_regexes: RegExList[AuthorNamesRegEx]
+
+    body: str = field(init=False)
+    file_name: str = field(init=False)
+
+    def __post_init__(self) -> None:
+        """Post init."""
+        object.__setattr__(self, "body", "\n".join(self.template.split("\n")[2:]))
+        object.__setattr__(self, "file_name", self.template.split("\n", maxsplit=1)[0])
 
 
 @dataclass
@@ -139,7 +147,7 @@ class Templates:  # pylint: disable=too-few-public-methods
                 result[folder.name] = Template(
                     name=folder.name,
                     author=AuthorTemplate(
-                        author_template=folder.joinpath("author.md").read_text(),
+                        template=folder.joinpath("author.md").read_text(),
                         names_regexes=RegExList(
                             [
                                 AuthorNamesRegEx(**regex)
