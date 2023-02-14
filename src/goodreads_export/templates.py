@@ -88,33 +88,41 @@ class RegExList(List[RegExSubClass]):
 
 
 @dataclass(frozen=True)
-class AuthorTemplate:
-    """Author template."""
+class FileTemplate:
+    """Template for file with file name and body."""
 
     template: str
-    names_regexes: RegExList[AuthorNamesRegEx]
 
     body: str = field(init=False)
     file_name: str = field(init=False)
 
     def __post_init__(self) -> None:
-        """Post init."""
+        """Separate template to file name from first line and body from the rest.
+
+        Second line ignored and use as visual separator.
+        """
         object.__setattr__(self, "body", "\n".join(self.template.split("\n")[2:]))
         object.__setattr__(self, "file_name", self.template.split("\n", maxsplit=1)[0])
 
 
-@dataclass
-class ReviewTemplate:
+@dataclass(frozen=True)
+class AuthorTemplate(FileTemplate):
+    """Author template."""
+
+    names_regexes: RegExList[AuthorNamesRegEx]
+
+
+@dataclass(frozen=True)
+class ReviewTemplate(FileTemplate):
     """Review template."""
 
-    review_template: str
     goodreads_link_regexes: RegExList[GoodreadsLinkRegEx]
     series_regexes: RegExList[SeriesRegEx]
 
 
 @dataclass
-class Template:
-    """Template."""
+class TemplateSet:
+    """Template set to create all necessary files and parse existed ones."""
 
     name: str
     author: AuthorTemplate
@@ -134,7 +142,7 @@ class Templates:  # pylint: disable=too-few-public-methods
         self.templates = self.load_embeded()
         self.selected = "default"
 
-    def load_embeded(self) -> Dict[str, Template]:
+    def load_embeded(self) -> Dict[str, TemplateSet]:
         """Load embeded template.
 
         From the package data folder `templates` recursively.
@@ -143,11 +151,13 @@ class Templates:  # pylint: disable=too-few-public-methods
         templates_resource = files(__package__).joinpath(TEMPLATES_PACKAGE_DATA_FOLDER)
         for folder in templates_resource.iterdir():
             if folder.is_dir():
-                regex_config = tomllib.loads(folder.joinpath("regex.toml").read_text())
-                result[folder.name] = Template(
+                regex_config = tomllib.loads(
+                    folder.joinpath("regex.toml").read_text(encoding="utf-8")
+                )
+                result[folder.name] = TemplateSet(
                     name=folder.name,
                     author=AuthorTemplate(
-                        template=folder.joinpath("author.md").read_text(),
+                        template=folder.joinpath("author.md").read_text(encoding="utf-8"),
                         names_regexes=RegExList(
                             [
                                 AuthorNamesRegEx(**regex)
@@ -156,7 +166,7 @@ class Templates:  # pylint: disable=too-few-public-methods
                         ),
                     ),
                     review=ReviewTemplate(
-                        review_template=folder.joinpath("review.md").read_text(),
+                        template=folder.joinpath("review.md").read_text(encoding="utf-8"),
                         goodreads_link_regexes=RegExList(
                             [
                                 GoodreadsLinkRegEx(**regex)
