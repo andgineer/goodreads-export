@@ -49,7 +49,7 @@ setuptools.setup(
     packages=setuptools.find_packages(where="src"),
     install_requires=requirements,
     tests_require=tests_requirements,
-    python_requires=">=3.9",  # we use dict union operator
+    python_requires=">=3.9",  # we use dict union operator(3.9), walrus operator (3.8)
     keywords="goodreads book markdown obsidian",
     classifiers=[
         "Programming Language :: Python :: 3",

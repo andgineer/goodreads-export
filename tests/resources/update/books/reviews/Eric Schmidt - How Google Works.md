@@ -1,4 +1,3 @@
-
 [[Eric Schmidt]]: [How Google Works](https://www.goodreads.com/book/show/23158207)
 ISBN="" (ISBN13="")
 
@@ -7,6 +6,6 @@ review 4.
 line .  
 
 
-[Search in Calibre](calibre://search/_?q=How%20Google%20Works)
+[Search in Calibre](calibre://search/_?q=How+Google+Works)
 
 #book/audio #book/book #book/rating2

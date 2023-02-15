@@ -11,40 +11,24 @@ except ModuleNotFoundError:
 
 
 TEMPLATES_PACKAGE_DATA_FOLDER = "templates"
+REVIEW_TEMPLATE_FILE_NAME = "review.jinja"
+AUTHOR_TEMPLATE_FILE_NAME = "author.jinja"
 
 
-@dataclass
+@dataclass(frozen=True)
 class RegEx:
     """Regular expression."""
 
     regex: str
 
-    compiled: re.Pattern[str] = field(
-        repr=False,
-        init=False,
-    )
-    _compiled: Optional[re.Pattern[str]] = field(
-        repr=False,
-        init=False,
-        default=None,
-    )
+    compiled: re.Pattern[str] = field(init=False)
 
-    @property  # type: ignore
-    def compiled(self) -> re.Pattern[str]:
-        """Return compiled regex."""
-        if self._compiled is None:
-            self._compiled = re.compile(self.regex)
-        return self._compiled
-
-    @compiled.setter
-    def compiled(self, value: re.Pattern[str]) -> None:
-        """Fake setter.
-
-        We autocompile it so this setter we need only to please dataclass.
-        """
+    def __post_init__(self) -> None:
+        """Compile regex."""
+        object.__setattr__(self, "compiled", re.compile(self.regex))
 
 
-@dataclass
+@dataclass(frozen=True)
 class AuthorNamesRegEx(RegEx):
     """Regular expressions for name links inside author's file."""
 
@@ -52,7 +36,7 @@ class AuthorNamesRegEx(RegEx):
     name_group: int = -1
 
 
-@dataclass
+@dataclass(frozen=True)
 class SeriesRegEx(RegEx):
     """Regular expressions for series links inside review file."""
 
@@ -60,7 +44,7 @@ class SeriesRegEx(RegEx):
     series_group: int = -1
 
 
-@dataclass
+@dataclass(frozen=True)
 class GoodreadsLinkRegEx(RegEx):
     """Regular expressions for goodreads links inside review file."""
 
@@ -157,7 +141,9 @@ class Templates:  # pylint: disable=too-few-public-methods
                 result[folder.name] = TemplateSet(
                     name=folder.name,
                     author=AuthorTemplate(
-                        template=folder.joinpath("author.md").read_text(encoding="utf-8"),
+                        template=folder.joinpath(AUTHOR_TEMPLATE_FILE_NAME).read_text(
+                            encoding="utf-8"
+                        ),
                         names_regexes=RegExList(
                             [
                                 AuthorNamesRegEx(**regex)
@@ -166,7 +152,9 @@ class Templates:  # pylint: disable=too-few-public-methods
                         ),
                     ),
                     review=ReviewTemplate(
-                        template=folder.joinpath("review.md").read_text(encoding="utf-8"),
+                        template=folder.joinpath(REVIEW_TEMPLATE_FILE_NAME).read_text(
+                            encoding="utf-8"
+                        ),
                         goodreads_link_regexes=RegExList(
                             [
                                 GoodreadsLinkRegEx(**regex)

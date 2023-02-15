@@ -3,7 +3,7 @@ import os
 import urllib.parse
 from dataclasses import dataclass, field
 from pathlib import Path
-from typing import List, Optional
+from typing import Any, List, Optional
 
 import jinja2
 
@@ -31,6 +31,7 @@ class AuthorFile:  # pylint: disable=too-many-instance-attributes
 
     def __post_init__(self) -> None:
         """Extract fields from content."""
+        self.jinja = jinja2.Environment()
         self.parse()  # we do not run parse on content assign during __init__()
         if self.content is None:
             self.render()
@@ -48,13 +49,17 @@ class AuthorFile:  # pylint: disable=too-many-instance-attributes
 
     def render(self) -> None:
         """Render markdown file content."""
-        environment = jinja2.Environment()
-        template = environment.from_string(self.template.body)
-        context = {
+        template = self.jinja.from_string(self.template.body)
+        self.content = template.render(self.jinja_context)
+
+    @property
+    def jinja_context(self) -> dict[str, Any]:
+        """Jinja context."""
+        return {
             "author": self.author,
             "urlencode": urllib.parse.urlencode,
+            "clean_file_name": clean_file_name,
         }
-        self.content = template.render(context)
 
     @property  # type: ignore
     def file_name(self) -> str:
@@ -65,6 +70,8 @@ class AuthorFile:  # pylint: disable=too-many-instance-attributes
         # todo read template from file
         if self._file_name is None:
             self._file_name = f"{clean_file_name(self.author)}.md"
+            template = self.jinja.from_string(self.template.file_name)
+            self._file_name = template.render(self.jinja_context)
         return self._file_name
 
     @file_name.setter

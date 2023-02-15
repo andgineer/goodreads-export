@@ -6,6 +6,8 @@ from dataclasses import dataclass, field
 from pathlib import Path
 from typing import Dict, List, Optional, Tuple
 
+import jinja2
+
 from goodreads_export.clean_file_name import clean_file_name
 from goodreads_export.templates import ReviewTemplate, Templates
 
@@ -37,6 +39,12 @@ class BookFile:  # pylint: disable=too-many-instance-attributes
 
     def __post_init__(self) -> None:
         """Extract fields from content."""
+        self.jinja = jinja2.Environment()
+        self.jinja_context = {
+            "book": self,
+            "urlencode": urllib.parse.urlencode,
+            "clean_file_name": clean_file_name,
+        }
         self.parse()  # we do not run parse on content assign during __init__()
         if self.content is None:
             self.render()
@@ -75,17 +83,8 @@ class BookFile:  # pylint: disable=too-many-instance-attributes
             rating_tag = f"#book/rating{self.rating}"
             if rating_tag not in self.tags:
                 self.tags.append(rating_tag)
-        book_url = f"https://www.goodreads.com/book/show/{self.book_id}"
-        self.content = f"""
-[[{clean_file_name(self.author)}]]: [{self.title}]({book_url})
-ISBN{self.isbn} (ISBN13{self.isbn13})
-{' '.join(['[[' + self.series_full_name(series) + ']]' for series in self.series])}
-{self.review}
-
-[Search in Calibre](calibre://search/_?q={urllib.parse.quote(self.title)})
-
-{" ".join(self.tags)}
-"""
+        template = self.jinja.from_string(self.template.body)
+        self.content = template.render(self.jinja_context)
 
     @property  # type: ignore
     def file_name(self) -> str:
@@ -96,7 +95,8 @@ ISBN{self.isbn} (ISBN13{self.isbn13})
         if self._file_name is None:
             assert self.title is not None
             assert self.author is not None
-            self._file_name = f"{clean_file_name(self.author)} - {clean_file_name(self.title)}.md"
+            template = self.jinja.from_string(self.template.file_name)
+            self._file_name = template.render(self.jinja_context)
         return self._file_name
 
     def series_full_name(self, series: str) -> str:

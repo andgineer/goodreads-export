@@ -4,7 +4,7 @@
 #
 #    pip-compile requirements.dev.in
 #
-astroid==2.14.1
+astroid==2.14.2
     # via pylint
 attrs==22.2.0
     # via pytest
@@ -46,7 +46,7 @@ filelock==3.9.0
     # via virtualenv
 ghp-import==2.1.0
     # via mkdocs
-identify==2.5.17
+identify==2.5.18
     # via pre-commit
 idna==3.4
     # via requests
@@ -125,7 +125,7 @@ pygments==2.14.0
     # via
     #   readme-renderer
     #   rich
-pylint==2.16.1
+pylint==2.16.2
     # via -r requirements.dev.in
 pyproject-hooks==1.0.0
     # via build
@@ -172,7 +172,7 @@ twine==4.0.2
     # via -r requirements.dev.in
 typer==0.7.0
     # via lazydocs
-typing-extensions==4.4.0
+typing-extensions==4.5.0
     # via mypy
 urllib3==1.26.14
     # via
