@@ -162,7 +162,7 @@ class BooksFolder:
                     template=self.templates.review,
                     title=Path(file_name).stem,
                     folder=folder,
-                    file_name=file_name.name,
+                    file_name=Path(file_name.name),
                     content=review_file.read(),
                 )
                 if book.book_id is None:
@@ -194,7 +194,7 @@ class BooksFolder:
                 author = AuthorFile(
                     template=self.templates.author,
                     folder=folder,
-                    file_name=file_name.name,
+                    file_name=Path(file_name.name),
                     author=Path(file_name).stem,
                     content=author_file.read(),
                 )

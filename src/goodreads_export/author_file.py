@@ -71,7 +71,7 @@ class AuthorFile:  # pylint: disable=too-many-instance-attributes
         return self._file_name
 
     @file_name.setter
-    def file_name(self, file_name: str) -> None:
+    def file_name(self, file_name: Path) -> None:
         """Set file_name.
 
         Set None by default (if not in __init__() params)
