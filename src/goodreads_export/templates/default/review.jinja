@@ -1,10 +1,10 @@
-{{ clean_file_name( book.author) }} - {{ clean_file_name(book.title) }}.md
+{{ clean_file_name(book.author) }} - {{ clean_file_name(book.title) }}.md
 
-[[{{clean_file_name(book.author) }}]]: [{{ book.title }}](https://www.goodreads.com/book/show/{{ book.book_id }})
+[[{{ clean_file_name(book.author) }}]]: [{{ book.title }}](https://www.goodreads.com/book/show/{{ book.book_id }})
 ISBN{{ book.isbn }} (ISBN13{{ book.isbn13 }})
 {%- if book.series %}
-{% for series in book.series_list_full_names().values() -%}
-[[{{ series }}]]]{{ "" if loop.last else " "}}
+{% for series in book.series -%}
+[[{{ book.series_full_name(series) }}]]]{{ "" if loop.last else " "}}
 {%- endfor -%}
 {% endif %}
 

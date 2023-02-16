@@ -23,7 +23,7 @@ def test_book_file_initial_nonbook_content(book_markdown):
     assert book_file.book_id == "123"
     assert book_file.title == "Title"
     assert book_file.author == "Author"
-    assert book_file.file_name == file_name
+    assert str(book_file.file_name) == file_name
     assert book_file.content == content
 
     book_file.content = book_markdown
@@ -48,7 +48,7 @@ def test_book_file_initial_book_content(book_markdown):
     assert f"www.goodreads.com/book/show/{book_file.book_id}" in content
     assert f"[{book_file.title}]" in content
     assert f"[[{book_file.author}]]: " in content
-    assert book_file.file_name == file_name
+    assert str(book_file.file_name) == file_name
     assert book_file.content == content
 
     book_file.content = book_markdown
@@ -70,7 +70,7 @@ def test_book_file_defaults_from_content(book_markdown):
     assert f"www.goodreads.com/book/show/{book_file.book_id}" in initial_content
     assert f"[{book_file.title}]" in initial_content
     assert f"[[{book_file.author}]]: " in initial_content
-    assert book_file.file_name == file_name
+    assert str(book_file.file_name) == file_name
     assert book_file.content == initial_content
 
     book_file.content = book_markdown
@@ -107,7 +107,9 @@ def test_book_file_defaults_from_class(book_markdown):
     assert f"[[{book_file.author}]]" in book_file.content
     assert f"www.goodreads.com/book/show/{book_file.book_id}" in book_file.content
     assert f"[{book_file.title}]" in book_file.content
-    assert book_file.file_name == clean_file_name(f"{book_file.author} - {book_file.title}.md")
+    assert str(book_file.file_name) == clean_file_name(
+        f"{book_file.author} - {book_file.title}.md"
+    )
 
 
 def test_book_file_duplicate_name(book_markdown):
@@ -119,13 +121,13 @@ def test_book_file_duplicate_name(book_markdown):
         folder=Path(),
     )
     initial_filename = book_file.file_name
-    assert book_file.book_id not in book_file.file_name
+    assert book_file.book_id not in str(book_file.file_name)
     with patch.object(goodreads_export.book_file.Path, "exists", return_value=True), patch.object(
         goodreads_export.book_file.Path, "open"
     ):
         book_file.write()
     assert (renamed_filename := book_file.file_name) != initial_filename
-    assert book_file.book_id in book_file.file_name
+    assert book_file.book_id in str(book_file.file_name)
     with patch.object(goodreads_export.book_file.Path, "exists", return_value=True), patch.object(
         goodreads_export.book_file.Path, "open"
     ):

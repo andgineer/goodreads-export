@@ -23,8 +23,8 @@ class AuthorFile:  # pylint: disable=too-many-instance-attributes
     template: AuthorTemplate
     author: str
     folder: Path
-    file_name: Optional[str] = None
-    _file_name: Optional[str] = field(repr=False, init=False)
+    file_name: Optional[Path] = None
+    _file_name: Optional[Path] = field(repr=False, init=False)
     content: Optional[str] = None
 
     names: Optional[list[str]] = field(init=False, default=None)
@@ -49,8 +49,7 @@ class AuthorFile:  # pylint: disable=too-many-instance-attributes
 
     def render(self) -> None:
         """Render markdown file content."""
-        template = self.jinja.from_string(self.template.body)
-        self.content = template.render(self.jinja_context)
+        self.content = self.template.body(self.jinja_context)
 
     @property
     def jinja_context(self) -> dict[str, Any]:
@@ -62,16 +61,13 @@ class AuthorFile:  # pylint: disable=too-many-instance-attributes
         }
 
     @property  # type: ignore
-    def file_name(self) -> str:
+    def file_name(self) -> Path:
         """Markdown file name.
 
         Automatically generate file name from book's fields if not assigned.
         """
-        # todo read template from file
         if self._file_name is None:
-            self._file_name = f"{clean_file_name(self.author)}.md"
-            template = self.jinja.from_string(self.template.file_name)
-            self._file_name = template.render(self.jinja_context)
+            self._file_name = self.template.file_name(self.jinja_context)
         return self._file_name
 
     @file_name.setter

@@ -4,7 +4,7 @@ import re
 import urllib.parse
 from dataclasses import dataclass, field
 from pathlib import Path
-from typing import Dict, List, Optional, Tuple
+from typing import Any, Dict, List, Optional, Tuple
 
 import jinja2
 
@@ -25,7 +25,7 @@ class BookFile:  # pylint: disable=too-many-instance-attributes
     title: str
     folder: Path
     content: Optional[str] = None
-    file_name: Optional[str] = None
+    file_name: Optional[Path] = None
     author: Optional[str] = None
     book_id: Optional[str] = None
     tags: Optional[List[str]] = None
@@ -35,12 +35,12 @@ class BookFile:  # pylint: disable=too-many-instance-attributes
     review: Optional[str] = None
     series: Optional[List[str]] = None
 
-    _file_name: Optional[str] = field(repr=False, init=False)
+    _file_name: Optional[Path] = field(repr=False, init=False)
 
     def __post_init__(self) -> None:
         """Extract fields from content."""
         self.jinja = jinja2.Environment()
-        self.jinja_context = {
+        self.jinja_context: Dict[str, Any] = {
             "book": self,
             "urlencode": urllib.parse.urlencode,
             "clean_file_name": clean_file_name,
@@ -69,7 +69,10 @@ class BookFile:  # pylint: disable=too-many-instance-attributes
                 ]
 
     def render(self) -> None:
-        """Render markdown file content."""
+        """Render markdown file content.
+
+        Assign to self.content.
+        """
         required = ["book_id", "title", "author", "tags", "series", "review", "rating"]
         for attribute in required:
             if getattr(self, attribute) is None:
@@ -83,11 +86,10 @@ class BookFile:  # pylint: disable=too-many-instance-attributes
             rating_tag = f"#book/rating{self.rating}"
             if rating_tag not in self.tags:
                 self.tags.append(rating_tag)
-        template = self.jinja.from_string(self.template.body)
-        self.content = template.render(self.jinja_context)
+        self.content = self.template.body(self.jinja_context)
 
     @property  # type: ignore
-    def file_name(self) -> str:
+    def file_name(self) -> Path:
         """Markdown file name.
 
         Automatically generate file name from book's fields if not assigned.
@@ -95,26 +97,29 @@ class BookFile:  # pylint: disable=too-many-instance-attributes
         if self._file_name is None:
             assert self.title is not None
             assert self.author is not None
-            template = self.jinja.from_string(self.template.file_name)
-            self._file_name = template.render(self.jinja_context)
+            self._file_name = self.template.file_name(self.jinja_context)
         return self._file_name
 
     def series_full_name(self, series: str) -> str:
         """Return file name without extension for series."""
         assert self.author is not None
-        return clean_file_name(f"{self.author} - {series} - series")
+        return clean_file_name(f"{self.author} - {series} - series")  # todo replace with template
 
     def is_series_file_name(self) -> bool:
         """Return True if file name if indicate this is series description file."""
         assert self.file_name is not None
-        return re.match(r".* - .* - series\.md$", self.file_name) is not None
+        return (
+            re.match(r".* - .* - series\.md$", str(self.file_name)) is not None
+        )  # todo replace with template
 
-    def series_file_name(self, series: str) -> str:
+    def series_file_name(self, series: str) -> Path:
         """Return file name for series."""
-        return f"{self.series_full_name(series)}.md"
+        context = self.jinja_context.copy()
+        context["series"] = series
+        return self.template.series.file_name(context)
 
     @file_name.setter  # type: ignore  # same name as property
-    def file_name(self, file_name: str) -> None:
+    def file_name(self, file_name: Path) -> None:
         """Set file_name.
 
         Set None by default (if not in __init__() params)
@@ -133,12 +138,15 @@ class BookFile:  # pylint: disable=too-many-instance-attributes
         """
         assert self.file_name is not None  # to please mypy
         assert self.content is not None  # to please mypy
+        assert self.folder is not None  # to please mypy
         if (
             (self.folder / self.file_name).exists()
             and self.book_id is not None
-            and self.book_id not in self.file_name
+            and self.book_id not in str(self.file_name)
         ):
-            self.file_name = f"{self.file_name} - {self.book_id}.md"
+            self.file_name = Path(
+                f"{self.file_name.with_suffix('')} - {self.book_id}{self.file_name.suffix}"
+            )
         with (self.folder / self.file_name).open("w", encoding="utf8") as file:
             file.write(self.content)
 
@@ -162,8 +170,8 @@ class BookFile:  # pylint: disable=too-many-instance-attributes
         """
         deleted_series_files = {}
         assert self.series is not None
-        for series, series_full_name in self.series_list_full_names().items():
-            series_file_path = self.folder / f"{series_full_name}.md"
+        for series in self.series:
+            series_file_path = self.folder / self.series_file_name(series)
             if series_file_path.exists():
                 os.remove(series_file_path)
                 deleted_series_files[series] = series_file_path
@@ -202,21 +210,12 @@ class BookFile:  # pylint: disable=too-many-instance-attributes
         created_series_files = {}
         for series in self.series:
             series_file_name = self.series_file_name(series)
-            search_params = urllib.parse.urlencode(
-                {
-                    "utf8": "✓",
-                    "q": f"{series}, #",
-                    "search_type": "books",
-                    "search[field]": "title",
-                }
-            )
             series_file_path = self.folder / series_file_name
             if not series_file_path.is_file():
                 with series_file_path.open("w", encoding="utf8") as md_file:
-                    md_file.write(
-                        f"""[[{clean_file_name(self.author)}]]
-[{series}](https://www.goodreads.com/search?{search_params})"""
-                    )
+                    context = self.jinja_context.copy()
+                    context["series"] = series
+                    md_file.write(self.template.series.body(context))
                 created_series_files[series] = series_file_path
         return created_series_files
 

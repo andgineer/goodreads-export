@@ -2,7 +2,10 @@
 import re
 from dataclasses import dataclass, field
 from importlib.resources import files
-from typing import Dict, List, Optional, TypeVar
+from pathlib import Path
+from typing import Any, Dict, List, Optional, TypeVar
+
+import jinja2
 
 try:
     import tomllib
@@ -13,6 +16,7 @@ except ModuleNotFoundError:
 TEMPLATES_PACKAGE_DATA_FOLDER = "templates"
 REVIEW_TEMPLATE_FILE_NAME = "review.jinja"
 AUTHOR_TEMPLATE_FILE_NAME = "author.jinja"
+SERIES_TEMPLATE_FILE_NAME = "series.jinja"
 
 
 @dataclass(frozen=True)
@@ -37,7 +41,7 @@ class AuthorNamesRegEx(RegEx):
 
 
 @dataclass(frozen=True)
-class SeriesRegEx(RegEx):
+class ReviewSeriesRegEx(RegEx):
     """Regular expressions for series links inside review file."""
 
     # we need defaults because we have default in base class
@@ -45,13 +49,21 @@ class SeriesRegEx(RegEx):
 
 
 @dataclass(frozen=True)
-class GoodreadsLinkRegEx(RegEx):
+class ReviewGoodreadsLinkRegEx(RegEx):
     """Regular expressions for goodreads links inside review file."""
 
     # we need defaults because we have default in base class
     book_id_group: int = -1
     title_group: int = -1
     author_group: int = -1
+
+
+@dataclass(frozen=True)
+class SeriesFileNameRegEx(RegEx):
+    """Regular expressions for series file name.
+
+    We only match it so no need in any groups.
+    """
 
 
 RegExSubClass = TypeVar("RegExSubClass", bound=RegEx)
@@ -73,20 +85,39 @@ class RegExList(List[RegExSubClass]):
 
 @dataclass(frozen=True)
 class FileTemplate:
-    """Template for file with file name and body."""
+    """Template for file with file name, optional link and body.
+
+    1st line - template for the file name.
+    If 2nd line is not empty - it is optional link. Othewise link is file name with extension and folders.
+
+    Between filename and optional link should be empty line.
+    After that - template for the file body.
+    """
 
     template: str
 
-    body: str = field(init=False)
-    file_name: str = field(init=False)
+    body_template: str = field(init=False)
+    file_name_template: str = field(init=False)
+
+    jinja: jinja2.Environment = field(init=False, repr=False)
 
     def __post_init__(self) -> None:
-        """Separate template to file name from first line and body from the rest.
+        """Separate template to file name and optional link and body."""
+        object.__setattr__(self, "body_template", "\n".join(self.template.split("\n")[2:]))
+        object.__setattr__(self, "file_name_template", self.template.split("\n", maxsplit=1)[0])
+        object.__setattr__(self, "jinja", jinja2.Environment())
 
-        Second line ignored and use as visual separator.
-        """
-        object.__setattr__(self, "body", "\n".join(self.template.split("\n")[2:]))
-        object.__setattr__(self, "file_name", self.template.split("\n", maxsplit=1)[0])
+    def file_name(self, context: Dict[str, Any]) -> Path:
+        """Render file name with context."""
+        return Path(self.jinja.from_string(self.file_name_template).render(context))
+
+    def link(self, context: Dict[str, Any]) -> str:
+        """Render link with context."""
+        return self.jinja.from_string(self.file_name_template).render(context)  # todo: fix
+
+    def body(self, context: Dict[str, Any]) -> str:
+        """Render file body with context."""
+        return self.jinja.from_string(self.body_template).render(context)
 
 
 @dataclass(frozen=True)
@@ -97,11 +128,20 @@ class AuthorTemplate(FileTemplate):
 
 
 @dataclass(frozen=True)
+class SeriesTemplate(FileTemplate):
+    """Series template."""
+
+    file_name_regexes: RegExList[SeriesFileNameRegEx]
+
+
+@dataclass(frozen=True)
 class ReviewTemplate(FileTemplate):
     """Review template."""
 
-    goodreads_link_regexes: RegExList[GoodreadsLinkRegEx]
-    series_regexes: RegExList[SeriesRegEx]
+    goodreads_link_regexes: RegExList[ReviewGoodreadsLinkRegEx]
+    series_regexes: RegExList[ReviewSeriesRegEx]
+
+    series: SeriesTemplate
 
 
 @dataclass
@@ -157,15 +197,26 @@ class Templates:  # pylint: disable=too-few-public-methods
                         ),
                         goodreads_link_regexes=RegExList(
                             [
-                                GoodreadsLinkRegEx(**regex)
+                                ReviewGoodreadsLinkRegEx(**regex)
                                 for regex in regex_config["regex"]["review"]["goodreads-link"]
                             ]
                         ),
                         series_regexes=RegExList(
                             [
-                                SeriesRegEx(**regex)
+                                ReviewSeriesRegEx(**regex)
                                 for regex in regex_config["regex"]["review"]["series"]
                             ]
+                        ),
+                        series=SeriesTemplate(
+                            template=folder.joinpath(SERIES_TEMPLATE_FILE_NAME).read_text(
+                                encoding="utf-8"
+                            ),
+                            file_name_regexes=RegExList(
+                                [
+                                    SeriesFileNameRegEx(**regex)
+                                    for regex in regex_config["regex"]["series"]["file-name"]
+                                ]
+                            ),
                         ),
                     ),
                 )

@@ -17,3 +17,6 @@ author_group = 1
 [[regex.review.series]]
 regex = '\[\[[^-]* - ([^-]*) - series\]\]'
 series_group = 1
+
+[[regex.series.file-name]]
+regex = '.* - .* - series\.md$'

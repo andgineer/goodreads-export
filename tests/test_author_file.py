@@ -36,7 +36,7 @@ def test_author_file_initial_author_content(author_markdown):
         folder=Path(),
     )
     assert all(f"[{name}]" in author_markdown for name in author_file.names)
-    assert author_file.file_name == file_name
+    assert str(author_file.file_name) == file_name
     assert author_file.content == content
 
     author_file.content = author_markdown
@@ -55,7 +55,7 @@ def test_author_file_defaults_from_content(author_markdown):
         author=initial_author,
     )
     assert all(f"[{name}]" in author_markdown for name in author_file.names)
-    assert author_file.file_name == file_name
+    assert str(author_file.file_name) == file_name
     assert author_file.content == initial_content
     assert all(f"[{name}]" in author_markdown for name in author_file.names)
 
