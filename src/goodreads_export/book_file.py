@@ -36,6 +36,7 @@ class BookFile:  # pylint: disable=too-many-instance-attributes
     series: Optional[List[str]] = None
 
     _file_name: Optional[Path] = field(repr=False, init=False)
+    _content: Optional[str] = field(repr=False, init=False)
 
     def __post_init__(self) -> None:
         """Extract fields from content."""
@@ -46,8 +47,6 @@ class BookFile:  # pylint: disable=too-many-instance-attributes
             "clean_file_name": clean_file_name,
         }
         self.parse()  # we do not run parse on content assign during __init__()
-        if self.content is None:
-            self.render()
         if self.tags is None:
             self.tags = []
         if self.series is None:
@@ -55,50 +54,37 @@ class BookFile:  # pylint: disable=too-many-instance-attributes
 
     def parse(self) -> None:
         """Parse markdown file content."""
-        if self.content is not None:
-            if book_regex := self.template.goodreads_link_regexes.choose_regex(self.content):
-                link_match = book_regex.compiled.search(self.content)
+        if self._content is not None:
+            self.book_id = None
+            self.title = ""
+            self.author = None
+            self.series = []
+            if book_regex := self.template.goodreads_link_regexes.choose_regex(self._content):
+                link_match = book_regex.compiled.search(self._content)
                 assert link_match is not None  # to please mypy
                 self.book_id = link_match[book_regex.book_id_group]
                 self.title = link_match[book_regex.title_group]
                 self.author = link_match[book_regex.author_group]
-            if series_regex := self.template.series_regexes.choose_regex(self.content):
+            if series_regex := self.template.series_regexes.choose_regex(self._content):
                 self.series = [
                     series_match[series_regex.series_group]
-                    for series_match in series_regex.compiled.finditer(self.content)
+                    for series_match in series_regex.compiled.finditer(self._content)
                 ]
 
-    def render(self) -> None:
+    def render(self) -> Optional[str]:
         """Render markdown file content.
 
         Assign to self.content.
+        Return None if not enough data to render.
         """
-        required = ["book_id", "title", "author", "tags", "series", "review", "rating"]
-        for attribute in required:
-            if getattr(self, attribute) is None:
-                raise ValueError(f"To create review file need attribute '{attribute}'")
         assert self.tags is not None  # to please mypy
-        assert self.author is not None  # to please mypy
-        assert self.series is not None  # to please mypy
         if "#book/book" not in self.tags:
             self.tags.append("#book/book")
         if self.rating is not None and self.rating > 0:
             rating_tag = f"#book/rating{self.rating}"
             if rating_tag not in self.tags:
                 self.tags.append(rating_tag)
-        self.content = self.template.body(self.jinja_context)
-
-    @property  # type: ignore
-    def file_name(self) -> Path:
-        """Markdown file name.
-
-        Automatically generate file name from book's fields if not assigned.
-        """
-        if self._file_name is None:
-            assert self.title is not None
-            assert self.author is not None
-            self._file_name = self.template.file_name(self.jinja_context)
-        return self._file_name
+        return self.template.body(self.jinja_context)
 
     def series_full_name(self, series: str) -> str:
         """Return file name without extension for series."""
@@ -118,6 +104,16 @@ class BookFile:  # pylint: disable=too-many-instance-attributes
         context["series"] = series
         return self.template.series.file_name(context)
 
+    @property  # type: ignore
+    def file_name(self) -> Optional[Path]:
+        """Markdown file name.
+
+        Automatically generate file name from book's fields if not assigned.
+        """
+        if self._file_name is None:
+            self._file_name = self.template.file_name(self.jinja_context)
+        return self._file_name
+
     @file_name.setter  # type: ignore  # same name as property
     def file_name(self, file_name: Path) -> None:
         """Set file_name.
@@ -128,6 +124,28 @@ class BookFile:  # pylint: disable=too-many-instance-attributes
             self._file_name = None
             return
         self._file_name = file_name
+
+    @property  # type: ignore  # same name as property
+    def content(self) -> Optional[str]:
+        """Markdown file content.
+
+        Automatically generate content from book's fields if not assigned.
+        """
+        if self._content is None:
+            self._content = self.render()
+        return self._content
+
+    @content.setter  # type: ignore  # same name as property
+    def content(self, content: str) -> None:
+        """Set content.
+
+        Set None by default (if not in __init__() params)
+        """
+        if isinstance(content, property):
+            self._content = None
+            return
+        self._content = content
+        self.parse()
 
     def write(self) -> None:
         """Write markdown file to path.
@@ -239,11 +257,7 @@ class BookFile:  # pylint: disable=too-many-instance-attributes
             review=review,
             rating=5,
         )
-        book_file.book_id = ""
-        book_file.title = ""
-        book_file.author = ""
-        book_file.series = []
-        book_file.parse()
+        book_file.content = book_file.render()
         is_book_id_parsed = book_file.book_id == book_id
         is_title_parsed = book_file.title == title
         is_author_parsed = book_file.author == author

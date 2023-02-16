@@ -156,7 +156,10 @@ class BooksFolder:
         This way we ignore "- series" files and unknown files.
         """
         reviews: Dict[str, BookFile] = {}
-        for file_name in folder.glob("*.md"):
+        dummy_book = BookFile(
+            template=self.templates.review, title="title", author="author", folder=folder
+        )
+        for file_name in folder.glob(f"*{dummy_book.file_name.suffix}"):  # type: ignore
             with file_name.open("r", encoding="utf8") as review_file:
                 book = BookFile(
                     template=self.templates.review,
@@ -189,7 +192,8 @@ class BooksFolder:
         """
         authors: Dict[str, AuthorFile] = {}
         primary_authors: Dict[str, AuthorFile] = {}
-        for file_name in folder.glob("*.md"):
+        dummy_author = AuthorFile(template=self.templates.author, author="author", folder=folder)
+        for file_name in folder.glob(f"*{dummy_author.file_name.suffix}"):  # type: ignore
             with file_name.open("r", encoding="utf8") as author_file:
                 author = AuthorFile(
                     template=self.templates.author,

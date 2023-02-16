@@ -17,17 +17,16 @@ def test_book_file_initial_nonbook_content(book_markdown):
         title="Title",
         folder=Path(),
         author=initial_author,
-        file_name=file_name,
+        file_name=Path(file_name),
         content=content,
     )
-    assert book_file.book_id == "123"
-    assert book_file.title == "Title"
-    assert book_file.author == "Author"
+    assert book_file.book_id is None  # no book id in content
+    assert book_file.title == ""  # no title in content
+    assert book_file.author is None  # no author in content
     assert str(book_file.file_name) == file_name
     assert book_file.content == content
 
     book_file.content = book_markdown
-    book_file.parse()
     assert book_file.author != initial_author
     assert f"[[{book_file.author}]]" in book_markdown
 
@@ -43,7 +42,7 @@ def test_book_file_initial_book_content(book_markdown):
         title="Title",
         folder=Path(),
         author=initial_author,
-        file_name=file_name,
+        file_name=Path(file_name),
     )
     assert f"www.goodreads.com/book/show/{book_file.book_id}" in content
     assert f"[{book_file.title}]" in content
@@ -90,7 +89,7 @@ def test_book_file_defaults_from_class(book_markdown):
         folder=Path(),
     )
     assert book_file.book_id is None
-    assert book_file.title == title
+    assert book_file.title == ""  # no title in initial_content
     assert book_file.author is None
     assert book_file._file_name is None
     assert book_file.content == initial_content
