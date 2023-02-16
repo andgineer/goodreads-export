@@ -114,7 +114,7 @@ class BookFile:  # pylint: disable=too-many-instance-attributes
             self._file_name = self.template.file_name(self.jinja_context)
         return self._file_name
 
-    @file_name.setter  # type: ignore  # same name as property
+    @file_name.setter
     def file_name(self, file_name: Path) -> None:
         """Set file_name.
 
@@ -135,7 +135,7 @@ class BookFile:  # pylint: disable=too-many-instance-attributes
             self._content = self.render()
         return self._content
 
-    @content.setter  # type: ignore  # same name as property
+    @content.setter
     def content(self, content: str) -> None:
         """Set content.
 

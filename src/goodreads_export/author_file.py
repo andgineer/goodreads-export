@@ -90,7 +90,7 @@ class AuthorFile:  # pylint: disable=too-many-instance-attributes
             self._content = self.render()
         return self._content
 
-    @content.setter  # type: ignore  # same name as property
+    @content.setter
     def content(self, content: str) -> None:
         """Set content.
 
