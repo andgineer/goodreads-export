@@ -64,7 +64,7 @@ def test_book_file_defaults_from_content(book_markdown):
         content=initial_content,
         title="Title",
         folder=Path(),
-        file_name=file_name,
+        file_name=Path(file_name),
     )
     assert f"www.goodreads.com/book/show/{book_file.book_id}" in initial_content
     assert f"[{book_file.title}]" in initial_content
@@ -135,3 +135,19 @@ def test_book_file_duplicate_name(book_markdown):
 
 def test_book_file_check():
     assert BookFile.check()
+
+
+def test_book_file_hashable():
+    book_file = BookFile(
+        template=Templates().review,
+        book_id="123",
+        title="Title",
+        author="Author",
+        folder=Path(),
+    )
+    old_hash = hash(book_file)
+    book_file.series = ["1", "2"]
+    assert old_hash != hash(book_file)
+    old_hash = hash(book_file)
+    book_file.author = "1"
+    assert old_hash != hash(book_file)

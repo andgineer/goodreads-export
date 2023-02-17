@@ -6,8 +6,6 @@ from dataclasses import dataclass, field
 from pathlib import Path
 from typing import Any, Dict, List, Optional, Tuple
 
-import jinja2
-
 from goodreads_export.clean_file_name import clean_file_name
 from goodreads_export.templates import ReviewTemplate, Templates
 
@@ -24,52 +22,57 @@ class BookFile:  # pylint: disable=too-many-instance-attributes
     template: ReviewTemplate
     title: str
     folder: Path
-    content: Optional[str] = None
-    file_name: Optional[Path] = None
+    content: Optional[str] = field(
+        default=None, repr=False
+    )  # do not calculate the property on repr
+    file_name: Optional[Path] = field(
+        default=None, repr=False
+    )  # do not calculate the property on repr
     author: Optional[str] = None
     book_id: Optional[str] = None
-    tags: Optional[List[str]] = None
+    tags: List[str] = field(default_factory=list)
     rating: Optional[int] = None
     isbn: Optional[int] = None
     isbn13: Optional[int] = None
     review: Optional[str] = None
-    series: Optional[List[str]] = None
+    series: List[str] = field(default_factory=list)
 
-    _file_name: Optional[Path] = field(repr=False, init=False)
-    _content: Optional[str] = field(repr=False, init=False)
+    _file_name: Optional[Path] = field(init=False)
+    _content: Optional[str] = field(init=False)
+    _template_context: Dict[str, Any] = field(repr=False, init=False)
 
     def __post_init__(self) -> None:
         """Extract fields from content."""
-        self.jinja = jinja2.Environment()
-        self.jinja_context: Dict[str, Any] = {
+        self._template_context = {
             "book": self,
             "urlencode": urllib.parse.urlencode,
             "clean_file_name": clean_file_name,
         }
         self.parse()  # we do not run parse on content assign during __init__()
-        if self.tags is None:
-            self.tags = []
-        if self.series is None:
-            self.series = []
+        # if self.tags is None:
+        #     self.tags = []
+        # if self.series is None:
+        #     self.series = []
 
     def parse(self) -> None:
         """Parse markdown file content."""
-        if self._content is not None:
-            self.book_id = None
-            self.title = ""
-            self.author = None
-            self.series = []
-            if book_regex := self.template.goodreads_link_regexes.choose_regex(self._content):
-                link_match = book_regex.compiled.search(self._content)
-                assert link_match is not None  # to please mypy
-                self.book_id = link_match[book_regex.book_id_group]
-                self.title = link_match[book_regex.title_group]
-                self.author = link_match[book_regex.author_group]
-            if series_regex := self.template.series_regexes.choose_regex(self._content):
-                self.series = [
-                    series_match[series_regex.series_group]
-                    for series_match in series_regex.compiled.finditer(self._content)
-                ]
+        if self._content is None:
+            return
+        self.book_id = None
+        self.title = ""
+        self.author = None
+        self.series = []
+        if book_regex := self.template.goodreads_link_regexes.choose_regex(self._content):
+            link_match = book_regex.compiled.search(self._content)
+            assert link_match is not None  # to please mypy
+            self.book_id = link_match[book_regex.book_id_group]
+            self.title = link_match[book_regex.title_group]
+            self.author = link_match[book_regex.author_group]
+        if series_regex := self.template.series_regexes.choose_regex(self._content):
+            self.series = [
+                series_match[series_regex.series_group]
+                for series_match in series_regex.compiled.finditer(self._content)
+            ]
 
     def render_body(self) -> Optional[str]:
         """Render file body."""
@@ -80,12 +83,16 @@ class BookFile:  # pylint: disable=too-many-instance-attributes
             rating_tag = f"#book/rating{self.rating}"
             if rating_tag not in self.tags:
                 self.tags.append(rating_tag)
-        return self.template.render_body(self.jinja_context)
+        return self.template.render_body(self._template_context)
 
-    def series_full_name(self, series: str) -> str:
-        """Return file name without extension for series."""
-        assert self.author is not None
-        return clean_file_name(f"{self.author} - {series} - series")  # todo replace with template
+    # todo encapsulate to series class
+
+    # @lru_cache(maxsize=None)  # todo fix
+    def series_template_context(self, series: str) -> Dict[str, Any]:
+        """Return template context for series."""
+        context = self._template_context.copy()
+        context["series"] = series
+        return context
 
     def is_series_file_name(self) -> bool:
         """Return True if file name if indicate this is series description file."""
@@ -96,9 +103,20 @@ class BookFile:  # pylint: disable=too-many-instance-attributes
 
     def series_file_name(self, series: str) -> Path:
         """Return file name for series."""
-        context = self.jinja_context.copy()
-        context["series"] = series
-        return self.template.series.render_file_name(context)
+        return self.template.series.render_file_name(self.series_template_context(series))
+
+    def series_file_link(self, series: str) -> str:
+        """Return file link for the series."""
+        return self.template.series.render_file_link(self.series_template_context(series))
+
+    def series_links_list(self) -> Dict[str, str]:
+        """Return dict of series file links."""
+        assert self.series is not None  # to please mypy
+        return {series: self.series_file_link(series) for series in self.series}
+
+    def render_series_body(self, series: str) -> str:
+        """Render series body."""
+        return self.template.series.render_body(self.series_template_context(series))
 
     @property  # type: ignore
     def file_name(self) -> Optional[Path]:
@@ -107,7 +125,7 @@ class BookFile:  # pylint: disable=too-many-instance-attributes
         Automatically generate file name from book's fields if not assigned.
         """
         if self._file_name is None:
-            self._file_name = self.template.render_file_name(self.jinja_context)
+            self._file_name = self.template.render_file_name(self._template_context)
         return self._file_name
 
     @file_name.setter
@@ -172,11 +190,6 @@ class BookFile:  # pylint: disable=too-many-instance-attributes
         if (self.folder / self.file_name).exists():
             os.remove(self.folder / self.file_name)
 
-    def series_list_full_names(self) -> Dict[str, str]:
-        """Return dict of series full names."""
-        assert self.series is not None  # to please mypy
-        return {series: self.series_full_name(series) for series in self.series}
-
     def delete_series_files(self) -> Dict[str, Path]:
         """Delete series files for review.
 
@@ -201,14 +214,17 @@ class BookFile:  # pylint: disable=too-many-instance-attributes
         """
         assert self.author is not None
         assert self.content is not None
-        old_series_names = self.series_list_full_names()
+        old_series_links = self.series_links_list()
         deleted_series_files = self.delete_series_files()
         self.delete_file()
+        # todo use here and in template link to author file not plane author name
         self.content = self.content.replace(f"[[{self.author}]]", f"[[{new_author}]]")
         self.author = new_author
         self._file_name = None  # to recreate from fields
-        for series_name, series_full in old_series_names.items():
-            self.content = self.content.replace(series_full, self.series_full_name(series_name))
+        for series_name, series_old_file_link in old_series_links.items():
+            self.content = self.content.replace(
+                series_old_file_link, self.series_file_link(series_name)
+            )
         created_series_files = self.create_series_files()
         self.write()
         return deleted_series_files, created_series_files
@@ -227,9 +243,8 @@ class BookFile:  # pylint: disable=too-many-instance-attributes
             series_file_path = self.folder / series_file_name
             if not series_file_path.is_file():
                 with series_file_path.open("w", encoding="utf8") as md_file:
-                    context = self.jinja_context.copy()
-                    context["series"] = series
-                    md_file.write(self.template.series.render_body(context))
+                    series_file_body = self.render_series_body(series)
+                    md_file.write(series_file_body)
                 created_series_files[series] = series_file_path
         return created_series_files
 
@@ -260,3 +275,28 @@ class BookFile:  # pylint: disable=too-many-instance-attributes
         is_series_parsed = book_file.series == series
         # todo detailed error diagnostics like in AuthorFile
         return is_book_id_parsed and is_title_parsed and is_author_parsed and is_series_parsed
+
+    def __repr__(self) -> str:
+        """Representation of the book file."""
+        dict_to_show = self.__dict__.copy()
+        for key in self.__dict__:
+            try:
+                if not self.__dataclass_fields__[key].repr:  # pylint: disable=no-member
+                    dict_to_show.pop(key)
+            except KeyError:
+                pass
+        result = []
+        for key in dict_to_show:
+            try:
+                result.append(self.__dict__[key].__repr__())
+            except RecursionError:
+                print("#" * 80, key)
+        return "\r".join(result)
+
+    def __hash__(self) -> int:
+        """Hash leveraging dataclasses __repr__."""
+        try:
+            return hash(self.__repr__())
+        except RecursionError:
+            print("#" * 80, self.title)
+            raise

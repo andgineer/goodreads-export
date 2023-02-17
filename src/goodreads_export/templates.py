@@ -122,7 +122,9 @@ class FileTemplate:
 
     def render_file_link(self, context: Dict[str, Any]) -> str:
         """Render link with context."""
-        return self.jinja.from_string(self.file_name_template).render(context)  # todo: fix
+        if self.file_link_template is None:
+            return self.render_file_name(context).stem
+        return self.jinja.from_string(self.file_link_template).render(context)
 
     def render_body(self, context: Dict[str, Any]) -> str:
         """Render file body with context."""
