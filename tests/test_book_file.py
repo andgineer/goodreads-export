@@ -102,7 +102,6 @@ def test_book_file_defaults_from_class(book_markdown):
     book_file.author = fields.author
     book_file.review = "Review"
     book_file.rating = 1
-    book_file.render()
     assert f"[[{book_file.author}]]" in book_file.content
     assert f"www.goodreads.com/book/show/{book_file.book_id}" in book_file.content
     assert f"[{book_file.title}]" in book_file.content

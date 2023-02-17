@@ -88,34 +88,43 @@ class FileTemplate:
     """Template for file with file name, optional link and body.
 
     1st line - template for the file name.
-    If 2nd line is not empty - it is optional link. Othewise link is file name with extension and folders.
 
-    Between filename and optional link should be empty line.
-    After that - template for the file body.
+    If 2nd line is not empty - it is optional link.
+    Otherwise link is file name without extension and folders part.
+
+    After file name and optional link templates should be empty line and then file body template.
     """
 
     template: str
 
     body_template: str = field(init=False)
     file_name_template: str = field(init=False)
+    file_link_template: str = field(init=False)
 
     jinja: jinja2.Environment = field(init=False, repr=False)
 
     def __post_init__(self) -> None:
         """Separate template to file name and optional link and body."""
-        object.__setattr__(self, "body_template", "\n".join(self.template.split("\n")[2:]))
         object.__setattr__(self, "file_name_template", self.template.split("\n", maxsplit=1)[0])
+        if self.template.split("\n", maxsplit=2)[1] != "":
+            file_link_template = self.template.split("\n", maxsplit=2)[1]
+            body_template = "\n".join(self.template.split("\n")[3:])
+        else:
+            file_link_template = None
+            body_template = "\n".join(self.template.split("\n")[2:])
+        object.__setattr__(self, "file_link_template", file_link_template)
+        object.__setattr__(self, "body_template", body_template)
         object.__setattr__(self, "jinja", jinja2.Environment())
 
-    def file_name(self, context: Dict[str, Any]) -> Path:
+    def render_file_name(self, context: Dict[str, Any]) -> Path:
         """Render file name with context."""
         return Path(self.jinja.from_string(self.file_name_template).render(context))
 
-    def link(self, context: Dict[str, Any]) -> str:
+    def render_file_link(self, context: Dict[str, Any]) -> str:
         """Render link with context."""
         return self.jinja.from_string(self.file_name_template).render(context)  # todo: fix
 
-    def body(self, context: Dict[str, Any]) -> str:
+    def render_body(self, context: Dict[str, Any]) -> str:
         """Render file body with context."""
         return self.jinja.from_string(self.body_template).render(context)
 

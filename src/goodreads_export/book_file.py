@@ -71,12 +71,8 @@ class BookFile:  # pylint: disable=too-many-instance-attributes
                     for series_match in series_regex.compiled.finditer(self._content)
                 ]
 
-    def render(self) -> Optional[str]:
-        """Render markdown file content.
-
-        Assign to self.content.
-        Return None if not enough data to render.
-        """
+    def render_body(self) -> Optional[str]:
+        """Render file body."""
         assert self.tags is not None  # to please mypy
         if "#book/book" not in self.tags:
             self.tags.append("#book/book")
@@ -84,7 +80,7 @@ class BookFile:  # pylint: disable=too-many-instance-attributes
             rating_tag = f"#book/rating{self.rating}"
             if rating_tag not in self.tags:
                 self.tags.append(rating_tag)
-        return self.template.body(self.jinja_context)
+        return self.template.render_body(self.jinja_context)
 
     def series_full_name(self, series: str) -> str:
         """Return file name without extension for series."""
@@ -102,7 +98,7 @@ class BookFile:  # pylint: disable=too-many-instance-attributes
         """Return file name for series."""
         context = self.jinja_context.copy()
         context["series"] = series
-        return self.template.series.file_name(context)
+        return self.template.series.render_file_name(context)
 
     @property  # type: ignore
     def file_name(self) -> Optional[Path]:
@@ -111,7 +107,7 @@ class BookFile:  # pylint: disable=too-many-instance-attributes
         Automatically generate file name from book's fields if not assigned.
         """
         if self._file_name is None:
-            self._file_name = self.template.file_name(self.jinja_context)
+            self._file_name = self.template.render_file_name(self.jinja_context)
         return self._file_name
 
     @file_name.setter
@@ -132,7 +128,7 @@ class BookFile:  # pylint: disable=too-many-instance-attributes
         Automatically generate content from book's fields if not assigned.
         """
         if self._content is None:
-            self._content = self.render()
+            self._content = self.render_body()
         return self._content
 
     @content.setter
@@ -233,7 +229,7 @@ class BookFile:  # pylint: disable=too-many-instance-attributes
                 with series_file_path.open("w", encoding="utf8") as md_file:
                     context = self.jinja_context.copy()
                     context["series"] = series
-                    md_file.write(self.template.series.body(context))
+                    md_file.write(self.template.series.render_body(context))
                 created_series_files[series] = series_file_path
         return created_series_files
 
@@ -257,7 +253,7 @@ class BookFile:  # pylint: disable=too-many-instance-attributes
             review=review,
             rating=5,
         )
-        book_file.content = book_file.render()
+        book_file.content = book_file.render_body()
         is_book_id_parsed = book_file.book_id == book_id
         is_title_parsed = book_file.title == title
         is_author_parsed = book_file.author == author

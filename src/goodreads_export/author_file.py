@@ -46,9 +46,9 @@ class AuthorFile:  # pylint: disable=too-many-instance-attributes
         if self.names is None:
             self.names = [self.author]
 
-    def render(self) -> str:
-        """Render markdown file content."""
-        return self.template.body(self.jinja_context)
+    def render_body(self) -> str:
+        """Render file body."""
+        return self.template.render_body(self.jinja_context)
 
     @property
     def jinja_context(self) -> dict[str, Any]:
@@ -66,7 +66,7 @@ class AuthorFile:  # pylint: disable=too-many-instance-attributes
         Automatically generate file name from book's fields if not assigned.
         """
         if self._file_name is None:
-            self._file_name = self.template.file_name(self.jinja_context)
+            self._file_name = self.template.render_file_name(self.jinja_context)
         return self._file_name
 
     @file_name.setter
@@ -87,7 +87,7 @@ class AuthorFile:  # pylint: disable=too-many-instance-attributes
         Automatically generate content from book's fields if not assigned.
         """
         if self._content is None:
-            self._content = self.render()
+            self._content = self.render_body()
         return self._content
 
     @content.setter
@@ -130,7 +130,7 @@ class AuthorFile:  # pylint: disable=too-many-instance-attributes
         """Check regex work for the template."""
         author_name = "Mark Twain"
         author_file = cls(Templates().author, author_name, Path())
-        author_file.content = author_file.render()
+        author_file.content = author_file.render_body()
         is_author_parsed = author_file.names == [author_name]
         if not is_author_parsed:
             print(f"Author name {author_name} is not parsed from content\n{author_file.content}")
