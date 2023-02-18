@@ -44,11 +44,9 @@ class BookFile:  # pylint: disable=too-many-instance-attributes
         """Extract fields from content."""
         self.parse()  # we do not run parse on content assign during __init__()
 
+    @cache  # pylint: disable=method-cache-max-size-none
     def _template_context(self) -> Dict[str, Any]:
-        """Template context.
-
-        Each call return new dict to prevent changes in the context to be passed.
-        """
+        """Template context."""
         return {
             "book": self,
             "urlencode": urllib.parse.urlencode,
@@ -91,7 +89,9 @@ class BookFile:  # pylint: disable=too-many-instance-attributes
     @cache  # pylint: disable=method-cache-max-size-none
     def series_template_context(self, series: str) -> Dict[str, Any]:
         """Return template context for series."""
-        context = self._template_context()
+        context = (
+            self._template_context().copy()
+        )  # do not change the context for previous (cached) call
         context["series"] = series
         return context
 
