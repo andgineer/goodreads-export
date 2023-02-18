@@ -39,16 +39,21 @@ class BookFile:  # pylint: disable=too-many-instance-attributes
 
     _file_name: Optional[Path] = field(init=False)
     _content: Optional[str] = field(init=False, repr=False)
-    _template_context: Dict[str, Any] = field(init=False, repr=False)
 
     def __post_init__(self) -> None:
         """Extract fields from content."""
-        self._template_context = {
+        self.parse()  # we do not run parse on content assign during __init__()
+
+    def _template_context(self) -> Dict[str, Any]:
+        """Template context.
+
+        Each call return new dict to prevent changes in the context to be passed.
+        """
+        return {
             "book": self,
             "urlencode": urllib.parse.urlencode,
             "clean_file_name": clean_file_name,
         }
-        self.parse()  # we do not run parse on content assign during __init__()
 
     def parse(self) -> None:
         """Parse markdown file content."""
@@ -79,14 +84,14 @@ class BookFile:  # pylint: disable=too-many-instance-attributes
             rating_tag = f"#book/rating{self.rating}"
             if rating_tag not in self.tags:
                 self.tags.append(rating_tag)
-        return self.template.render_body(self._template_context)
+        return self.template.render_body(self._template_context())
 
     # todo encapsulate to series class
 
     @cache  # pylint: disable=method-cache-max-size-none
     def series_template_context(self, series: str) -> Dict[str, Any]:
         """Return template context for series."""
-        context = self._template_context.copy()
+        context = self._template_context()
         context["series"] = series
         return context
 
@@ -120,7 +125,7 @@ class BookFile:  # pylint: disable=too-many-instance-attributes
         Automatically generate file name from book's fields if not assigned.
         """
         if self._file_name is None:
-            self._file_name = self.template.render_file_name(self._template_context)
+            self._file_name = self.template.render_file_name(self._template_context())
         return self._file_name
 
     @file_name.setter
