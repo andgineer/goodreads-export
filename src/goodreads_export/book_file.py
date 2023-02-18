@@ -1,8 +1,8 @@
 """Book's file."""
 import os
-import re
 import urllib.parse
 from dataclasses import dataclass, field
+from functools import cache
 from pathlib import Path
 from typing import Any, Dict, List, Optional, Tuple
 
@@ -38,8 +38,8 @@ class BookFile:  # pylint: disable=too-many-instance-attributes
     series: List[str] = field(default_factory=list)
 
     _file_name: Optional[Path] = field(init=False)
-    _content: Optional[str] = field(init=False)
-    _template_context: Dict[str, Any] = field(repr=False, init=False)
+    _content: Optional[str] = field(init=False, repr=False)
+    _template_context: Dict[str, Any] = field(init=False, repr=False)
 
     def __post_init__(self) -> None:
         """Extract fields from content."""
@@ -87,7 +87,7 @@ class BookFile:  # pylint: disable=too-many-instance-attributes
 
     # todo encapsulate to series class
 
-    # @lru_cache(maxsize=None)  # todo fix
+    @cache  # pylint: disable=method-cache-max-size-none
     def series_template_context(self, series: str) -> Dict[str, Any]:
         """Return template context for series."""
         context = self._template_context.copy()
@@ -96,15 +96,14 @@ class BookFile:  # pylint: disable=too-many-instance-attributes
 
     def is_series_file_name(self) -> bool:
         """Return True if file name if indicate this is series description file."""
-        assert self.file_name is not None
-        return (
-            re.match(r".* - .* - series\.md$", str(self.file_name)) is not None
-        )  # todo replace with template
+        return self.template.series.file_name_regexes.choose_regex(str(self.file_name)) is not None
 
+    @cache  # pylint: disable=method-cache-max-size-none
     def series_file_name(self, series: str) -> Path:
         """Return file name for series."""
         return self.template.series.render_file_name(self.series_template_context(series))
 
+    @cache  # pylint: disable=method-cache-max-size-none
     def series_file_link(self, series: str) -> str:
         """Return file link for the series."""
         return self.template.series.render_file_link(self.series_template_context(series))
@@ -276,27 +275,12 @@ class BookFile:  # pylint: disable=too-many-instance-attributes
         # todo detailed error diagnostics like in AuthorFile
         return is_book_id_parsed and is_title_parsed and is_author_parsed and is_series_parsed
 
-    def __repr__(self) -> str:
-        """Representation of the book file."""
-        dict_to_show = self.__dict__.copy()
-        for key in self.__dict__:
-            try:
-                if not self.__dataclass_fields__[key].repr:  # pylint: disable=no-member
-                    dict_to_show.pop(key)
-            except KeyError:
-                pass
-        result = []
-        for key in dict_to_show:
-            try:
-                result.append(self.__dict__[key].__repr__())
-            except RecursionError:
-                print("#" * 80, key)
-        return "\r".join(result)
-
     def __hash__(self) -> int:
         """Hash leveraging dataclasses __repr__."""
-        try:
-            return hash(self.__repr__())
-        except RecursionError:
-            print("#" * 80, self.title)
-            raise
+        return hash(self.__repr__())
+
+    def __eq__(self, other: object) -> bool:
+        """Compare two BookFile objects."""
+        if isinstance(other, BookFile):
+            return self.__hash__() == other.__hash__()
+        raise NotImplementedError(f"Cannot compare BookFile with {type(other)}")

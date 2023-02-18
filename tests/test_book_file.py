@@ -149,5 +149,8 @@ def test_book_file_hashable():
     book_file.series = ["1", "2"]
     assert old_hash != hash(book_file)
     old_hash = hash(book_file)
+    old_series_context = book_file.series_template_context("1")
     book_file.author = "1"
     assert old_hash != hash(book_file)
+    assert old_series_context == book_file.series_template_context("1")
+    assert old_series_context == book_file.series_template_context("1")
