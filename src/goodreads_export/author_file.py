@@ -3,9 +3,7 @@ import os
 import urllib.parse
 from dataclasses import dataclass, field
 from pathlib import Path
-from typing import Any, List, Optional
-
-import jinja2
+from typing import Any, Dict, List, Optional
 
 from goodreads_export.clean_file_name import clean_file_name
 from goodreads_export.templates import AuthorTemplate, Templates
@@ -21,18 +19,23 @@ class AuthorFile:  # pylint: disable=too-many-instance-attributes
     """
 
     template: AuthorTemplate
-    author: str
+    name: str  # primary author name
     folder: Path
     file_name: Optional[Path] = None
     content: Optional[str] = None
     names: Optional[list[str]] = field(init=False, default=None)
 
-    _file_name: Optional[Path] = field(repr=False, init=False)
-    _content: Optional[str] = field(repr=False, init=False)
+    _file_name: Optional[Path] = field(init=False, repr=False)
+    _content: Optional[str] = field(init=False, repr=False)
+    _template_context: Dict[str, Any] = field(init=False, repr=False)
 
     def __post_init__(self) -> None:
         """Extract fields from content."""
-        self.jinja = jinja2.Environment()
+        self._template_context = {
+            "author": self,
+            "urlencode": urllib.parse.urlencode,
+            "clean_file_name": clean_file_name,
+        }
         self.parse()  # we do not run parse on content assign during __init__()
 
     def parse(self) -> None:
@@ -44,20 +47,11 @@ class AuthorFile:  # pylint: disable=too-many-instance-attributes
                     match[regex.name_group] for match in regex.compiled.finditer(self._content)
                 ]
         if self.names is None:
-            self.names = [self.author]
+            self.names = [self.name]
 
     def render_body(self) -> str:
         """Render file body."""
-        return self.template.render_body(self.jinja_context)
-
-    @property
-    def jinja_context(self) -> dict[str, Any]:
-        """Jinja context."""
-        return {
-            "author": self.author,
-            "urlencode": urllib.parse.urlencode,
-            "clean_file_name": clean_file_name,
-        }
+        return self.template.render_body(self._template_context)
 
     @property  # type: ignore
     def file_name(self) -> Path:
@@ -66,7 +60,7 @@ class AuthorFile:  # pylint: disable=too-many-instance-attributes
         Automatically generate file name from book's fields if not assigned.
         """
         if self._file_name is None:
-            self._file_name = self.template.render_file_name(self.jinja_context)
+            self._file_name = self.template.render_file_name(self._template_context)
         return self._file_name
 
     @file_name.setter
@@ -111,7 +105,7 @@ class AuthorFile:  # pylint: disable=too-many-instance-attributes
         removed_names = []
         for name in self.names:
             if (
-                name != self.author
+                name != self.name
                 and (author_file_path := self.folder / f"{clean_file_name(name)}.md").exists()
             ):
                 os.remove(author_file_path)

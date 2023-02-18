@@ -49,10 +49,6 @@ class BookFile:  # pylint: disable=too-many-instance-attributes
             "clean_file_name": clean_file_name,
         }
         self.parse()  # we do not run parse on content assign during __init__()
-        # if self.tags is None:
-        #     self.tags = []
-        # if self.series is None:
-        #     self.series = []
 
     def parse(self) -> None:
         """Parse markdown file content."""

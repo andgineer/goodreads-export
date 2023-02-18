@@ -104,7 +104,7 @@ class FileTemplate:
     jinja: jinja2.Environment = field(init=False, repr=False)
 
     def __post_init__(self) -> None:
-        """Separate template to file name and optional link and body."""
+        """Split template to file name, optional link and body."""
         object.__setattr__(self, "file_name_template", self.template.split("\n", maxsplit=1)[0])
         if self.template.split("\n", maxsplit=2)[1] != "":
             file_link_template = self.template.split("\n", maxsplit=2)[1]
@@ -121,7 +121,10 @@ class FileTemplate:
         return Path(self.jinja.from_string(self.file_name_template).render(context))
 
     def render_file_link(self, context: Dict[str, Any]) -> str:
-        """Render link with context."""
+        """Render link with context.
+
+        If link template is not defined - return file name without extension and folders part.
+        """
         if self.file_link_template is None:
             return self.render_file_name(context).stem
         return self.jinja.from_string(self.file_link_template).render(context)

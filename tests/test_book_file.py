@@ -152,5 +152,9 @@ def test_book_file_hashable():
     old_series_context = book_file.series_template_context("1")
     book_file.author = "1"
     assert old_hash != hash(book_file)
+
+    # todo check it really recalculate it because book_file.author changed, even if context is the same
     assert old_series_context == book_file.series_template_context("1")
+
+    # todo check it does not recalculate it thanks to `@cache`
     assert old_series_context == book_file.series_template_context("1")

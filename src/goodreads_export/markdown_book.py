@@ -47,16 +47,13 @@ class BooksFolder:
         Also recreate series files with new author name in the file names.
         """
         for review in self.reviews.values():
-            if (
-                review.author in self.authors
-                and review.author != self.authors[review.author].author
-            ):
+            if review.author in self.authors and review.author != self.authors[review.author].name:
                 self.log.debug(  # should be before rename to log old author name
                     f"Modified review {review.file_name}: renamed author {review.author}"
-                    f" to {self.authors[review.author].author}"
+                    f" to {self.authors[review.author].name}"
                 )
                 deleted_series_files, created_series_files = review.rename_author(
-                    self.authors[review.author].author
+                    self.authors[review.author].name
                 )
                 self.log.debug(
                     f"Deleted series files: {[str(path) for path in deleted_series_files.values()]}, "
@@ -65,7 +62,7 @@ class BooksFolder:
                 self.stat.authors_renamed += 1
         for author in self.primary_authors.values():
             removed_names = author.remove_non_primary_files()
-            self.log.debug(f"Removed {author.author}'s duplicate names: {removed_names}")
+            self.log.debug(f"Removed {author.name}'s duplicate names: {removed_names}")
             self.stat.author_removed_names += removed_names
 
     def dump(self, books: GoodreadsBooks) -> None:
@@ -84,7 +81,7 @@ class BooksFolder:
             if self.stat.unique_author(book.author):
                 self.log.progress(authors_bar_title)
             if book.author in self.authors and book.author != (
-                primary_author := self.authors[book.author].author
+                primary_author := self.authors[book.author].name
             ):
                 self.log.progress_description(
                     authors_bar_title, f"Author {book.author} changed to {primary_author}"
@@ -115,9 +112,7 @@ class BooksFolder:
             title=book.title,
             folder=self.folder / subfolder,
             tags=book.tags,
-            author=self.authors[book.author].author
-            if book.author in self.authors
-            else book.author,
+            author=self.authors[book.author].name if book.author in self.authors else book.author,
             book_id=book.book_id,
             rating=book.rating,
             isbn=book.isbn,
@@ -139,7 +134,7 @@ class BooksFolder:
         """
         author_markdown = AuthorFile(
             template=self.templates.author,
-            author=book.author,
+            name=book.author,
             folder=self.folder / SUBFOLDERS["authors"],
         )
         assert author_markdown.file_name is not None  # to make mypy happy
@@ -192,14 +187,14 @@ class BooksFolder:
         """
         authors: Dict[str, AuthorFile] = {}
         primary_authors: Dict[str, AuthorFile] = {}
-        dummy_author = AuthorFile(template=self.templates.author, author="author", folder=folder)
+        dummy_author = AuthorFile(template=self.templates.author, name="author", folder=folder)
         for file_name in folder.glob(f"*{dummy_author.file_name.suffix}"):  # type: ignore
             with file_name.open("r", encoding="utf8") as author_file:
                 author = AuthorFile(
                     template=self.templates.author,
                     folder=folder,
                     file_name=Path(file_name.name),
-                    author=Path(file_name).stem,
+                    name=Path(file_name).stem,
                     content=author_file.read(),
                 )
                 assert author.names is not None  # to make mypy happy
@@ -208,16 +203,16 @@ class BooksFolder:
                         len(author.names) > 1
                     )  # relink to primary file - with author names list
                     if primary_file:
-                        primary_authors[author.author] = author
-                    for name in author.names + [author.author]:  # + [author.author] to add
+                        primary_authors[author.name] = author
+                    for name in author.names + [author.name]:  # + [author.author] to add
                         # `author` created from the file name, it's not necessary in the links inside the file
                         if name in authors and primary_file or name not in authors:
                             assert (
                                 name not in authors
-                                or author.author == authors[name].author
+                                or author.name == authors[name].name
                                 or len(authors[name].names) < 2  # type: ignore
                             ), (
-                                f"Multiple author files `{author.author}` and `{authors[name].author}`"
+                                f"Multiple author files `{author.name}` and `{authors[name].name}`"
                                 " with name versions - should be only one `Primary` file"
                                 " with multiple name versions."
                             )

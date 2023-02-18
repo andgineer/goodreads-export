@@ -1,6 +1,6 @@
 """Read goodreads export."""
 import re
-from typing import Optional
+from typing import List, Optional
 
 import markdownify
 import pandas as pd
@@ -44,7 +44,7 @@ class Book:  # pylint: disable=too-few-public-methods,too-many-instance-attribut
         self.series_full = [f"{self.author} - {series} - series" for series in self.series]
 
 
-class GoodreadsBooks(list):  # type: ignore
+class GoodreadsBooks(List[Book]):
     """List of books from goodreads export."""
 
     def __init__(self, csv_file: Optional[str]) -> None:

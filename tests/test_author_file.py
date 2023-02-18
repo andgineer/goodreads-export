@@ -10,12 +10,12 @@ def test_author_file_initial_nonbook_content(author_markdown):
     initial_author = "Author"
     author_file = AuthorFile(
         template=Templates().author,
-        author=initial_author,
+        name=initial_author,
         folder=Path(),
         file_name=file_name,
         content=content,
     )
-    assert author_file.author == "Author"
+    assert author_file.name == "Author"
     assert author_file.file_name == file_name
     assert author_file.content == content
 
@@ -31,7 +31,7 @@ def test_author_file_initial_author_content(author_markdown):
     author_file = AuthorFile(
         template=Templates().author,
         content=content,
-        author=initial_author,
+        name=initial_author,
         file_name=file_name,
         folder=Path(),
     )
@@ -52,7 +52,7 @@ def test_author_file_defaults_from_content(author_markdown):
         content=initial_content,
         file_name=file_name,
         folder=Path(),
-        author=initial_author,
+        name=initial_author,
     )
     assert all(f"[{name}]" in author_markdown for name in author_file.names)
     assert str(author_file.file_name) == file_name
@@ -67,10 +67,10 @@ def test_author_file_defaults_from_class(author_markdown):
     initial_author = "Author"
     author_file = AuthorFile(
         template=Templates().author,
-        author=initial_author,
+        name=initial_author,
         folder=Path(),
     )
-    assert author_file.author == initial_author
+    assert author_file.name == initial_author
     assert author_file._file_name is None
     assert (
         author_file.content
