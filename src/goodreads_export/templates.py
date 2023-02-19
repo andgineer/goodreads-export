@@ -14,7 +14,7 @@ except ModuleNotFoundError:
 
 
 TEMPLATES_PACKAGE_DATA_FOLDER = "templates"
-REVIEW_TEMPLATE_FILE_NAME = "review.jinja"
+BOOK_TEMPLATE_FILE_NAME = "book.jinja"
 AUTHOR_TEMPLATE_FILE_NAME = "author.jinja"
 SERIES_TEMPLATE_FILE_NAME = "series.jinja"
 
@@ -41,7 +41,7 @@ class AuthorNamesRegEx(RegEx):
 
 
 @dataclass(frozen=True)
-class ReviewSeriesRegEx(RegEx):
+class BookSeriesRegEx(RegEx):
     """Regular expressions for series links inside review file."""
 
     # we need defaults because we have default in base class
@@ -49,7 +49,7 @@ class ReviewSeriesRegEx(RegEx):
 
 
 @dataclass(frozen=True)
-class ReviewGoodreadsLinkRegEx(RegEx):
+class BookGoodreadsLinkRegEx(RegEx):
     """Regular expressions for goodreads links inside review file."""
 
     # we need defaults because we have default in base class
@@ -64,6 +64,15 @@ class SeriesFileNameRegEx(RegEx):
 
     We only match it so no need in any groups.
     """
+
+
+@dataclass(frozen=True)
+class SeriesContentRegEx(RegEx):
+    """Regular expressions for series file."""
+
+    # we need defaults because we have default in base class
+    title_group: int = -1
+    author_group: int = -1
 
 
 RegExSubClass = TypeVar("RegExSubClass", bound=RegEx)
@@ -145,17 +154,16 @@ class AuthorTemplate(FileTemplate):
 class SeriesTemplate(FileTemplate):
     """Series template."""
 
+    content_regexes: RegExList[SeriesContentRegEx]
     file_name_regexes: RegExList[SeriesFileNameRegEx]
 
 
 @dataclass(frozen=True)
-class ReviewTemplate(FileTemplate):
-    """Review template."""
+class BookTemplate(FileTemplate):
+    """Book template."""
 
-    goodreads_link_regexes: RegExList[ReviewGoodreadsLinkRegEx]
-    series_regexes: RegExList[ReviewSeriesRegEx]
-
-    series: SeriesTemplate
+    goodreads_link_regexes: RegExList[BookGoodreadsLinkRegEx]
+    series_regexes: RegExList[BookSeriesRegEx]
 
 
 @dataclass
@@ -164,7 +172,8 @@ class TemplateSet:
 
     name: str
     author: AuthorTemplate
-    review: ReviewTemplate
+    book: BookTemplate
+    series: SeriesTemplate
 
 
 class Templates:  # pylint: disable=too-few-public-methods
@@ -205,32 +214,38 @@ class Templates:  # pylint: disable=too-few-public-methods
                             ]
                         ),
                     ),
-                    review=ReviewTemplate(
-                        template=folder.joinpath(REVIEW_TEMPLATE_FILE_NAME).read_text(
+                    book=BookTemplate(
+                        template=folder.joinpath(BOOK_TEMPLATE_FILE_NAME).read_text(
                             encoding="utf-8"
                         ),
                         goodreads_link_regexes=RegExList(
                             [
-                                ReviewGoodreadsLinkRegEx(**regex)
-                                for regex in regex_config["regex"]["review"]["goodreads-link"]
+                                BookGoodreadsLinkRegEx(**regex)
+                                for regex in regex_config["regex"]["book"]["goodreads-link"]
                             ]
                         ),
                         series_regexes=RegExList(
                             [
-                                ReviewSeriesRegEx(**regex)
-                                for regex in regex_config["regex"]["review"]["series"]
+                                BookSeriesRegEx(**regex)
+                                for regex in regex_config["regex"]["book"]["series"]
                             ]
                         ),
-                        series=SeriesTemplate(
-                            template=folder.joinpath(SERIES_TEMPLATE_FILE_NAME).read_text(
-                                encoding="utf-8"
-                            ),
-                            file_name_regexes=RegExList(
-                                [
-                                    SeriesFileNameRegEx(**regex)
-                                    for regex in regex_config["regex"]["series"]["file-name"]
-                                ]
-                            ),
+                    ),
+                    series=SeriesTemplate(
+                        template=folder.joinpath(SERIES_TEMPLATE_FILE_NAME).read_text(
+                            encoding="utf-8"
+                        ),
+                        content_regexes=RegExList(
+                            [
+                                SeriesContentRegEx(**regex)
+                                for regex in regex_config["regex"]["series"]["content"]
+                            ]
+                        ),
+                        file_name_regexes=RegExList(
+                            [
+                                SeriesFileNameRegEx(**regex)
+                                for regex in regex_config["regex"]["series"]["file-name"]
+                            ]
                         ),
                     ),
                 )
@@ -242,6 +257,14 @@ class Templates:  # pylint: disable=too-few-public-methods
         return self.templates[self.selected].author
 
     @property
-    def review(self) -> ReviewTemplate:
+    def book(self) -> BookTemplate:
         """Template for review."""
-        return self.templates[self.selected].review
+        return self.templates[self.selected].book
+
+    @property
+    def series(self) -> SeriesTemplate:
+        """Template for review."""
+        return self.templates[self.selected].series
+
+
+templates = Templates()  # singleton to inject to other modules

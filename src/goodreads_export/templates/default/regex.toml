@@ -8,15 +8,21 @@ regex = '''
 name_group = 1  # index of regex group that return author name
 
 
-[[regex.review.goodreads-link]]
+[[regex.book.goodreads-link]]
 regex = '\[\[([^]]+)\]\](: \[([^]]*)\]\(https://www\.goodreads\.com/book/show/(\d+)\))'
 book_id_group = 4
 title_group = 3
 author_group = 1
 
-[[regex.review.series]]
+[[regex.book.series]]
 regex = '\[\[[^-]* - ([^-]*) - series\]\]'
 series_group = 1
 
 [[regex.series.file-name]]
 regex = '.* - .* - series\.md$'
+
+[[regex.series.content]]
+regex = '\[\[([^]]+)\]\]\s*\[([^]]+)\]'
+author_group = 1
+title_group = 2
+

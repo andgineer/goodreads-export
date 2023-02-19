@@ -7,7 +7,7 @@ from pathlib import Path
 from typing import Any, Dict, List, Optional, Tuple
 
 from goodreads_export.clean_file_name import clean_file_name
-from goodreads_export.templates import ReviewTemplate, Templates
+from goodreads_export.templates import templates
 
 
 @dataclass
@@ -19,16 +19,13 @@ class BookFile:  # pylint: disable=too-many-instance-attributes
     `render()` generate `content` from fields.
     """
 
-    template: ReviewTemplate
-    title: str
-    folder: Path
+    title: Optional[str] = None
+    folder: Optional[Path] = Path()
+    author: Optional[str] = None
     content: Optional[str] = field(
         default=None, repr=False
     )  # do not calculate the property on repr
-    file_name: Optional[Path] = field(
-        default=None, repr=False
-    )  # do not calculate the property on repr
-    author: Optional[str] = None
+    file_name: Optional[Path] = None
     book_id: Optional[str] = None
     tags: List[str] = field(default_factory=list)
     rating: Optional[int] = None
@@ -49,25 +46,26 @@ class BookFile:  # pylint: disable=too-many-instance-attributes
         """Template context."""
         return {
             "book": self,
+            "author": self.author,
             "urlencode": urllib.parse.urlencode,
             "clean_file_name": clean_file_name,
         }
 
     def parse(self) -> None:
-        """Parse markdown file content."""
+        """Parse file content."""
         if self._content is None:
             return
         self.book_id = None
-        self.title = ""
+        self.title = None
         self.author = None
         self.series = []
-        if book_regex := self.template.goodreads_link_regexes.choose_regex(self._content):
+        if book_regex := templates.book.goodreads_link_regexes.choose_regex(self._content):
             link_match = book_regex.compiled.search(self._content)
             assert link_match is not None  # to please mypy
             self.book_id = link_match[book_regex.book_id_group]
             self.title = link_match[book_regex.title_group]
             self.author = link_match[book_regex.author_group]
-        if series_regex := self.template.series_regexes.choose_regex(self._content):
+        if series_regex := templates.book.series_regexes.choose_regex(self._content):
             self.series = [
                 series_match[series_regex.series_group]
                 for series_match in series_regex.compiled.finditer(self._content)
@@ -82,41 +80,7 @@ class BookFile:  # pylint: disable=too-many-instance-attributes
             rating_tag = f"#book/rating{self.rating}"
             if rating_tag not in self.tags:
                 self.tags.append(rating_tag)
-        return self.template.render_body(self._template_context())
-
-    # todo encapsulate to series class
-
-    @cache  # pylint: disable=method-cache-max-size-none
-    def series_template_context(self, series: str) -> Dict[str, Any]:
-        """Return template context for series."""
-        context = (
-            self._template_context().copy()
-        )  # do not change the context for previous (cached) call
-        context["series"] = series
-        return context
-
-    def is_series_file_name(self) -> bool:
-        """Return True if file name if indicate this is series description file."""
-        return self.template.series.file_name_regexes.choose_regex(str(self.file_name)) is not None
-
-    @cache  # pylint: disable=method-cache-max-size-none
-    def series_file_name(self, series: str) -> Path:
-        """Return file name for series."""
-        return self.template.series.render_file_name(self.series_template_context(series))
-
-    @cache  # pylint: disable=method-cache-max-size-none
-    def series_file_link(self, series: str) -> str:
-        """Return file link for the series."""
-        return self.template.series.render_file_link(self.series_template_context(series))
-
-    def series_links_list(self) -> Dict[str, str]:
-        """Return dict of series file links."""
-        assert self.series is not None  # to please mypy
-        return {series: self.series_file_link(series) for series in self.series}
-
-    def render_series_body(self, series: str) -> str:
-        """Render series body."""
-        return self.template.series.render_body(self.series_template_context(series))
+        return templates.book.render_body(self._template_context())
 
     @property  # type: ignore
     def file_name(self) -> Optional[Path]:
@@ -125,10 +89,18 @@ class BookFile:  # pylint: disable=too-many-instance-attributes
         Automatically generate file name from book's fields if not assigned.
         """
         if self._file_name is None:
-            self._file_name = self.template.render_file_name(self._template_context())
+            self._file_name = templates.book.render_file_name(self._template_context())
         return self._file_name
 
-    @file_name.setter
+    @classmethod
+    @cache
+    def file_suffix(cls) -> str:
+        """File suffix."""
+        file_name = BookFile(title="title", author="author").file_name
+        assert file_name
+        return file_name.suffix
+
+    @file_name.setter  # type: ignore
     def file_name(self, file_name: Path) -> None:
         """Set file_name.
 
@@ -139,11 +111,18 @@ class BookFile:  # pylint: disable=too-many-instance-attributes
             return
         self._file_name = file_name
 
+    @property
+    @cache  # pylint: disable=method-cache-max-size-none
+    def file_link(self) -> str:
+        """Book file link."""
+        # todo send file name to context
+        return templates.book.render_file_link(self._template_context())
+
     @property  # type: ignore  # same name as property
     def content(self) -> Optional[str]:
-        """Markdown file content.
+        """File content.
 
-        Automatically generate content from book's fields if not assigned.
+        Automatically generate content from object's fields if not assigned.
         """
         if self._content is None:
             self._content = self.render_body()
@@ -198,7 +177,7 @@ class BookFile:  # pylint: disable=too-many-instance-attributes
         deleted_series_files = {}
         assert self.series is not None
         for series in self.series:
-            series_file_path = self.folder / self.series_file_name(series)
+            series_file_path = self.folder / self.series_file_name(series)  # type: ignore  # pylint: disable=no-member
             if series_file_path.exists():
                 os.remove(series_file_path)
                 deleted_series_files[series] = series_file_path
@@ -214,7 +193,7 @@ class BookFile:  # pylint: disable=too-many-instance-attributes
         """
         assert self.author is not None
         assert self.content is not None
-        old_series_links = self.series_links_list()
+        old_series_links = self.series_links_list()  # type: ignore
         deleted_series_files = self.delete_series_files()
         self.delete_file()
         # todo use here and in template link to author file not plane author name
@@ -223,7 +202,7 @@ class BookFile:  # pylint: disable=too-many-instance-attributes
         self._file_name = None  # to recreate from fields
         for series_name, series_old_file_link in old_series_links.items():
             self.content = self.content.replace(
-                series_old_file_link, self.series_file_link(series_name)
+                series_old_file_link, self.series_file_link(series_name)  # type: ignore  # pylint: disable=no-member
             )
         created_series_files = self.create_series_files()
         self.write()
@@ -239,11 +218,11 @@ class BookFile:  # pylint: disable=too-many-instance-attributes
         assert self.author is not None
         created_series_files = {}
         for series in self.series:
-            series_file_name = self.series_file_name(series)
+            series_file_name = self.series_file_name(series)  # type: ignore  # pylint: disable=no-member
             series_file_path = self.folder / series_file_name
             if not series_file_path.is_file():
                 with series_file_path.open("w", encoding="utf8") as md_file:
-                    series_file_body = self.render_series_body(series)
+                    series_file_body = self.render_series_body(series)  # type: ignore  # pylint: disable=no-member
                     md_file.write(series_file_body)
                 created_series_files[series] = series_file_path
         return created_series_files
@@ -258,10 +237,9 @@ class BookFile:  # pylint: disable=too-many-instance-attributes
         series = ["Voyages extraordinaires"]
         review = "This is a review\nin two lines"
         book_file = cls(
-            template=Templates().review,
+            folder=Path(),
             book_id=book_id,
             title=title,
-            folder=Path(),
             author=author,
             tags=tags,
             series=series,
@@ -273,15 +251,34 @@ class BookFile:  # pylint: disable=too-many-instance-attributes
         is_title_parsed = book_file.title == title
         is_author_parsed = book_file.author == author
         is_series_parsed = book_file.series == series
-        # todo detailed error diagnostics like in AuthorFile
+        if not is_author_parsed:
+            print(f"Author name {author} is not parsed from content\n{book_file.content}")
+            print(f"using the pattern\n{templates.book.goodreads_link_regexes[0].regex}")
+        if not is_book_id_parsed:
+            print(f"Book ID {book_id} is not parsed from content\n{book_file.content}")
+            print(f"using the pattern\n{templates.book.goodreads_link_regexes[0].regex}")
+        if not is_title_parsed:
+            print(f"Book title {title} is not parsed from content\n{book_file.content}")
+            print(f"using the pattern\n{templates.book.goodreads_link_regexes[0].regex}")
+        if not is_series_parsed:
+            print(f"Series {series[0].title} is not parsed from content\n{book_file.content}")
+            print(f"using the pattern\n{templates.book.series_regexes[0].regex}")
         return is_book_id_parsed and is_title_parsed and is_author_parsed and is_series_parsed
+
+    def series_links_list(self) -> Dict[str, str]:
+        """Return dict of series file links."""
+        assert self.series is not None  # to please mypy
+        return {series: self.file_link(series) for series in self.series}  # type: ignore
 
     def __hash__(self) -> int:
         """Hash leveraging dataclasses __repr__."""
         return hash(self.__repr__())
 
     def __eq__(self, other: object) -> bool:
-        """Compare two BookFile objects."""
+        """Compare two BookFile objects.
+
+        Primary for @cache
+        """
         if isinstance(other, BookFile):
             return self.__hash__() == other.__hash__()
         raise NotImplementedError(f"Cannot compare BookFile with {type(other)}")

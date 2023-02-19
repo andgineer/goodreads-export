@@ -1,7 +1,6 @@
 from pathlib import Path
 
 from goodreads_export.author_file import AuthorFile
-from goodreads_export.templates import Templates
 
 
 def test_author_file_initial_nonbook_content(author_markdown):
@@ -9,14 +8,13 @@ def test_author_file_initial_nonbook_content(author_markdown):
     file_name = "123 - Title - Author.md"
     initial_author = "Author"
     author_file = AuthorFile(
-        template=Templates().author,
         name=initial_author,
         folder=Path(),
-        file_name=file_name,
+        file_name=Path(file_name),
         content=content,
     )
     assert author_file.name == "Author"
-    assert author_file.file_name == file_name
+    assert author_file.file_name == Path(file_name)
     assert author_file.content == content
 
     author_file.content = author_markdown
@@ -29,10 +27,9 @@ def test_author_file_initial_author_content(author_markdown):
     file_name = "123 - Title - Author.md"
     initial_author = "Author"
     author_file = AuthorFile(
-        template=Templates().author,
         content=content,
         name=initial_author,
-        file_name=file_name,
+        file_name=Path(file_name),
         folder=Path(),
     )
     assert all(f"[{name}]" in author_markdown for name in author_file.names)
@@ -48,9 +45,8 @@ def test_author_file_defaults_from_content(author_markdown):
     file_name = "123 - Title - Author.md"
     initial_author = "Author"
     author_file = AuthorFile(
-        template=Templates().author,
         content=initial_content,
-        file_name=file_name,
+        file_name=Path(file_name),
         folder=Path(),
         name=initial_author,
     )
@@ -66,7 +62,6 @@ def test_author_file_defaults_from_content(author_markdown):
 def test_author_file_defaults_from_class(author_markdown):
     initial_author = "Author"
     author_file = AuthorFile(
-        template=Templates().author,
         name=initial_author,
         folder=Path(),
     )

@@ -7,9 +7,9 @@ import click
 
 from goodreads_export.author_file import AuthorFile
 from goodreads_export.book_file import BookFile
+from goodreads_export.books_folder import BooksFolder
 from goodreads_export.goodreads_book import GoodreadsBooks
 from goodreads_export.log import Log
-from goodreads_export.markdown_book import BooksFolder
 from goodreads_export.version import VERSION
 
 GOODREAD_EXPORT_FILE_NAME = "goodreads_library_export.csv"
@@ -106,7 +106,7 @@ def import_(ctx: click.Context, csv_file: str, output_folder: Path) -> None:
         books_folder = merge_authors(log, output_folder)
         books_folder.dump(books)
         print(
-            f"\nAdded {books_folder.stat.reviews_added} review files, "
+            f"\nAdded {books_folder.stat.books_added} review files, "
             f"{books_folder.stat.authors_added} author files.",
             f"Renamed {books_folder.stat.authors_renamed} authors, "
             f"removed duplicate {len(books_folder.stat.author_removed_names)} author names.",
@@ -122,7 +122,7 @@ def merge_authors(log: Log, output_folder: Path) -> BooksFolder:
     books_folder = BooksFolder(output_folder, log)
     log.start(f"Reading existing files from {output_folder}")
     print(
-        f" loaded {len(books_folder.reviews)} books, {len(books_folder.authors)} authors, "
+        f" loaded {len(books_folder.books)} books, {len(books_folder.authors)} authors, "
         f"skipped {books_folder.stat.skipped_unknown_files} unknown files"
         f" and {books_folder.stat.series_added} series files.",
     )
