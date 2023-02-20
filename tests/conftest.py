@@ -40,11 +40,14 @@ class GoodreadsTestCase:
 
     def __init__(self, folder: str):
         self.expected_folder = RESOURCES / folder / "books"
+        self.merged_folder = RESOURCES / folder / "merged" / "books"
         self.preexisted_folder = RESOURCES / folder / "existed"
         self.csv = RESOURCES / folder / "goodreads_library_export.csv"
 
-    def check(self, folder: str) -> bool:
-        return paths_content_is_same(self.expected_folder, Path(folder))
+    def check(self, folder: str, expected_folder: str = None) -> bool:
+        if expected_folder is None:
+            expected_folder = self.expected_folder
+        return paths_content_is_same(expected_folder, Path(folder))
 
     def copy_existed(self, folder: Path, source: Optional[Path] = None) -> None:
         if source is None:

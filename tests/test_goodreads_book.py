@@ -38,3 +38,19 @@ def test_success(test_case):
         assert result.exit_code == 0, f"stdout: {result.output}"
         assert test_case.check("./books"), test_case.diff
         assert "Added review" not in result.output  # should be only with --verbose
+
+
+def test_merge_only(test_case):
+    runner = CliRunner()
+    with runner.isolated_filesystem():
+        mkdir("books")
+        test_case.copy_existed(Path("books"))
+        result = runner.invoke(
+            main,
+            [
+                "merge",
+                "books",
+            ],
+        )
+        assert result.exit_code == 0, f"stdout: {result.output}"
+        assert test_case.check("./books", test_case.merged_folder), test_case.diff
