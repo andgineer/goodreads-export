@@ -10,6 +10,7 @@ from goodreads_export.book_file import BookFile
 from goodreads_export.books_folder import BooksFolder
 from goodreads_export.goodreads_book import GoodreadsBooks
 from goodreads_export.log import Log
+from goodreads_export.series_file import SeriesFile
 from goodreads_export.version import VERSION
 
 GOODREAD_EXPORT_FILE_NAME = "goodreads_library_export.csv"
@@ -149,6 +150,7 @@ def check(ctx: click.Context, output_folder: Path) -> None:
         log: Log = ctx.obj["log"]
         assert BookFile.check()
         assert AuthorFile.check()
+        assert SeriesFile.check()
         log.info("Templates are consistent with extraction regexes.")
     except Exception as exc:  # pylint: disable=broad-except
         print(f"\n{exc}")

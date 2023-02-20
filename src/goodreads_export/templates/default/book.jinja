@@ -4,7 +4,7 @@
 ISBN{{ book.isbn }} (ISBN13{{ book.isbn13 }})
 {%- if book.series %}
 {% for series in book.series -%}
-[[{{ series.file_link }}]]]{{ "" if loop.last else " "}}
+[[{{ series.file_link }}]]{{ "" if loop.last else " "}}
 {%- endfor -%}
 {% endif %}
 

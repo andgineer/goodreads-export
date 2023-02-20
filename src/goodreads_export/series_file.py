@@ -6,7 +6,7 @@ from pathlib import Path
 from typing import Any, Dict, List, Optional, Union
 
 from goodreads_export.clean_file_name import clean_file_name
-from goodreads_export.templates import templates
+from goodreads_export.templates import get_templates
 
 
 @dataclass
@@ -16,6 +16,7 @@ class SeriesFile:
     author: Optional[str] = None
     title: Optional[str] = None
     file_name: Optional[Path] = None
+    file_link: Optional[Path] = field(init=False, repr=False)
     content: Optional[str] = None
 
     _file_name: Optional[Path] = field(init=False, repr=False)
@@ -30,7 +31,7 @@ class SeriesFile:
         if self._content is not None:
             self.title = None
             self.author = None
-            if regex := templates.series.content_regexes.choose_regex(self._content):
+            if regex := get_templates().series.content_regexes.choose_regex(self._content):
                 match = regex.compiled.search(self._content)
                 assert match  # to make mypy happy
                 self.title = match[regex.title_group]
@@ -49,14 +50,14 @@ class SeriesFile:
     @classmethod
     def is_file_name(cls, file_name: Union[str, Path]) -> bool:
         """Return True if file name if indicate this is series description file."""
-        return templates.series.file_name_regexes.choose_regex(str(file_name)) is not None
+        return get_templates().series.file_name_regexes.choose_regex(str(file_name)) is not None
 
     @property  # type: ignore  # same name as property
     @cache  # pylint: disable=method-cache-max-size-none
     def file_name(self) -> Path:
         """Return file name for series."""
         if self._file_name is None:
-            self._file_name = templates.series.render_file_name(self._template_context())
+            self._file_name = get_templates().series.render_file_name(self._template_context())
         return self._file_name
 
     @file_name.setter
@@ -70,12 +71,19 @@ class SeriesFile:
             return
         self._file_name = file_name
 
-    @property
-    @cache  # pylint: disable=method-cache-max-size-none
+    @property  # type: ignore  # same name as property
+    # @cache  # pylint: disable=method-cache-max-size-none
     def file_link(self) -> str:
         """Return file link for the series."""
         # todo send file name to context
-        return templates.series.render_file_link(self._template_context())
+        return get_templates().series.render_file_link(self._template_context())
+
+    @file_link.setter
+    def file_link(self, file_link: str) -> None:
+        """Set file_link.
+
+        To make dataclass happy
+        """
 
     @classmethod
     @cache
@@ -87,7 +95,7 @@ class SeriesFile:
 
     def render_body(self) -> str:
         """Render series body."""
-        return templates.series.render_body(self._template_context())
+        return get_templates().series.render_body(self._template_context())
 
     @property  # type: ignore  # same name as property
     def content(self) -> Optional[str]:
@@ -123,6 +131,23 @@ class SeriesFile:
         if isinstance(other, SeriesFile):  # todo do not use class name explicitely
             return self.__hash__() == other.__hash__()
         raise NotImplementedError(f"Cannot compare SeriesFile with {type(other)}")
+
+    @classmethod
+    def check(cls: type["SeriesFile"]) -> bool:
+        """Check regex work for the template."""
+        author_name = "Mark Twain"
+        title = "title"
+        series_file = cls(title=title, author=author_name)
+        series_file.content = series_file.render_body()
+        is_title_parsed = series_file.title == title
+        is_author_parsed = series_file.author == author_name
+        if not is_title_parsed:
+            print(f"Series title {title} is not parsed from content\n{series_file.content}")
+            print(f"using the pattern\n{get_templates().series.content_regexes[0].regex}")
+        if not is_author_parsed:
+            print(f"Author name {author_name} is not parsed from content\n{series_file.content}")
+            print(f"using the pattern\n{get_templates().series.content_regexes[0].regex}")
+        return is_title_parsed and is_author_parsed
 
 
 class SeriesList(List[SeriesFile]):

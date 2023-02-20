@@ -117,7 +117,7 @@ class BooksFolder:
             rating=book.rating,
             isbn=book.isbn,
             isbn13=book.isbn13,
-            series=book.series,
+            series_titles=book.series,
             review=book.review,
         )
         book_file.create_series_files()

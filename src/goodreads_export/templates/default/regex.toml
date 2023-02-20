@@ -22,7 +22,6 @@ series_group = 1
 regex = '.* - .* - series\.md$'
 
 [[regex.series.content]]
-regex = '\[\[([^]]+)\]\]\s*\[([^]]+)\]'
+regex = '\[\[([^]]+)\]\][.\s]*\[([^]]+)\]\(https://www\.goodreads\.com/search\?[^)]+\)'
 author_group = 1
 title_group = 2
-

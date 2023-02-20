@@ -6,6 +6,7 @@ from pathlib import Path
 from typing import Any, Dict, List, Optional, TypeVar
 
 import jinja2
+from jinja2 import DebugUndefined
 
 try:
     import tomllib
@@ -110,7 +111,7 @@ class FileTemplate:
     file_name_template: str = field(init=False)
     file_link_template: str = field(init=False)
 
-    jinja: jinja2.Environment = field(init=False, repr=False)
+    env: "Templates" = field(repr=False)
 
     def __post_init__(self) -> None:
         """Split template to file name, optional link and body."""
@@ -123,11 +124,10 @@ class FileTemplate:
             body_template = "\n".join(self.template.split("\n")[2:])
         object.__setattr__(self, "file_link_template", file_link_template)
         object.__setattr__(self, "body_template", body_template)
-        object.__setattr__(self, "jinja", jinja2.Environment())
 
     def render_file_name(self, context: Dict[str, Any]) -> Path:
         """Render file name with context."""
-        return Path(self.jinja.from_string(self.file_name_template).render(context))
+        return Path(self.env.jinja.from_string(self.file_name_template).render(context))
 
     def render_file_link(self, context: Dict[str, Any]) -> str:
         """Render link with context.
@@ -136,11 +136,11 @@ class FileTemplate:
         """
         if self.file_link_template is None:
             return self.render_file_name(context).stem
-        return self.jinja.from_string(self.file_link_template).render(context)
+        return self.env.jinja.from_string(self.file_link_template).render(context)
 
     def render_body(self, context: Dict[str, Any]) -> str:
         """Render file body with context."""
-        return self.jinja.from_string(self.body_template).render(context)
+        return self.env.jinja.from_string(self.body_template).render(context)
 
 
 @dataclass(frozen=True)
@@ -184,8 +184,12 @@ class Templates:  # pylint: disable=too-few-public-methods
     Otherwise default will be `default` from package data.
     """
 
-    def __init__(self) -> None:
+    jinja = jinja2.Environment()
+
+    def __init__(self, debug: bool = False) -> None:
         """Load embeded templates from the package data."""
+        if debug:
+            self.jinja = jinja2.Environment(undefined=DebugUndefined)
         self.templates = self.load_embeded()
         self.selected = "default"
 
@@ -204,6 +208,7 @@ class Templates:  # pylint: disable=too-few-public-methods
                 result[folder.name] = TemplateSet(
                     name=folder.name,
                     author=AuthorTemplate(
+                        env=self,
                         template=folder.joinpath(AUTHOR_TEMPLATE_FILE_NAME).read_text(
                             encoding="utf-8"
                         ),
@@ -215,6 +220,7 @@ class Templates:  # pylint: disable=too-few-public-methods
                         ),
                     ),
                     book=BookTemplate(
+                        env=self,
                         template=folder.joinpath(BOOK_TEMPLATE_FILE_NAME).read_text(
                             encoding="utf-8"
                         ),
@@ -232,6 +238,7 @@ class Templates:  # pylint: disable=too-few-public-methods
                         ),
                     ),
                     series=SeriesTemplate(
+                        env=self,
                         template=folder.joinpath(SERIES_TEMPLATE_FILE_NAME).read_text(
                             encoding="utf-8"
                         ),
@@ -267,4 +274,9 @@ class Templates:  # pylint: disable=too-few-public-methods
         return self.templates[self.selected].series
 
 
-templates = Templates()  # singleton to inject to other modules
+_templates = Templates()
+
+
+def get_templates() -> Templates:
+    """Get templates singleton."""
+    return _templates

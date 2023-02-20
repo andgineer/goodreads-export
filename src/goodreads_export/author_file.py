@@ -7,7 +7,7 @@ from typing import Any, Dict, List, Optional
 
 from goodreads_export.clean_file_name import clean_file_name
 from goodreads_export.series_file import SeriesList
-from goodreads_export.templates import templates
+from goodreads_export.templates import get_templates
 
 
 @dataclass
@@ -43,7 +43,7 @@ class AuthorFile:  # pylint: disable=too-many-instance-attributes
         """Parse file content."""
         if self._content is not None:
             self.names = None
-            if regex := templates.author.names_regexes.choose_regex(self._content):
+            if regex := get_templates().author.names_regexes.choose_regex(self._content):
                 self.names = [
                     match[regex.name_group] for match in regex.compiled.finditer(self._content)
                 ]
@@ -52,7 +52,7 @@ class AuthorFile:  # pylint: disable=too-many-instance-attributes
 
     def render_body(self) -> str:
         """Render file body."""
-        return templates.author.render_body(self._template_context)
+        return get_templates().author.render_body(self._template_context)
 
     @property  # type: ignore
     def file_name(self) -> Path:
@@ -61,7 +61,7 @@ class AuthorFile:  # pylint: disable=too-many-instance-attributes
         Automatically generate file name from book's fields if not assigned.
         """
         if self._file_name is None:
-            self._file_name = templates.author.render_file_name(self._template_context)
+            self._file_name = get_templates().author.render_file_name(self._template_context)
         return self._file_name
 
     @file_name.setter
@@ -129,5 +129,5 @@ class AuthorFile:  # pylint: disable=too-many-instance-attributes
         is_author_parsed = author_file.names == [author_name]
         if not is_author_parsed:
             print(f"Author name {author_name} is not parsed from content\n{author_file.content}")
-            print(f"using the pattern\n{templates.author.names_regexes[0].regex}")
+            print(f"using the pattern\n{get_templates().author.names_regexes[0].regex}")
         return is_author_parsed
