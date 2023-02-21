@@ -2,6 +2,7 @@
 import os
 import urllib.parse
 from dataclasses import dataclass, field
+from functools import cache
 from pathlib import Path
 from typing import Any, Dict, List, Optional
 
@@ -10,7 +11,7 @@ from goodreads_export.series_file import SeriesList
 from goodreads_export.templates import get_templates
 
 
-@dataclass
+@dataclass(eq=False)
 class AuthorFile:  # pylint: disable=too-many-instance-attributes
     """Author's file.
 
@@ -21,23 +22,28 @@ class AuthorFile:  # pylint: disable=too-many-instance-attributes
 
     name: str  # primary author name
     folder: Path
-    file_name: Optional[Path] = None
-    content: Optional[str] = None
+    file_name: Optional[Path] = field(default=None, repr=False)
+    content: Optional[str] = field(default=None, repr=False)
     names: Optional[list[str]] = field(init=False, default=None)
-    series: SeriesList = field(default_factory=SeriesList)
+    series: SeriesList = field(default_factory=SeriesList, repr=False)
 
-    _file_name: Optional[Path] = field(init=False, repr=False)
-    _content: Optional[str] = field(init=False, repr=False)
-    _template_context: Dict[str, Any] = field(init=False, repr=False)
+    _file_name: Optional[Path] = field(init=False)
+    _content: Optional[str] = field(init=False)
 
     def __post_init__(self) -> None:
         """Extract fields from content."""
-        self._template_context = {
+        self._template = get_templates().author
+        self.parse()  # we do not run parse on content assign during __init__()
+
+    @property
+    @cache  # pylint: disable=method-cache-max-size-none
+    def _template_context(self) -> Dict[str, Any]:
+        """Template context."""
+        return {
             "author": self,
             "urlencode": urllib.parse.urlencode,
             "clean_file_name": clean_file_name,
         }
-        self.parse()  # we do not run parse on content assign during __init__()
 
     def parse(self) -> None:
         """Parse file content."""
@@ -52,7 +58,7 @@ class AuthorFile:  # pylint: disable=too-many-instance-attributes
 
     def render_body(self) -> str:
         """Render file body."""
-        return get_templates().author.render_body(self._template_context)
+        return get_templates().author.render_body(self._template_context)  # type: ignore
 
     @property  # type: ignore
     def file_name(self) -> Path:
@@ -61,7 +67,7 @@ class AuthorFile:  # pylint: disable=too-many-instance-attributes
         Automatically generate file name from book's fields if not assigned.
         """
         if self._file_name is None:
-            self._file_name = get_templates().author.render_file_name(self._template_context)
+            self._file_name = get_templates().author.render_file_name(self._template_context)  # type: ignore
         return self._file_name
 
     @file_name.setter
@@ -114,7 +120,7 @@ class AuthorFile:  # pylint: disable=too-many-instance-attributes
         return removed_names
 
     def write(self) -> None:
-        """Write markdown file to path."""
+        """Write file to path."""
         assert self.file_name is not None  # to please mypy
         assert self.content is not None  # to please mypy
         with (self.folder / self.file_name).open("w", encoding="utf8") as file:
@@ -131,3 +137,7 @@ class AuthorFile:  # pylint: disable=too-many-instance-attributes
             print(f"Author name {author_name} is not parsed from content\n{author_file.content}")
             print(f"using the pattern\n{get_templates().author.names_regexes[0].regex}")
         return is_author_parsed
+
+    def __hash__(self) -> int:
+        """Dataclass set it to None as it is not frozen."""
+        return hash(self.__repr__())

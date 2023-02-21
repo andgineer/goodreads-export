@@ -1,6 +1,6 @@
 [[Terry Pratchett]]: [The Light Fantastic (Discworld, #2; Rincewind, #2)](https://www.goodreads.com/book/show/34506)
 ISBN="0061020702" (ISBN13="9780061020704")
-[[Terry Pratchett - Discworld - series]]] [[Terry Pratchett - Rincewind - series]]]
+[[Terry Pratchett - Discworld - series]] [[Terry Pratchett - Rincewind - series]]
 
 Fun fantasy.
 

@@ -135,7 +135,7 @@ class FileTemplate:
         If link template is not defined - return file name without extension and folders part.
         """
         if self.file_link_template is None:
-            return self.render_file_name(context).stem
+            return Path(context["file_name"]).stem
         return self.env.jinja.from_string(self.file_link_template).render(context)
 
     def render_body(self, context: Dict[str, Any]) -> str:

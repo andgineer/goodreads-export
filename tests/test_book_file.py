@@ -148,29 +148,41 @@ def test_book_file_hashable():
     book_file.title += "1"
     assert old_hash != hash(book_file)
     old_hash = hash(book_file)
+    render_misses = book_file.render_body.cache_info().misses
+    content_misses = book_file._template_context.cache_info().misses
+    content_hits = book_file._template_context.cache_info().hits
 
-    with patch.object(
-        goodreads_export.book_file.BookFile, "_template_context"
-    ) as context_mock, patch("goodreads_export.book_file.templates"):
-        book_file.file_link
-        context_mock.assert_called_once()
-        context_mock.reset_mock()
+    with patch("goodreads_export.templates._templates"):
+        # if self changed we call uncached render_body() and it call _template_context
+        # and the last one also unchased for the same reason.
+        # if self is the same we just use cashed render_body() and do not call _template_context at all
+        # thus number of cache misses for both functions will be the same
+        assert book_file.render_body()
+        assert book_file._template_context.cache_info().misses == content_misses + 1
+        assert book_file.render_body.cache_info().misses == render_misses + 1
+        assert book_file._template_context.cache_info().hits == content_hits
 
-        book_file.file_link
-        context_mock.assert_not_called()
+        assert book_file.render_body()
+        # no changes, should use cache
+        assert book_file.render_body.cache_info().misses == render_misses + 1
+        # and do not call _template_context at all
+        assert book_file._template_context.cache_info().misses == content_misses + 1
+        assert book_file._template_context.cache_info().hits == content_hits
 
-        # change the author to force a new hash
-        book_file.author = "1"
+        book_file.author = "1"  # change the author to force a new hash and both cache miss
         assert old_hash != hash(book_file)
+        assert book_file.render_body()
+        assert book_file.render_body.cache_info().misses == render_misses + 2
+        assert book_file._template_context.cache_info().misses == content_misses + 2
+        assert book_file._template_context.cache_info().hits == content_hits
 
-        book_file.file_link
-        context_mock.assert_called_once()  # we change BookFile.author so it should recompute the context
-        context_mock.reset_mock()
+        assert book_file.render_body()  # no changes, should use cache
+        assert book_file.render_body.cache_info().misses == render_misses + 2
+        # and do not call _template_context at all
+        assert book_file._template_context.cache_info().misses == content_misses + 2
+        assert book_file._template_context.cache_info().hits == content_hits
 
-        book_file.file_link  # no changes, should use cache
-        context_mock.assert_not_called()
-        context_mock.reset_mock()
-
-        book_file.title += "1"
-        book_file.file_link  # title changed, should recompute the context
-        context_mock.assert_called_once()
+        book_file.title += "1"  # change the title to force a new hash
+        assert book_file.render_body()
+        assert book_file.render_body.cache_info().misses == render_misses + 3
+        assert book_file._template_context.cache_info().misses == content_misses + 3

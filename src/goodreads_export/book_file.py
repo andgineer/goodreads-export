@@ -7,12 +7,13 @@ from pathlib import Path
 from typing import Any, Dict, List, Optional, Tuple
 
 from goodreads_export.clean_file_name import clean_file_name
+from goodreads_export.data_file import DataFile
 from goodreads_export.series_file import SeriesFile
 from goodreads_export.templates import get_templates
 
 
-@dataclass
-class BookFile:  # pylint: disable=too-many-instance-attributes
+@dataclass(eq=False)
+class BookFile(DataFile):  # pylint: disable=too-many-instance-attributes
     """Book's markdown file.
 
     On init extract fields from `content` - override other parameters.
@@ -23,10 +24,8 @@ class BookFile:  # pylint: disable=too-many-instance-attributes
     title: Optional[str] = None
     folder: Optional[Path] = Path()
     author: Optional[str] = None
-    content: Optional[str] = field(
-        default=None, repr=False
-    )  # do not calculate the property on repr
-    file_name: Optional[Path] = None
+    content: Optional[str] = field(default=None, repr=False)
+    file_name: Optional[Path] = field(default=None, repr=False)
     book_id: Optional[str] = None
     tags: List[str] = field(default_factory=list)
     rating: Optional[int] = None
@@ -36,10 +35,11 @@ class BookFile:  # pylint: disable=too-many-instance-attributes
     series_titles: List[str] = field(default_factory=list)
 
     _file_name: Optional[Path] = field(init=False)
-    _content: Optional[str] = field(init=False, repr=False)
+    _content: Optional[str] = field(init=False)
 
     def __post_init__(self) -> None:
         """Extract fields from content."""
+        self._template = get_templates().book
         self.parse()  # we do not run parse on content assign during __init__()
 
     @cache  # pylint: disable=method-cache-max-size-none
@@ -72,6 +72,7 @@ class BookFile:  # pylint: disable=too-many-instance-attributes
                 for series_match in series_regex.compiled.finditer(self._content)
             ]
 
+    @cache  # pylint: disable=method-cache-max-size-none
     def render_body(self) -> Optional[str]:
         """Render file body."""
         assert self.tags is not None  # to please mypy
@@ -111,13 +112,6 @@ class BookFile:  # pylint: disable=too-many-instance-attributes
             self._file_name = None
             return
         self._file_name = file_name
-
-    @property
-    @cache  # pylint: disable=method-cache-max-size-none
-    def file_link(self) -> str:
-        """Book file link."""
-        # todo send file name to context
-        return get_templates().book.render_file_link(self._template_context())
 
     @property  # type: ignore  # same name as property
     def content(self) -> Optional[str]:
@@ -215,17 +209,15 @@ class BookFile:  # pylint: disable=too-many-instance-attributes
         Do not change already existed files.
         Return created series files {series name: series file path}
         """
+        # todo in perfect world we create series from author
         assert self.series_titles is not None
         assert self.author is not None
         created_series_files = {}
-        for series in self.series_titles:
-            series_file_name = self.series_file_name(series)  # type: ignore  # pylint: disable=no-member
-            series_file_path = self.folder / series_file_name
-            if not series_file_path.is_file():
-                with series_file_path.open("w", encoding="utf8") as md_file:
-                    series_file_body = self.render_series_body(series)  # type: ignore  # pylint: disable=no-member
-                    md_file.write(series_file_body)
-                created_series_files[series] = series_file_path
+        for series in self.series:
+            if not series.path.is_file():
+                assert series.title is not None  # to please mypy
+                series.write()
+                created_series_files[series.title] = series.path
         return created_series_files
 
     @classmethod
@@ -271,17 +263,11 @@ class BookFile:  # pylint: disable=too-many-instance-attributes
     # @cache
     def series(self) -> List[SeriesFile]:
         """List of series objects constructed from series_names."""
-        return [SeriesFile(title=title, author=self.author) for title in self.series_titles]
+        return [
+            SeriesFile(folder=self.folder, title=title, author=self.author)
+            for title in self.series_titles
+        ]
 
     def __hash__(self) -> int:
-        """Hash leveraging dataclasses __repr__."""
+        """Dataclass set it to None as it is not frozen."""
         return hash(self.__repr__())
-
-    def __eq__(self, other: object) -> bool:
-        """Compare two BookFile objects.
-
-        Primary for @cache
-        """
-        if isinstance(other, BookFile):
-            return self.__hash__() == other.__hash__()
-        raise NotImplementedError(f"Cannot compare BookFile with {type(other)}")

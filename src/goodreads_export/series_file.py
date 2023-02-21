@@ -6,24 +6,26 @@ from pathlib import Path
 from typing import Any, Dict, List, Optional, Union
 
 from goodreads_export.clean_file_name import clean_file_name
+from goodreads_export.data_file import DataFile
 from goodreads_export.templates import get_templates
 
 
-@dataclass
-class SeriesFile:
+@dataclass(eq=False)
+class SeriesFile(DataFile):  # pylint: disable=too-many-instance-attributes
     """Series' file."""
 
+    folder: Optional[Path] = Path()
     author: Optional[str] = None
     title: Optional[str] = None
-    file_name: Optional[Path] = None
-    file_link: Optional[Path] = field(init=False, repr=False)
-    content: Optional[str] = None
+    file_name: Optional[Path] = field(default=None, repr=False)
+    content: Optional[str] = field(default=None, repr=False)
 
-    _file_name: Optional[Path] = field(init=False, repr=False)
-    _content: Optional[str] = field(init=False, repr=False)
+    _file_name: Optional[Path] = field(init=False)
+    _content: Optional[str] = field(init=False)
 
     def __post_init__(self) -> None:
         """Extract fields from content."""
+        self._template = get_templates().series
         self.parse()  # we do not run parse on content assign during __init__()
 
     def parse(self) -> None:
@@ -53,7 +55,7 @@ class SeriesFile:
         return get_templates().series.file_name_regexes.choose_regex(str(file_name)) is not None
 
     @property  # type: ignore  # same name as property
-    @cache  # pylint: disable=method-cache-max-size-none
+    # @cache  # pylint: disable=method-cache-max-size-none
     def file_name(self) -> Path:
         """Return file name for series."""
         if self._file_name is None:
@@ -70,20 +72,6 @@ class SeriesFile:
             self._file_name = None
             return
         self._file_name = file_name
-
-    @property  # type: ignore  # same name as property
-    # @cache  # pylint: disable=method-cache-max-size-none
-    def file_link(self) -> str:
-        """Return file link for the series."""
-        # todo send file name to context
-        return get_templates().series.render_file_link(self._template_context())
-
-    @file_link.setter
-    def file_link(self, file_link: str) -> None:
-        """Set file_link.
-
-        To make dataclass happy
-        """
 
     @classmethod
     @cache
@@ -119,18 +107,18 @@ class SeriesFile:
         self._content = content
         self.parse()
 
-    def __hash__(self) -> int:
-        """Hash leveraging dataclasses __repr__."""
-        return hash(self.__repr__())
+    @property
+    # @cache
+    def path(self) -> Path:
+        """Return path to the file."""
+        assert self.file_name is not None  # to please mypy
+        assert self.folder is not None  # to please mypy
+        return self.folder / self.file_name
 
-    def __eq__(self, other: object) -> bool:
-        """Compare two SeriesFile objects.
-
-        Primary for @cache
-        """
-        if isinstance(other, SeriesFile):  # todo do not use class name explicitely
-            return self.__hash__() == other.__hash__()
-        raise NotImplementedError(f"Cannot compare SeriesFile with {type(other)}")
+    def write(self) -> None:
+        """Write file to path."""
+        assert self.content is not None  # to please mypy
+        self.path.write_text(self.content, encoding="utf8")
 
     @classmethod
     def check(cls: type["SeriesFile"]) -> bool:
@@ -148,6 +136,10 @@ class SeriesFile:
             print(f"Author name {author_name} is not parsed from content\n{series_file.content}")
             print(f"using the pattern\n{get_templates().series.content_regexes[0].regex}")
         return is_title_parsed and is_author_parsed
+
+    def __hash__(self) -> int:
+        """Dataclass set it to None as it is not frozen."""
+        return hash(self.__repr__())
 
 
 class SeriesList(List[SeriesFile]):

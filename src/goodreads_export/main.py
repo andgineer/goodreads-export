@@ -127,7 +127,7 @@ def merge_authors(log: Log, output_folder: Path) -> BooksFolder:
         f"skipped {books_folder.stat.skipped_unknown_files} unknown files"
         f" and {books_folder.stat.series_added} series files.",
     )
-    books_folder.merge_author_names()
+    # books_folder.merge_author_names()
     return books_folder
 
 
