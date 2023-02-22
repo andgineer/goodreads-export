@@ -47,6 +47,7 @@ class BooksFolder:
         Author files of this author with one name in them will be deleted.
         Also recreate series files with new author name in the file names.
         """
+        # todo for author: if names then merge with other AuthorFiles and delete them
         for book in self.books.values():
             if book.author in self.authors and book.author != self.authors[book.author].name:
                 self.log.debug(  # should be before rename to log old author name
@@ -54,7 +55,7 @@ class BooksFolder:
                     f" to {self.authors[book.author].name}"
                 )
                 deleted_series_files, created_series_files = book.rename_author(
-                    self.authors[book.author].name
+                    self.authors[book.author].name  # type: ignore
                 )
                 self.log.debug(
                     f"Deleted series files: {[str(path) for path in deleted_series_files.values()]}, "
@@ -148,9 +149,13 @@ class BooksFolder:
         Add them to authors.
         Could add series with the same title to the same author if they are in different files.
         """
-        for file_name in folder.glob(f"*{SeriesFile.file_suffix()}"):  # type: ignore
+        for file_name in folder.glob(f"*{SeriesFile.file_suffix()}"):
             if SeriesFile.is_file_name(file_name):
-                series = SeriesFile(content=file_name.read_text(encoding="utf8"))
+                series = SeriesFile(
+                    folder=folder,
+                    file_name=Path(file_name.name),
+                    content=file_name.read_text(encoding="utf8"),
+                )
                 if series.author is None:
                     self.log.info(f"Series file {file_name} has no author name")
                     self.stat.skipped_unknown_files += 1
@@ -169,8 +174,9 @@ class BooksFolder:
         Return {id: BookFile} for files with book ID, ignore other files.
         This way we ignore "- series" files and unknown files.
         """
+        # todo also add to authors for ease of merge
         books: Dict[str, BookFile] = {}
-        for file_name in folder.glob(f"*{BookFile.file_suffix()}"):  # type: ignore
+        for file_name in folder.glob(f"*{BookFile.file_suffix()}"):
             book = BookFile(
                 folder=folder,
                 file_name=Path(file_name.name),
@@ -193,9 +199,7 @@ class BooksFolder:
     def load_authors(self, folder: Path) -> Tuple[Dict[str, AuthorFile], Dict[str, AuthorFile]]:
         """Load existed authors.
 
-        Look for author synonyms inside files and connect them with `Primary` author file - file
-        with multiple author links inside.
-        Create dict with {author: AuthorFile}, for each synonym.
+        Primary authors - author with list of more than one name inside the file
         Return (all-authors, primary-authors)
         """
         authors: Dict[str, AuthorFile] = {}
@@ -205,29 +209,17 @@ class BooksFolder:
             author = AuthorFile(
                 folder=folder,
                 file_name=Path(file_name.name),
-                name=Path(file_name).stem,
                 content=file_name.read_text(encoding="utf8"),
             )
             assert author.names is not None  # to make mypy happy
+            assert author.name  # to make mypy happy
             if len(author.names):
                 is_primary_file = (
                     len(author.names) > 1
                 )  # relink to primary file - with author names list
                 if is_primary_file:
                     primary_authors[author.name] = author
-                for name in author.names + [author.name]:  # + [author.author] to add
-                    # `author` created from the file name, it's not necessary in the links inside the file
-                    if name in authors and is_primary_file or name not in authors:
-                        assert (
-                            name not in authors
-                            or author.name == authors[name].name
-                            or len(authors[name].names) < 2  # type: ignore
-                        ), (
-                            f"Multiple author files `{author.name}` and `{authors[name].name}`"
-                            " with name versions - should be only one `Primary` file"
-                            " with multiple name versions."
-                        )
-                        authors[name] = author
+                authors[author.name] = author
             else:
                 self.stat.skipped_unknown_files += 1
         return authors, primary_authors
