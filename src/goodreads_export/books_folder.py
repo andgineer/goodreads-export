@@ -201,6 +201,7 @@ class BooksFolder:
 
         Primary authors - author with list of more than one name inside the file
         Return (all-authors, primary-authors)
+        all-authors names could point to the same multi-name file if no primary file found for this name
         """
         authors: Dict[str, AuthorFile] = {}
         primary_authors: Dict[str, AuthorFile] = {}
@@ -209,17 +210,18 @@ class BooksFolder:
             author = AuthorFile(
                 folder=folder,
                 file_name=Path(file_name.name),
+                name=file_name.stem,  # will be replaced by parsing file content
                 content=file_name.read_text(encoding="utf8"),
             )
-            assert author.names is not None  # to make mypy happy
-            assert author.name  # to make mypy happy
-            if len(author.names):
-                is_primary_file = (
-                    len(author.names) > 1
-                )  # relink to primary file - with author names list
+            if author.names:  # parse succeeded
+                is_primary_file = len(set(author.names) - {author.name}) > 0
                 if is_primary_file:
                     primary_authors[author.name] = author
-                authors[author.name] = author
+
+                authors[author.name] = author  # primary name is always point to primary file
+                for name in author.names:
+                    if name not in authors:  # do not overwrite if pointed to primary file
+                        authors[name] = author
             else:
                 self.stat.skipped_unknown_files += 1
         return authors, primary_authors

@@ -21,10 +21,10 @@ class AuthorFile:  # pylint: disable=too-many-instance-attributes
     """
 
     folder: Path
-    name: Optional[str] = field(default=None)  # primary author name
+    name: str  # primary author name
     file_name: Optional[Path] = field(default=None, repr=False)
     content: Optional[str] = field(default=None, repr=False)
-    names: Optional[list[str]] = field(init=False, default=None)
+    names: list[str] = field(default_factory=list)
     series: SeriesList = field(default_factory=SeriesList, repr=False)
 
     _file_name: Optional[Path] = field(init=False)
@@ -46,17 +46,19 @@ class AuthorFile:  # pylint: disable=too-many-instance-attributes
         }
 
     def parse(self) -> None:
-        """Parse file content."""
+        """Parse file content.
+
+        Set self.names to the names in the content and self.name to the first name.
+
+        self.names is [] and no change in self.name if no names found in content.
+        """
         if self._content is not None:
-            assert self.file_name  # to make mypy happy
-            self.name = self.file_name.stem
-            self.names = None
+            self.names = []
             if regex := get_templates().author.names_regexes.choose_regex(self._content):
                 self.names = [
                     match[regex.name_group] for match in regex.compiled.finditer(self._content)
                 ]
-        if self.names is None and self.name is not None:
-            self.names = [self.name]
+                self.name = self.names[0]  # first name is primary
 
     def render_body(self) -> str:
         """Render file body."""

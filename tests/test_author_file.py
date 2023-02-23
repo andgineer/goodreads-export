@@ -19,7 +19,14 @@ def test_author_file_initial_nonbook_content(author_markdown):
 
     author_file.content = author_markdown
     author_file.parse()
-    assert all(f"[{name}]" in author_markdown for name in author_file.names)
+    are_names_in_content(author_file, author_markdown)
+
+
+def are_names_in_content(author_file, author_markdown):
+    assert all(
+        f"[{name}]" in author_markdown for name in author_file.names
+    ), f"Not all {author_file.names} are in {author_markdown}"
+    assert author_file.name == author_file.names[0]
 
 
 def test_author_file_initial_author_content(author_markdown):
@@ -37,7 +44,7 @@ def test_author_file_initial_author_content(author_markdown):
     assert author_file.content == content
 
     author_file.content = author_markdown
-    assert all(f"[{name}]" in author_markdown for name in author_file.names)
+    are_names_in_content(author_file, author_markdown)
 
 
 def test_author_file_defaults_from_content(author_markdown):
@@ -56,7 +63,7 @@ def test_author_file_defaults_from_content(author_markdown):
     assert all(f"[{name}]" in author_markdown for name in author_file.names)
 
     author_file.content = author_markdown
-    assert all(f"[{name}]" in author_markdown for name in author_file.names)
+    are_names_in_content(author_file, author_markdown)
 
 
 def test_author_file_defaults_from_class(author_markdown):
@@ -71,12 +78,12 @@ def test_author_file_defaults_from_class(author_markdown):
         author_file.content
         == "[Author](https://www.goodreads.com/search?utf8=%E2%9C%93&q=Author&search_type=books&search%5Bfield%5D=author)\n\n#book/author\n"
     )
-    assert author_file.names == ["Author"]
+    assert author_file.names == []
 
     author_file.content = author_markdown
     author_file.parse()
     assert author_file.content == author_markdown
-    assert all(f"[{name}]" in author_markdown for name in author_file.names)
+    are_names_in_content(author_file, author_markdown)
 
 
 def test_author_check():
