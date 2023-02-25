@@ -6,6 +6,7 @@ from functools import cache
 from pathlib import Path
 from typing import Any, Dict, List, Optional
 
+from goodreads_export.book_file import BookFile
 from goodreads_export.clean_file_name import clean_file_name
 from goodreads_export.series_file import SeriesList
 from goodreads_export.templates import get_templates
@@ -15,7 +16,7 @@ from goodreads_export.templates import get_templates
 class AuthorFile:  # pylint: disable=too-many-instance-attributes
     """Author's file.
 
-    On init extract fields from `content` - override other parameters.
+    On init extract fields from `content` - override name(s).
     To re-parse the `content` call `parse()`.
     `render()` generate `content` from fields.
     """
@@ -26,6 +27,7 @@ class AuthorFile:  # pylint: disable=too-many-instance-attributes
     content: Optional[str] = field(default=None, repr=False)
     names: list[str] = field(default_factory=list)
     series: SeriesList = field(default_factory=SeriesList, repr=False)
+    books: list[BookFile] = field(default_factory=list, repr=False)
 
     _file_name: Optional[Path] = field(init=False)
     _content: Optional[str] = field(init=False)

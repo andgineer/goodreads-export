@@ -36,7 +36,7 @@ class BooksFolder:
         for books_subfolder in BOOKS_SUBFOLDERS:
             self.load_series(folder / books_subfolder, self.authors)
         for books_subfolder in BOOKS_SUBFOLDERS:
-            self.books |= self.load_books(folder / books_subfolder)
+            self.books |= self.load_books(folder / books_subfolder, self.authors)
 
     def merge_author_names(self) -> None:
         """Replace all known versions of author names (translations, misspellings) with one primary name.
@@ -48,6 +48,18 @@ class BooksFolder:
         Also recreate series files with new author name in the file names.
         """
         # todo for author: if names then merge with other AuthorFiles and delete them
+        for primary_author in self.primary_authors.values():
+            for author_name in primary_author.names:
+                if (
+                    author_name in self.authors
+                    and (author := self.authors[author_name]) != primary_author
+                ):
+                    self.log.debug(
+                        f"Author {primary_author.name} has synonim {author.name} to merge"
+                    )
+                    # primary_author.merge(self.authors[author_name])
+                    self.authors[author_name] = primary_author
+                    self.stat.author_removed_names += author.name
         for book in self.books.values():
             if book.author in self.authors and book.author != self.authors[book.author].name:
                 self.log.debug(  # should be before rename to log old author name
@@ -62,10 +74,10 @@ class BooksFolder:
                     f"created: {[str(path) for path in created_series_files.values()]}."
                 )
                 self.stat.authors_renamed += 1
-        for author in self.primary_authors.values():
-            removed_names = author.remove_non_primary_files()
-            self.log.debug(f"Removed {author.name}'s duplicate names: {removed_names}")
-            self.stat.author_removed_names += removed_names
+        # for author_name in self.primary_authors.values():
+        #     removed_names = author_name.remove_non_primary_files()
+        #     self.log.debug(f"Removed {author_name.name}'s duplicate names: {removed_names}")
+        #     self.stat.author_removed_names += removed_names
 
     def dump(self, books: GoodreadsBooks) -> None:
         """Save books and authors as md-files."""
@@ -167,7 +179,7 @@ class BooksFolder:
                 authors[series.author].series.append(series)
                 self.stat.series_added += 1
 
-    def load_books(self, folder: Path) -> Dict[str, BookFile]:
+    def load_books(self, folder: Path, authors: Dict[str, AuthorFile]) -> Dict[str, BookFile]:
         """Load existed books.
 
         Look for goodreads book ID inside files.
@@ -194,6 +206,12 @@ class BooksFolder:
                 )
             else:
                 books[book.book_id] = book
+                if book.author not in authors:
+                    self.log.info(
+                        f"Book file {file_name} has author '{book.author}' without author file"
+                    )
+                    continue
+                authors[book.author].books.append(book)
         return books
 
     def load_authors(self, folder: Path) -> Tuple[Dict[str, AuthorFile], Dict[str, AuthorFile]]:
