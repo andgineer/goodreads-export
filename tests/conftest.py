@@ -1,3 +1,4 @@
+import json
 import os.path
 import pathlib
 from pathlib import Path
@@ -43,11 +44,12 @@ class GoodreadsTestCase:
         self.merged_folder = RESOURCES / folder / "merged" / "books"
         self.preexisted_folder = RESOURCES / folder / "existed"
         self.csv = RESOURCES / folder / "goodreads_library_export.csv"
+        self.meta = json.loads((RESOURCES / folder / "meta.json").read_text())
 
     def check(self, folder: str, expected_folder: str = None) -> bool:
         if expected_folder is None:
             expected_folder = self.expected_folder
-        return paths_content_is_same(expected_folder, Path(folder))
+        return paths_content_is_same(Path(expected_folder), Path(folder))
 
     def copy_existed(self, folder: Path, source: Optional[Path] = None) -> None:
         if source is None:

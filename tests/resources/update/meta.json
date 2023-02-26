@@ -1,0 +1,25 @@
+{
+  "existed": {
+    "books": [
+      {
+        "title": "Mort (Discworld, #4; Death, #1)",
+        "author": "Pratchett Terry"
+      },
+      {
+        "title": "Икарова железа. Книга метаморфоз",
+        "author": "Anna Starobinets"
+      }
+    ],
+    "authors": [
+      {
+        "name": "Terry Pratchett"
+      },
+      {
+        "name": "Pratchett Terry"
+      },
+      {
+        "name": "Anna Starobinets"
+      }
+    ]
+  }
+}

@@ -205,12 +205,15 @@ class BooksFolder:
                     f"and {books[book.book_id].file_name}"
                 )
             else:
+                assert book.author is not None  # to make mypy happy
                 books[book.book_id] = book
                 if book.author not in authors:
                     self.log.info(
                         f"Book file {file_name} has author '{book.author}' without author file"
                     )
-                    continue
+                    authors[book.author] = AuthorFile(
+                        name=book.author, folder=self.folder / SUBFOLDERS["authors"]
+                    )
                 authors[book.author].books.append(book)
         return books
 
