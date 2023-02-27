@@ -1,7 +1,7 @@
 """Create files for books."""
 import os
 from pathlib import Path
-from typing import Dict, Tuple
+from typing import Dict
 
 from goodreads_export.author_file import AuthorFile
 from goodreads_export.book_file import BookFile
@@ -32,7 +32,7 @@ class BooksFolder:
         self.books: Dict[str, BookFile] = {}
         self.authors: Dict[str, AuthorFile] = {}
         self.primary_authors: Dict[str, AuthorFile] = {}
-        self.authors, self.primary_authors = self.load_authors(folder / SUBFOLDERS["authors"])
+        self.authors = self.load_authors(folder / SUBFOLDERS["authors"])
         for books_subfolder in BOOKS_SUBFOLDERS:
             self.load_series(folder / books_subfolder, self.authors)
         for books_subfolder in BOOKS_SUBFOLDERS:
@@ -49,8 +49,11 @@ class BooksFolder:
         Author files with non-primary names will be deleted.
         Also recreate series files with primary author name in the file names.
         """
-        # todo create primary author list on the fly
-        for primary_author in self.primary_authors.values():
+        for primary_author in [
+            author
+            for author in self.authors.values()
+            if len(set(author.names) - {author.name}) > 0
+        ]:
             for author_name in primary_author.names:
                 if (
                     author_name in self.authors
@@ -200,15 +203,12 @@ class BooksFolder:
                 authors[book.author].books.append(book)
         return books
 
-    def load_authors(self, folder: Path) -> Tuple[Dict[str, AuthorFile], Dict[str, AuthorFile]]:
+    def load_authors(self, folder: Path) -> Dict[str, AuthorFile]:
         """Load existed authors.
 
-        Primary authors - author with list of more than one name inside the file
-        Return (all-authors, primary-authors)
-        all-authors names could point to the same multi-name file if no primary file found for this name
+        Return loaded authors
         """
         authors: Dict[str, AuthorFile] = {}
-        primary_authors: Dict[str, AuthorFile] = {}
         dummy_author = AuthorFile(name="author", folder=folder)
         for file_name in folder.glob(f"*{dummy_author.file_name.suffix}"):  # type: ignore
             author = AuthorFile(
@@ -218,14 +218,10 @@ class BooksFolder:
                 content=file_name.read_text(encoding="utf8"),
             )
             if author.names:  # parse succeeded
-                is_primary_file = len(set(author.names) - {author.name}) > 0
-                if is_primary_file:
-                    primary_authors[author.name] = author
-
                 authors[author.name] = author  # primary name is always point to primary file
                 for name in author.names:
                     if name not in authors:  # do not overwrite if pointed to primary file
                         authors[name] = author
             else:
                 self.stat.skipped_unknown_files += 1
-        return authors, primary_authors
+        return authors
