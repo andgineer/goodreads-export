@@ -1,4 +1,5 @@
 """Series file."""
+import os
 import urllib.parse
 from dataclasses import dataclass, field
 from functools import cache
@@ -120,6 +121,14 @@ class SeriesFile(DataFile):  # pylint: disable=too-many-instance-attributes
         assert self.content is not None  # to please mypy
         self.path.write_text(self.content, encoding="utf8")
 
+    def delete_file(self) -> None:
+        """Delete the series file."""
+        assert (
+            self.folder is not None and self.file_name is not None
+        ), "Can not delete file without folder"
+        if (self.folder / self.file_name).exists():
+            os.remove(self.folder / self.file_name)
+
     @classmethod
     def check(cls: type["SeriesFile"]) -> bool:
         """Check regex work for the template."""
@@ -136,6 +145,20 @@ class SeriesFile(DataFile):  # pylint: disable=too-many-instance-attributes
             print(f"Author name {author_name} is not parsed from content\n{series_file.content}")
             print(f"using the pattern\n{get_templates().series.content_regexes[0].regex}")
         return is_title_parsed and is_author_parsed
+
+    def rename_author(self, new_author: str) -> None:
+        """Rename author.
+
+        We do not re-render the file fully to keep intact possible user changes in it.
+        """
+        self.delete_file()
+        assert self.author is not None  # to please mypy
+        old_author_name = self.author
+        self.author = new_author
+        self._file_name = None  # to force re-rendering
+        assert self.content is not None  # to please mypy
+        self.content = self.content.replace(old_author_name, new_author)
+        self.write()
 
     def __hash__(self) -> int:
         """Dataclass set it to None as it is not frozen."""

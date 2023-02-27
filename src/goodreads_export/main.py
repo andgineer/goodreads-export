@@ -109,8 +109,7 @@ def import_(ctx: click.Context, csv_file: str, output_folder: Path) -> None:
         print(
             f"\nAdded {books_folder.stat.books_added} review files, "
             f"{books_folder.stat.authors_added} author files.",
-            f"Renamed {books_folder.stat.authors_renamed} authors, "
-            f"removed duplicate {len(books_folder.stat.author_removed_names)} author names.",
+            f"Renamed {books_folder.stat.authors_renamed} authors.",
         )
 
     except Exception as exc:  # pylint: disable=broad-except
@@ -181,8 +180,7 @@ def merge(ctx: click.Context, output_folder: Path) -> None:
         log: Log = ctx.obj["log"]
         books_folder = merge_authors(log, output_folder)
         print(
-            f"Renamed {books_folder.stat.authors_renamed} authors, "
-            f"removed duplicate {len(books_folder.stat.author_removed_names)} author names.",
+            f"Renamed {books_folder.stat.authors_renamed} authors.",
         )
     except Exception as exc:  # pylint: disable=broad-except
         print(f"\n{exc}")

@@ -43,11 +43,13 @@ class BooksFolder:
 
         All author name versions should be listed as links in one author file -
         just copy them from other author files to that `primary` author file.
-        Reviews will be relinked to this file.
-        Author files of this author with one name in them will be deleted.
-        Also recreate series files with new author name in the file names.
+        Fist name in the link will be used as primary name.
+
+        Reviews will be relinked to the primary name.
+        Author files with non-primary names will be deleted.
+        Also recreate series files with primary author name in the file names.
         """
-        # todo for author: if names then merge with other AuthorFiles and delete them
+        # todo create primary author list on the fly
         for primary_author in self.primary_authors.values():
             for author_name in primary_author.names:
                 if (
@@ -57,27 +59,9 @@ class BooksFolder:
                     self.log.debug(
                         f"Author {primary_author.name} has synonim {author.name} to merge"
                     )
-                    # primary_author.merge(self.authors[author_name])
+                    self.stat.authors_renamed += 1
+                    primary_author.merge(self.authors[author_name])
                     self.authors[author_name] = primary_author
-                    self.stat.author_removed_names += author.name
-        for book in self.books.values():
-            if book.author in self.authors and book.author != self.authors[book.author].name:
-                self.log.debug(  # should be before rename to log old author name
-                    f"Modified review {book.file_name}: renamed author {book.author}"
-                    f" to {self.authors[book.author].name}"
-                )
-                deleted_series_files, created_series_files = book.rename_author(
-                    self.authors[book.author].name  # type: ignore
-                )
-                self.log.debug(
-                    f"Deleted series files: {[str(path) for path in deleted_series_files.values()]}, "
-                    f"created: {[str(path) for path in created_series_files.values()]}."
-                )
-                self.stat.authors_renamed += 1
-        # for author_name in self.primary_authors.values():
-        #     removed_names = author_name.remove_non_primary_files()
-        #     self.log.debug(f"Removed {author_name.name}'s duplicate names: {removed_names}")
-        #     self.stat.author_removed_names += removed_names
 
     def dump(self, books: GoodreadsBooks) -> None:
         """Save books and authors as md-files."""
@@ -170,11 +154,9 @@ class BooksFolder:
                 )
                 if series.author is None:
                     self.log.info(f"Series file {file_name} has no author name")
-                    self.stat.skipped_unknown_files += 1
                     continue
                 if series.author not in authors:
                     self.log.info(f"Series file {file_name} has author without author file")
-                    self.stat.skipped_unknown_files += 1
                     continue
                 authors[series.author].series.append(series)
                 self.stat.series_added += 1
@@ -186,7 +168,6 @@ class BooksFolder:
         Return {id: BookFile} for files with book ID, ignore other files.
         This way we ignore "- series" files and unknown files.
         """
-        # todo also add to authors for ease of merge
         books: Dict[str, BookFile] = {}
         for file_name in folder.glob(f"*{BookFile.file_suffix()}"):
             book = BookFile(
@@ -209,11 +190,13 @@ class BooksFolder:
                 books[book.book_id] = book
                 if book.author not in authors:
                     self.log.info(
-                        f"Book file {file_name} has author '{book.author}' without author file"
+                        f"Book file {file_name} has author '{book.author}' "
+                        "without author file, creating the file."
                     )
                     authors[book.author] = AuthorFile(
                         name=book.author, folder=self.folder / SUBFOLDERS["authors"]
                     )
+                    authors[book.author].write()
                 authors[book.author].books.append(book)
         return books
 

@@ -37,7 +37,7 @@ def test_success(test_case):
         )
         assert result.exit_code == 0, f"stdout: {result.output}"
         assert test_case.check("./books"), test_case.diff
-        assert "Added review" not in result.output  # should be only with --verbose
+        assert "Added book" not in result.output  # should be only with --verbose
 
 
 def test_merge_only(test_case):

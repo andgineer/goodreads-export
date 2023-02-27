@@ -4,7 +4,7 @@ import urllib.parse
 from dataclasses import dataclass, field
 from functools import cache
 from pathlib import Path
-from typing import Any, Dict, List, Optional, Tuple
+from typing import Any, Dict, List, Optional
 
 from goodreads_export.clean_file_name import clean_file_name
 from goodreads_export.data_file import DataFile
@@ -178,30 +178,19 @@ class BookFile(DataFile):  # pylint: disable=too-many-instance-attributes
                 deleted_series_files[series] = series_file_path
         return deleted_series_files
 
-    def rename_author(self, new_author: str) -> Tuple[Dict[str, Path], Dict[str, Path]]:
-        """Rename author in review file.
+    def rename_author(self, new_author: str) -> None:
+        """Rename author in book file.
 
-        In content replace links only, do not re-render content to keep user changes.
-        Also recreate series files with new author name in the file names.
-
-        Return (deleted series files, created series files)
+        In content replace author name only, do not re-render content to keep possible user changes intact.
         """
-        assert self.author is not None
-        assert self.content is not None
-        old_series_links = self.series_links_list()  # type: ignore  # pylint: disable=no-member
-        deleted_series_files = self.delete_series_files()
         self.delete_file()
-        # todo use here and in template link to author file not plane author name
-        self.content = self.content.replace(f"[[{self.author}]]", f"[[{new_author}]]")
+        assert self.author is not None  # to please mypy
+        old_author_name = self.author
         self.author = new_author
-        self._file_name = None  # to recreate from fields
-        for series_name, series_old_file_link in old_series_links.items():
-            self.content = self.content.replace(
-                series_old_file_link, self.series_file_link(series_name)  # type: ignore  # pylint: disable=no-member
-            )
-        created_series_files = self.create_series_files()
+        self._file_name = None  # to force re-rendering
+        assert self.content is not None  # to please mypy
+        self.content = self.content.replace(old_author_name, new_author)
         self.write()
-        return deleted_series_files, created_series_files
 
     def create_series_files(self) -> Dict[str, Path]:
         """Create series files if they do not exist.

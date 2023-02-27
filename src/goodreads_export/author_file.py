@@ -4,7 +4,7 @@ import urllib.parse
 from dataclasses import dataclass, field
 from functools import cache
 from pathlib import Path
-from typing import Any, Dict, List, Optional
+from typing import Any, Dict, Optional
 
 from goodreads_export.book_file import BookFile
 from goodreads_export.clean_file_name import clean_file_name
@@ -109,21 +109,13 @@ class AuthorFile:  # pylint: disable=too-many-instance-attributes
         self._content = content
         self.parse()
 
-    def remove_non_primary_files(self) -> List[str]:
-        """Remove files with non-primary author names.
-
-        Return list of removed names.
-        """
-        assert self.names is not None  # to make mypy happy
-        removed_names = []
-        for name in self.names:
-            if (
-                name != self.name
-                and (author_file_path := self.folder / f"{clean_file_name(name)}.md").exists()
-            ):
-                os.remove(author_file_path)
-                removed_names += [name]
-        return removed_names
+    def delete_file(self) -> None:
+        """Delete the author file."""
+        assert (
+            self.folder is not None and self.file_name is not None
+        ), "Can not delete file without folder"
+        if (self.folder / self.file_name).exists():
+            os.remove(self.folder / self.file_name)
 
     def write(self) -> None:
         """Write file to path."""
@@ -131,6 +123,16 @@ class AuthorFile:  # pylint: disable=too-many-instance-attributes
         assert self.content is not None  # to please mypy
         with (self.folder / self.file_name).open("w", encoding="utf8") as file:
             file.write(self.content)
+
+    def merge(self, other: "AuthorFile") -> None:
+        """Merge other author with this one."""
+        for book in other.books:
+            book.rename_author(self.name)
+        for series in other.series:
+            series.rename_author(self.name)
+        self.books += other.books
+        self.series += other.series
+        other.delete_file()
 
     @classmethod
     def check(cls: type["AuthorFile"]) -> bool:
