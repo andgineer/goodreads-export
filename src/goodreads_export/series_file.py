@@ -144,7 +144,13 @@ class SeriesFile(DataFile):  # pylint: disable=too-many-instance-attributes
         if not is_author_parsed:
             print(f"Author name {author_name} is not parsed from content\n{series_file.content}")
             print(f"using the pattern\n{get_templates().series.content_regexes[0].regex}")
-        return is_title_parsed and is_author_parsed
+        series_file_name = series_file.file_name
+        assert series_file_name is not None  # to please mypy
+        is_file_name = cls.is_file_name(series_file_name)
+        if not is_file_name:
+            print(f"Series file name {series_file_name} is not recognized")
+            print(f"using the pattern\n{get_templates().series.file_name_regexes[0].regex}")
+        return is_title_parsed and is_author_parsed and is_file_name
 
     def rename_author(self, new_author: str) -> None:
         """Rename author.

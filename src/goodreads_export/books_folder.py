@@ -176,7 +176,7 @@ class BooksFolder:
                 content=file_name.read_text(encoding="utf8"),
             )
             if book.book_id is None:
-                if SeriesFile.file_suffix != BookFile.file_suffix or not SeriesFile.is_file_name(
+                if SeriesFile.file_suffix == BookFile.file_suffix and not SeriesFile.is_file_name(
                     file_name
                 ):
                     self.stat.skipped_unknown_files += 1
