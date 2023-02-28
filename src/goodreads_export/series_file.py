@@ -21,7 +21,7 @@ class SeriesFile(DataFile):  # pylint: disable=too-many-instance-attributes
         """Extract fields from content."""
         self.parse()  # we do not run parse on content assign during __init__()
 
-    def _get_template(self) -> SeriesTemplate:  # type: ignore
+    def _get_template(self) -> SeriesTemplate:
         """Template."""
         return get_templates().series
 

@@ -36,9 +36,7 @@ class DataFile:
         Automatically generate file name from book's fields if not assigned.
         """
         if self._file_name is None:
-            self._file_name = self._get_template().render_file_name(
-                self._get_template_context()
-            )  # type: ignore
+            self._file_name = self._get_template().render_file_name(self._get_template_context())
         return self._file_name
 
     @file_name.setter
@@ -56,7 +54,7 @@ class DataFile:
     @property  # type: ignore  # same name as property
     def file_link(self) -> str:
         """Return file link."""
-        return self._get_template().render_file_link({"file_name": self.file_name})  # type: ignore  # pylint: disable=no-member
+        return self._get_template().render_file_link({"file_name": self.file_name})
 
     @file_link.setter
     def file_link(self, value: str) -> None:

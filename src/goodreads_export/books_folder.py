@@ -137,6 +137,7 @@ class BooksFolder:
             folder=self.folder / SUBFOLDERS["authors"],
         )
         assert author_file.file_name is not None  # to make mypy happy
+        assert author_file.folder is not None  # to make mypy happy
         if not (author_file.folder / author_file.file_name).is_file():
             author_file.write()
             return True
@@ -218,6 +219,7 @@ class BooksFolder:
                 content=file_name.read_text(encoding="utf8"),
             )
             if author.names:  # parse succeeded
+                assert author.name is not None  # to make mypy happy
                 authors[author.name] = author  # primary name is always point to primary file
                 for name in author.names:
                     if name not in authors:  # do not overwrite if pointed to primary file

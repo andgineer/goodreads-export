@@ -35,7 +35,7 @@ class BookFile(DataFile):  # pylint: disable=too-many-instance-attributes
         """Extract fields from content."""
         self.parse()  # we do not run parse on content assign during __init__()
 
-    def _get_template(self) -> BookTemplate:  # type: ignore
+    def _get_template(self) -> BookTemplate:
         """Template."""
         return get_templates().book
 

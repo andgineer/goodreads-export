@@ -44,7 +44,7 @@ class GoodreadsTestCase:
         self.merged_folder = RESOURCES / folder / "merged" / "books"
         self.preexisted_folder = RESOURCES / folder / "existed"
         self.csv = RESOURCES / folder / "goodreads_library_export.csv"
-        self.meta = json.loads((RESOURCES / folder / "meta.json").read_text())
+        self.meta = json.loads((RESOURCES / folder / "meta.json").read_text(encoding="utf8"))
 
     def check(self, folder: str, expected_folder: str = None) -> bool:
         if expected_folder is None:

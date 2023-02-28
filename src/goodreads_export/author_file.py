@@ -30,7 +30,7 @@ class AuthorFile(DataFile):  # pylint: disable=too-many-instance-attributes
         """Extract fields from content."""
         self.parse()  # we do not run parse on content assign during __init__()
 
-    def _get_template(self) -> AuthorTemplate:  # type: ignore
+    def _get_template(self) -> AuthorTemplate:
         """Template."""
         return get_templates().author
 
@@ -60,7 +60,7 @@ class AuthorFile(DataFile):  # pylint: disable=too-many-instance-attributes
 
     def render_body(self) -> str:
         """Render file body."""
-        return get_templates().author.render_body(self._get_template_context())  # type: ignore
+        return get_templates().author.render_body(self._get_template_context())
 
     def write(self) -> None:
         """Write file to path."""
