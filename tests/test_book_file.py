@@ -149,8 +149,8 @@ def test_book_file_hashable():
     assert old_hash != hash(book_file)
     old_hash = hash(book_file)
     render_misses = book_file.render_body.cache_info().misses
-    content_misses = book_file._template_context.cache_info().misses
-    content_hits = book_file._template_context.cache_info().hits
+    content_misses = book_file._get_template_context.cache_info().misses
+    content_hits = book_file._get_template_context.cache_info().hits
 
     with patch("goodreads_export.templates._templates"):
         # if self changed we call uncached render_body() and it call _template_context
@@ -158,31 +158,31 @@ def test_book_file_hashable():
         # if self is the same we just use cashed render_body() and do not call _template_context at all
         # thus number of cache misses for both functions will be the same
         assert book_file.render_body()
-        assert book_file._template_context.cache_info().misses == content_misses + 1
+        assert book_file._get_template_context.cache_info().misses == content_misses + 1
         assert book_file.render_body.cache_info().misses == render_misses + 1
-        assert book_file._template_context.cache_info().hits == content_hits
+        assert book_file._get_template_context.cache_info().hits == content_hits
 
         assert book_file.render_body()
         # no changes, should use cache
         assert book_file.render_body.cache_info().misses == render_misses + 1
         # and do not call _template_context at all
-        assert book_file._template_context.cache_info().misses == content_misses + 1
-        assert book_file._template_context.cache_info().hits == content_hits
+        assert book_file._get_template_context.cache_info().misses == content_misses + 1
+        assert book_file._get_template_context.cache_info().hits == content_hits
 
         book_file.author = "1"  # change the author to force a new hash and both cache miss
         assert old_hash != hash(book_file)
         assert book_file.render_body()
         assert book_file.render_body.cache_info().misses == render_misses + 2
-        assert book_file._template_context.cache_info().misses == content_misses + 2
-        assert book_file._template_context.cache_info().hits == content_hits
+        assert book_file._get_template_context.cache_info().misses == content_misses + 2
+        assert book_file._get_template_context.cache_info().hits == content_hits
 
         assert book_file.render_body()  # no changes, should use cache
         assert book_file.render_body.cache_info().misses == render_misses + 2
         # and do not call _template_context at all
-        assert book_file._template_context.cache_info().misses == content_misses + 2
-        assert book_file._template_context.cache_info().hits == content_hits
+        assert book_file._get_template_context.cache_info().misses == content_misses + 2
+        assert book_file._get_template_context.cache_info().hits == content_hits
 
         book_file.title += "1"  # change the title to force a new hash
         assert book_file.render_body()
         assert book_file.render_body.cache_info().misses == render_misses + 3
-        assert book_file._template_context.cache_info().misses == content_misses + 3
+        assert book_file._get_template_context.cache_info().misses == content_misses + 3

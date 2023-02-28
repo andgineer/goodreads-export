@@ -1,33 +1,39 @@
 """Series file."""
-import os
 import urllib.parse
-from dataclasses import dataclass, field
+from dataclasses import dataclass
 from functools import cache
 from pathlib import Path
 from typing import Any, Dict, List, Optional, Union
 
 from goodreads_export.clean_file_name import clean_file_name
 from goodreads_export.data_file import DataFile
-from goodreads_export.templates import get_templates
+from goodreads_export.templates import SeriesTemplate, get_templates
 
 
-@dataclass(eq=False)
+@dataclass(kw_only=True, eq=False)
 class SeriesFile(DataFile):  # pylint: disable=too-many-instance-attributes
     """Series' file."""
 
-    folder: Optional[Path] = Path()
     author: Optional[str] = None
     title: Optional[str] = None
-    file_name: Optional[Path] = field(default=None, repr=False)
-    content: Optional[str] = field(default=None, repr=False)
-
-    _file_name: Optional[Path] = field(init=False)
-    _content: Optional[str] = field(init=False)
 
     def __post_init__(self) -> None:
         """Extract fields from content."""
-        self._template = get_templates().series
         self.parse()  # we do not run parse on content assign during __init__()
+
+    def _get_template(self) -> SeriesTemplate:  # type: ignore
+        """Template."""
+        return get_templates().series
+
+    @cache  # pylint: disable=method-cache-max-size-none
+    def _get_template_context(self) -> Dict[str, Any]:
+        """Return template context for series."""
+        return {
+            "series": self,
+            "author": self.author,
+            "urlencode": urllib.parse.urlencode,
+            "clean_file_name": clean_file_name,
+        }
 
     def parse(self) -> None:
         """Parse file content."""
@@ -40,39 +46,10 @@ class SeriesFile(DataFile):  # pylint: disable=too-many-instance-attributes
                 self.title = match[regex.title_group]
                 self.author = match[regex.author_group]
 
-    @cache  # pylint: disable=method-cache-max-size-none
-    def _template_context(self) -> Dict[str, Any]:
-        """Return template context for series."""
-        return {
-            "series": self,
-            "author": self.author,
-            "urlencode": urllib.parse.urlencode,
-            "clean_file_name": clean_file_name,
-        }
-
     @classmethod
     def is_file_name(cls, file_name: Union[str, Path]) -> bool:
         """Return True if file name if indicate this is series description file."""
         return get_templates().series.file_name_regexes.choose_regex(str(file_name)) is not None
-
-    @property  # type: ignore  # same name as property
-    # @cache  # pylint: disable=method-cache-max-size-none
-    def file_name(self) -> Path:
-        """Return file name for series."""
-        if self._file_name is None:
-            self._file_name = get_templates().series.render_file_name(self._template_context())
-        return self._file_name
-
-    @file_name.setter
-    def file_name(self, file_name: Path) -> None:
-        """Set file_name.
-
-        Set None by default (if not in __init__() params)
-        """
-        if isinstance(file_name, property):
-            self._file_name = None
-            return
-        self._file_name = file_name
 
     @classmethod
     @cache
@@ -84,29 +61,7 @@ class SeriesFile(DataFile):  # pylint: disable=too-many-instance-attributes
 
     def render_body(self) -> str:
         """Render series body."""
-        return get_templates().series.render_body(self._template_context())
-
-    @property  # type: ignore  # same name as property
-    def content(self) -> Optional[str]:
-        """File content.
-
-        Automatically generate content from object's fields if not assigned.
-        """
-        if self._content is None:
-            self._content = self.render_body()
-        return self._content
-
-    @content.setter
-    def content(self, content: str) -> None:
-        """Set content.
-
-        Set None by default (if not in __init__() params)
-        """
-        if isinstance(content, property):
-            self._content = None
-            return
-        self._content = content
-        self.parse()
+        return get_templates().series.render_body(self._get_template_context())
 
     @property
     # @cache
@@ -120,14 +75,6 @@ class SeriesFile(DataFile):  # pylint: disable=too-many-instance-attributes
         """Write file to path."""
         assert self.content is not None  # to please mypy
         self.path.write_text(self.content, encoding="utf8")
-
-    def delete_file(self) -> None:
-        """Delete the series file."""
-        assert (
-            self.folder is not None and self.file_name is not None
-        ), "Can not delete file without folder"
-        if (self.folder / self.file_name).exists():
-            os.remove(self.folder / self.file_name)
 
     @classmethod
     def check(cls: type["SeriesFile"]) -> bool:
@@ -159,10 +106,10 @@ class SeriesFile(DataFile):  # pylint: disable=too-many-instance-attributes
         """
         self.delete_file()
         assert self.author is not None  # to please mypy
+        assert self.content is not None  # to please mypy
         old_author_name = self.author
         self.author = new_author
         self._file_name = None  # to force re-rendering
-        assert self.content is not None  # to please mypy
         self.content = self.content.replace(old_author_name, new_author)
         self.write()
 

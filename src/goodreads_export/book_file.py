@@ -9,10 +9,10 @@ from typing import Any, Dict, List, Optional
 from goodreads_export.clean_file_name import clean_file_name
 from goodreads_export.data_file import DataFile
 from goodreads_export.series_file import SeriesFile
-from goodreads_export.templates import get_templates
+from goodreads_export.templates import BookTemplate, get_templates
 
 
-@dataclass(eq=False)
+@dataclass(kw_only=True, eq=False)
 class BookFile(DataFile):  # pylint: disable=too-many-instance-attributes
     """Book's markdown file.
 
@@ -22,10 +22,7 @@ class BookFile(DataFile):  # pylint: disable=too-many-instance-attributes
     """
 
     title: Optional[str] = None
-    folder: Optional[Path] = Path()
     author: Optional[str] = None
-    content: Optional[str] = field(default=None, repr=False)
-    file_name: Optional[Path] = field(default=None, repr=False)
     book_id: Optional[str] = None
     tags: List[str] = field(default_factory=list)
     rating: Optional[int] = None
@@ -34,16 +31,16 @@ class BookFile(DataFile):  # pylint: disable=too-many-instance-attributes
     review: Optional[str] = None
     series_titles: List[str] = field(default_factory=list)
 
-    _file_name: Optional[Path] = field(init=False)
-    _content: Optional[str] = field(init=False)
-
     def __post_init__(self) -> None:
         """Extract fields from content."""
-        self._template = get_templates().book
         self.parse()  # we do not run parse on content assign during __init__()
 
+    def _get_template(self) -> BookTemplate:  # type: ignore
+        """Template."""
+        return get_templates().book
+
     @cache  # pylint: disable=method-cache-max-size-none
-    def _template_context(self) -> Dict[str, Any]:
+    def _get_template_context(self) -> Dict[str, Any]:
         """Template context."""
         return {
             "book": self,
@@ -82,58 +79,15 @@ class BookFile(DataFile):  # pylint: disable=too-many-instance-attributes
             rating_tag = f"#book/rating{self.rating}"
             if rating_tag not in self.tags:
                 self.tags.append(rating_tag)
-        return get_templates().book.render_body(self._template_context())
-
-    @property  # type: ignore
-    def file_name(self) -> Optional[Path]:
-        """Markdown file name.
-
-        Automatically generate file name from book's fields if not assigned.
-        """
-        if self._file_name is None:
-            self._file_name = get_templates().book.render_file_name(self._template_context())
-        return self._file_name
+        return get_templates().book.render_body(self._get_template_context())
 
     @classmethod
     @cache
     def file_suffix(cls) -> str:
         """File suffix."""
-        file_name = BookFile(title="title", author="author").file_name
+        file_name = cls(title="title", author="author").file_name
         assert file_name
         return file_name.suffix
-
-    @file_name.setter  # type: ignore
-    def file_name(self, file_name: Path) -> None:
-        """Set file_name.
-
-        Set None by default (if not in __init__() params)
-        """
-        if isinstance(file_name, property):
-            self._file_name = None
-            return
-        self._file_name = file_name
-
-    @property  # type: ignore  # same name as property
-    def content(self) -> Optional[str]:
-        """File content.
-
-        Automatically generate content from object's fields if not assigned.
-        """
-        if self._content is None:
-            self._content = self.render_body()
-        return self._content
-
-    @content.setter
-    def content(self, content: str) -> None:
-        """Set content.
-
-        Set None by default (if not in __init__() params)
-        """
-        if isinstance(content, property):
-            self._content = None
-            return
-        self._content = content
-        self.parse()
 
     def write(self) -> None:
         """Write markdown file to path.
@@ -155,14 +109,6 @@ class BookFile(DataFile):  # pylint: disable=too-many-instance-attributes
             )
         with (self.folder / self.file_name).open("w", encoding="utf8") as file:
             file.write(self.content)
-
-    def delete_file(self) -> None:
-        """Delete the book file."""
-        assert (
-            self.folder is not None and self.file_name is not None
-        ), "Can not delete file without folder"
-        if (self.folder / self.file_name).exists():
-            os.remove(self.folder / self.file_name)
 
     def delete_series_files(self) -> Dict[str, Path]:
         """Delete series files for review.

@@ -1,5 +1,4 @@
 """Author's file."""  # pylint: disable=duplicate-code
-import os
 import urllib.parse
 from dataclasses import dataclass, field
 from functools import cache
@@ -8,12 +7,13 @@ from typing import Any, Dict, Optional
 
 from goodreads_export.book_file import BookFile
 from goodreads_export.clean_file_name import clean_file_name
+from goodreads_export.data_file import DataFile
 from goodreads_export.series_file import SeriesList
-from goodreads_export.templates import get_templates
+from goodreads_export.templates import AuthorTemplate, get_templates
 
 
-@dataclass(eq=False)
-class AuthorFile:  # pylint: disable=too-many-instance-attributes
+@dataclass(kw_only=True, eq=False)
+class AuthorFile(DataFile):  # pylint: disable=too-many-instance-attributes
     """Author's file.
 
     On init extract fields from `content` - override name(s).
@@ -21,25 +21,21 @@ class AuthorFile:  # pylint: disable=too-many-instance-attributes
     `render()` generate `content` from fields.
     """
 
-    folder: Path
-    name: str  # primary author name
-    file_name: Optional[Path] = field(default=None, repr=False)
-    content: Optional[str] = field(default=None, repr=False)
+    name: Optional[str] = field(default=None)  # primary author name
     names: list[str] = field(default_factory=list)
     series: SeriesList = field(default_factory=SeriesList, repr=False)
     books: list[BookFile] = field(default_factory=list, repr=False)
 
-    _file_name: Optional[Path] = field(init=False)
-    _content: Optional[str] = field(init=False)
-
     def __post_init__(self) -> None:
         """Extract fields from content."""
-        self._template = get_templates().author
         self.parse()  # we do not run parse on content assign during __init__()
 
-    @property
+    def _get_template(self) -> AuthorTemplate:  # type: ignore
+        """Template."""
+        return get_templates().author
+
     @cache  # pylint: disable=method-cache-max-size-none
-    def _template_context(self) -> Dict[str, Any]:
+    def _get_template_context(self) -> Dict[str, Any]:
         """Template context."""
         return {
             "author": self,
@@ -64,68 +60,19 @@ class AuthorFile:  # pylint: disable=too-many-instance-attributes
 
     def render_body(self) -> str:
         """Render file body."""
-        return get_templates().author.render_body(self._template_context)  # type: ignore
-
-    @property  # type: ignore
-    def file_name(self) -> Path:
-        """Markdown file name.
-
-        Automatically generate file name from book's fields if not assigned.
-        """
-        if self._file_name is None:
-            self._file_name = get_templates().author.render_file_name(self._template_context)  # type: ignore
-        return self._file_name
-
-    @file_name.setter
-    def file_name(self, file_name: Path) -> None:
-        """Set file_name.
-
-        Set None by default (if not in __init__() params)
-        """
-        if isinstance(file_name, property):
-            self._file_name = None
-            return
-        self._file_name = file_name
-
-    @property  # type: ignore  # same name as property
-    def content(self) -> Optional[str]:
-        """File content.
-
-        Automatically generate content from object's fields if not assigned.
-        """
-        if self._content is None:
-            self._content = self.render_body()
-        return self._content
-
-    @content.setter
-    def content(self, content: str) -> None:
-        """Set content.
-
-        Set None by default (if not in __init__() params)
-        """
-        if isinstance(content, property):
-            self._content = None
-            return
-        self._content = content
-        self.parse()
-
-    def delete_file(self) -> None:
-        """Delete the author file."""
-        assert (
-            self.folder is not None and self.file_name is not None
-        ), "Can not delete file without folder"
-        if (self.folder / self.file_name).exists():
-            os.remove(self.folder / self.file_name)
+        return get_templates().author.render_body(self._get_template_context())  # type: ignore
 
     def write(self) -> None:
         """Write file to path."""
         assert self.file_name is not None  # to please mypy
         assert self.content is not None  # to please mypy
+        assert self.folder is not None  # to please mypy
         with (self.folder / self.file_name).open("w", encoding="utf8") as file:
             file.write(self.content)
 
     def merge(self, other: "AuthorFile") -> None:
         """Merge other author with this one."""
+        assert self.name is not None  # to please mypy
         for book in other.books:
             book.rename_author(self.name)
         for series in other.series:
