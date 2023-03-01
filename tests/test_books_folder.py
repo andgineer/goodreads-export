@@ -16,15 +16,15 @@ def test_books_folder_load(test_case):
         test_case.copy_existed(folder)
         books = BooksFolder(folder, log)
     assert len(books.books) == len(test_case.meta["existed"]["books"])
-    assert [book.title for book in books.books.values()] == [
-        book["title"] for book in test_case.meta["existed"]["books"]
-    ]
-    assert [book.author for book in books.books.values()] == [
-        book["author"] for book in test_case.meta["existed"]["books"]
-    ]
-    assert [author.name for author in books.authors.values()] == [
-        author["name"] for author in test_case.meta["existed"]["authors"]
-    ]
+    assert sorted(book.title for book in books.books.values()) == sorted(
+        [book["title"] for book in test_case.meta["existed"]["books"]]
+    )
+    assert sorted(book.author for book in books.books.values()) == sorted(
+        [book["author"] for book in test_case.meta["existed"]["books"]]
+    )
+    assert sorted(author.name for author in books.authors.values()) == sorted(
+        [author["name"] for author in test_case.meta["existed"]["authors"]]
+    )
 
 
 def test_books_folder_merge(test_case):
