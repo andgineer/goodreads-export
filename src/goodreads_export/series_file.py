@@ -67,7 +67,6 @@ class SeriesFile(DataFile):  # pylint: disable=too-many-instance-attributes
     # @cache
     def path(self) -> Path:
         """Return path to the file."""
-        assert self.file_name is not None  # to please mypy
         return self.folder / self.file_name
 
     def write(self) -> None:

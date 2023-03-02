@@ -13,11 +13,11 @@ class DataFile:
     """Object stored in the file."""
 
     folder: Path
-    file_name: Optional[Path] = field(default=None, repr=False)
+    file_name: Path = field(default=Path(), repr=False)
     file_link: Optional[Path] = field(init=False, repr=False)
     content: Optional[str] = field(default=None, repr=False)
 
-    _file_name: Optional[Path] = field(init=False)
+    _file_name: Optional[Path] = field(default=None, init=False)
     _content: Optional[str] = field(init=False)
 
     def _get_template(self) -> FileTemplate:
@@ -92,9 +92,6 @@ class DataFile:
 
     def delete_file(self) -> None:
         """Delete the series file."""
-        assert (
-            self.folder is not None and self.file_name is not None
-        ), "Can not delete file without folder"
         if (self.folder / self.file_name).exists():
             os.remove(self.folder / self.file_name)
 

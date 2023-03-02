@@ -96,7 +96,6 @@ class BookFile(DataFile):  # pylint: disable=too-many-instance-attributes
         Even if this file also exists that does not matter because this it the book
         with the same ID.
         """
-        assert self.file_name is not None  # to please mypy
         assert self.content is not None  # to please mypy
         if (
             (self.folder / self.file_name).exists()

@@ -64,7 +64,6 @@ class AuthorFile(DataFile):  # pylint: disable=too-many-instance-attributes
 
     def write(self) -> None:
         """Write file to path."""
-        assert self.file_name is not None  # to please mypy
         assert self.content is not None  # to please mypy
         with (self.folder / self.file_name).open("w", encoding="utf8") as file:
             file.write(self.content)

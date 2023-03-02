@@ -122,7 +122,6 @@ class BooksFolder:
         )
         book_file.create_series_files()
         book_file.write()
-        assert book_file.file_name is not None  # to make mypy happy
         return os.path.join(subfolder, book_file.file_name)
 
     def create_author_file(self, book: Book) -> bool:
@@ -136,8 +135,6 @@ class BooksFolder:
             name=book.author,
             folder=self.folder / SUBFOLDERS["authors"],
         )
-        assert author_file.file_name is not None  # to make mypy happy
-        assert author_file.folder is not None  # to make mypy happy
         if not (author_file.folder / author_file.file_name).is_file():
             author_file.write()
             return True
