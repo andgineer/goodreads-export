@@ -55,7 +55,7 @@ class SeriesFile(DataFile):  # pylint: disable=too-many-instance-attributes
     @cache
     def file_suffix(cls) -> str:
         """File suffix."""
-        file_name = SeriesFile(title="title", author="author").file_name
+        file_name = SeriesFile(folder=Path(), title="title", author="author").file_name
         assert file_name  # to make mypy happy
         return file_name.suffix
 
@@ -68,7 +68,6 @@ class SeriesFile(DataFile):  # pylint: disable=too-many-instance-attributes
     def path(self) -> Path:
         """Return path to the file."""
         assert self.file_name is not None  # to please mypy
-        assert self.folder is not None  # to please mypy
         return self.folder / self.file_name
 
     def write(self) -> None:
@@ -81,7 +80,7 @@ class SeriesFile(DataFile):  # pylint: disable=too-many-instance-attributes
         """Check regex work for the template."""
         author_name = "Mark Twain"
         title = "title"
-        series_file = cls(title=title, author=author_name)
+        series_file = cls(folder=Path(), title=title, author=author_name)
         series_file.content = series_file.render_body()
         is_title_parsed = series_file.title == title
         is_author_parsed = series_file.author == author_name

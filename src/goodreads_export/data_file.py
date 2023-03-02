@@ -12,7 +12,7 @@ from goodreads_export.templates import FileTemplate
 class DataFile:
     """Object stored in the file."""
 
-    folder: Optional[Path] = Path()
+    folder: Path
     file_name: Optional[Path] = field(default=None, repr=False)
     file_link: Optional[Path] = field(init=False, repr=False)
     content: Optional[str] = field(default=None, repr=False)

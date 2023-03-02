@@ -3,7 +3,7 @@ import urllib.parse
 from dataclasses import dataclass, field
 from functools import cache
 from pathlib import Path
-from typing import Any, Dict, Optional
+from typing import Any, Dict
 
 from goodreads_export.book_file import BookFile
 from goodreads_export.clean_file_name import clean_file_name
@@ -21,7 +21,7 @@ class AuthorFile(DataFile):  # pylint: disable=too-many-instance-attributes
     `render()` generate `content` from fields.
     """
 
-    name: Optional[str] = field(default=None)  # primary author name
+    name: str  # primary author name
     names: list[str] = field(default_factory=list)
     series: SeriesList = field(default_factory=SeriesList, repr=False)
     books: list[BookFile] = field(default_factory=list, repr=False)
@@ -66,13 +66,11 @@ class AuthorFile(DataFile):  # pylint: disable=too-many-instance-attributes
         """Write file to path."""
         assert self.file_name is not None  # to please mypy
         assert self.content is not None  # to please mypy
-        assert self.folder is not None  # to please mypy
         with (self.folder / self.file_name).open("w", encoding="utf8") as file:
             file.write(self.content)
 
     def merge(self, other: "AuthorFile") -> None:
         """Merge other author with this one."""
-        assert self.name is not None  # to please mypy
         for book in other.books:
             book.rename_author(self.name)
         for series in other.series:
@@ -85,7 +83,7 @@ class AuthorFile(DataFile):  # pylint: disable=too-many-instance-attributes
     def check(cls: type["AuthorFile"]) -> bool:
         """Check regex work for the template."""
         author_name = "Mark Twain"
-        author_file = cls(name=author_name, folder=Path())
+        author_file = cls(folder=Path(), name=author_name)
         author_file.content = author_file.render_body()
         is_author_parsed = author_file.names == [author_name]
         if not is_author_parsed:

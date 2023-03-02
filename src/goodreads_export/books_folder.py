@@ -219,7 +219,6 @@ class BooksFolder:
                 content=file_name.read_text(encoding="utf8"),
             )
             if author.names:  # parse succeeded
-                assert author.name is not None  # to make mypy happy
                 authors[author.name] = author  # primary name is always point to primary file
                 for name in author.names:
                     if name not in authors:  # do not overwrite if pointed to primary file

@@ -85,7 +85,7 @@ class BookFile(DataFile):  # pylint: disable=too-many-instance-attributes
     @cache
     def file_suffix(cls) -> str:
         """File suffix."""
-        file_name = cls(title="title", author="author").file_name
+        file_name = cls(folder=Path(), title="title", author="author").file_name
         assert file_name
         return file_name.suffix
 
@@ -98,7 +98,6 @@ class BookFile(DataFile):  # pylint: disable=too-many-instance-attributes
         """
         assert self.file_name is not None  # to please mypy
         assert self.content is not None  # to please mypy
-        assert self.folder is not None  # to please mypy
         if (
             (self.folder / self.file_name).exists()
             and self.book_id is not None
