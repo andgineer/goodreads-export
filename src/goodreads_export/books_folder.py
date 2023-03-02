@@ -208,7 +208,7 @@ class BooksFolder:
         """
         authors: Dict[str, AuthorFile] = {}
         dummy_author = AuthorFile(name="author", folder=folder)
-        for file_name in folder.glob(f"*{dummy_author.file_name.suffix}"):  # type: ignore
+        for file_name in folder.glob(f"*{dummy_author.file_name.suffix}"):
             author = AuthorFile(
                 folder=folder,
                 file_name=Path(file_name.name),

@@ -43,9 +43,10 @@ class DataFile:
     def file_name(self, file_name: Path) -> None:
         """Set file_name.
 
-        Set None by default (if not in __init__() params)
+        Set None by default (if not in __init__() params) or from default Path()
+        So consequent calls to file_name will render it with template.
         """
-        if isinstance(file_name, property):
+        if isinstance(file_name, property) or file_name == Path():
             self._file_name = None
             return
         self._file_name = file_name
