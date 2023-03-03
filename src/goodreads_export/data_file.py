@@ -73,10 +73,7 @@ class DataFile:
 
     @content.setter
     def content(self, content: str) -> None:
-        """Set content.
-
-        Set None by default (if not in __init__() params)
-        """
+        """Set content and parse it."""
         self._content = content
         self.parse()
 
@@ -90,20 +87,3 @@ class DataFile:
         """Return file path."""
         assert self.folder is not None
         return self.folder / self.file_name
-
-    @path.setter
-    def path(self, value: Path) -> None:
-        """To please dataclasses."""
-
-    def __eq__(self, other: object) -> bool:
-        """Compare two objects.
-
-        Primary for @cache
-        """
-        if isinstance(other, self.__class__):
-            return (
-                self.folder == other.folder
-                and self._file_name == other._file_name
-                and self._content == other._content
-            )
-        raise NotImplementedError(f"Cannot compare {self.__class__} with {type(other)}")
