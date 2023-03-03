@@ -61,7 +61,7 @@ class DataFile:
         """Parse file content."""
         raise NotImplementedError()
 
-    @property  # type: ignore  # same name as property
+    @property
     def content(self) -> Optional[str]:
         """File content.
 
@@ -85,7 +85,7 @@ class DataFile:
         if self.path.exists():
             os.remove(self.path)
 
-    @property  # type: ignore  # same name as property
+    @property
     def path(self) -> Path:
         """Return file path."""
         assert self.folder is not None
