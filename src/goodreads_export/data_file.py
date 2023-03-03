@@ -1,35 +1,39 @@
 """Object stored in the file."""
 import os
-from dataclasses import dataclass, field
-from functools import cache
 from pathlib import Path
 from typing import Any, Dict, Optional
 
 from goodreads_export.templates import FileTemplate
 
 
-@dataclass(kw_only=True)
 class DataFile:
     """Object stored in the file."""
 
-    folder: Path
-    file_name: Path = field(default=Path(), repr=False)
-    file_link: Optional[Path] = field(init=False, repr=False)
-    content: Optional[str] = field(default=None, repr=False)
+    folder: Optional[Path]
 
-    _file_name: Optional[Path] = field(default=None, init=False)
-    _content: Optional[str] = field(init=False)
+    _file_name: Optional[Path]
+    _content: Optional[str]
+
+    def __init__(
+        self,
+        folder: Optional[Path] = None,
+        file_name: Optional[Path] = None,
+        content: Optional[str] = None,
+    ) -> None:
+        """Init."""
+        self.folder = folder
+        self._file_name = file_name
+        self._content = content
 
     def _get_template(self) -> FileTemplate:
         """Template."""
         raise NotImplementedError()
 
-    @cache  # pylint: disable=method-cache-max-size-none
     def _get_template_context(self) -> Dict[str, Any]:
         """Return template context."""
         raise NotImplementedError()
 
-    @property  # type: ignore
+    @property
     def file_name(self) -> Path:
         """Markdown file name.
 
@@ -41,25 +45,13 @@ class DataFile:
 
     @file_name.setter
     def file_name(self, file_name: Path) -> None:
-        """Set file_name.
-
-        Set None by default (if not in __init__() params) or from default Path()
-        So consequent calls to file_name will render it with template.
-        """
-        if isinstance(file_name, property) or file_name == Path():
-            self._file_name = None
-            return
+        """Set file_name."""
         self._file_name = file_name
 
-    # @cached_property  # type: ignore  # same name as property
-    @property  # type: ignore  # same name as property
+    @property
     def file_link(self) -> str:
         """Return file link."""
         return self._get_template().render_file_link({"file_name": self.file_name})
-
-    @file_link.setter
-    def file_link(self, value: str) -> None:
-        """To please dataclasses."""
 
     def render_body(self) -> Optional[str]:
         """Return rendered body."""
@@ -85,16 +77,23 @@ class DataFile:
 
         Set None by default (if not in __init__() params)
         """
-        if isinstance(content, property):
-            self._content = None
-            return
         self._content = content
         self.parse()
 
     def delete_file(self) -> None:
         """Delete the series file."""
-        if (self.folder / self.file_name).exists():
-            os.remove(self.folder / self.file_name)
+        if self.path.exists():
+            os.remove(self.path)
+
+    @property  # type: ignore  # same name as property
+    def path(self) -> Path:
+        """Return file path."""
+        assert self.folder is not None
+        return self.folder / self.file_name
+
+    @path.setter
+    def path(self, value: Path) -> None:
+        """To please dataclasses."""
 
     def __eq__(self, other: object) -> bool:
         """Compare two objects.
@@ -102,5 +101,9 @@ class DataFile:
         Primary for @cache
         """
         if isinstance(other, self.__class__):
-            return self.__hash__() == other.__hash__()
+            return (
+                self.folder == other.folder
+                and self._file_name == other._file_name
+                and self._content == other._content
+            )
         raise NotImplementedError(f"Cannot compare {self.__class__} with {type(other)}")

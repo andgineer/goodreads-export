@@ -1,7 +1,5 @@
 """Series file."""
 import urllib.parse
-from dataclasses import dataclass
-from functools import cache
 from pathlib import Path
 from typing import Any, Dict, List, Optional, Union
 
@@ -10,22 +8,25 @@ from goodreads_export.data_file import DataFile
 from goodreads_export.templates import SeriesTemplate, get_templates
 
 
-@dataclass(kw_only=True, eq=False)
 class SeriesFile(DataFile):  # pylint: disable=too-many-instance-attributes
     """Series' file."""
 
-    author: Optional[str] = None
-    title: Optional[str] = None
+    author: Optional[str]
+    title: Optional[str]
 
-    def __post_init__(self) -> None:
+    def __init__(
+        self, author: Optional[str] = None, title: Optional[str] = None, **kwargs: Any
+    ) -> None:
         """Extract fields from content."""
-        self.parse()  # we do not run parse on content assign during __init__()
+        super().__init__(**kwargs)
+        self.author = author
+        self.title = title
+        self.parse()
 
     def _get_template(self) -> SeriesTemplate:
         """Template."""
         return get_templates().series
 
-    @cache  # pylint: disable=method-cache-max-size-none
     def _get_template_context(self) -> Dict[str, Any]:
         """Return template context for series."""
         return {
@@ -52,7 +53,6 @@ class SeriesFile(DataFile):  # pylint: disable=too-many-instance-attributes
         return get_templates().series.file_name_regexes.choose_regex(str(file_name)) is not None
 
     @classmethod
-    @cache
     def file_suffix(cls) -> str:
         """File suffix."""
         file_name = SeriesFile(folder=Path(), title="title", author="author").file_name
@@ -62,12 +62,6 @@ class SeriesFile(DataFile):  # pylint: disable=too-many-instance-attributes
     def render_body(self) -> str:
         """Render series body."""
         return get_templates().series.render_body(self._get_template_context())
-
-    @property
-    # @cache
-    def path(self) -> Path:
-        """Return path to the file."""
-        return self.folder / self.file_name
 
     def write(self) -> None:
         """Write file to path."""
@@ -110,10 +104,6 @@ class SeriesFile(DataFile):  # pylint: disable=too-many-instance-attributes
         self._file_name = None  # to force re-rendering
         self.content = self.content.replace(old_author_name, new_author)
         self.write()
-
-    def __hash__(self) -> int:
-        """Dataclass set it to None as it is not frozen."""
-        return hash(self.__repr__())
 
 
 class SeriesList(List[SeriesFile]):

@@ -1,8 +1,6 @@
 """Book's file."""
 import os
 import urllib.parse
-from dataclasses import dataclass, field
-from functools import cache
 from pathlib import Path
 from typing import Any, Dict, List, Optional
 
@@ -12,7 +10,6 @@ from goodreads_export.series_file import SeriesFile
 from goodreads_export.templates import BookTemplate, get_templates
 
 
-@dataclass(kw_only=True, eq=False)
 class BookFile(DataFile):  # pylint: disable=too-many-instance-attributes
     """Book's markdown file.
 
@@ -21,25 +18,46 @@ class BookFile(DataFile):  # pylint: disable=too-many-instance-attributes
     `render()` generate `content` from fields.
     """
 
-    title: Optional[str] = None
-    author: Optional[str] = None
-    book_id: Optional[str] = None
-    tags: List[str] = field(default_factory=list)
-    rating: Optional[int] = None
-    isbn: Optional[int] = None
-    isbn13: Optional[int] = None
-    review: Optional[str] = None
-    series_titles: List[str] = field(default_factory=list)
+    title: Optional[str]
+    author: Optional[str]
+    book_id: Optional[str]
+    tags: List[str]
+    rating: Optional[int]
+    isbn: Optional[int]
+    isbn13: Optional[int]
+    review: Optional[str]
+    series_titles: List[str]
 
-    def __post_init__(self) -> None:
-        """Extract fields from content."""
-        self.parse()  # we do not run parse on content assign during __init__()
+    def __init__(  # pylint: disable=too-many-arguments
+        self,
+        title: Optional[str] = None,
+        author: Optional[str] = None,
+        book_id: Optional[str] = None,
+        tags: Optional[List[str]] = None,
+        rating: Optional[int] = None,
+        isbn: Optional[int] = None,
+        isbn13: Optional[int] = None,
+        review: Optional[str] = None,
+        series_titles: Optional[List[str]] = None,
+        **kwargs: Any,
+    ) -> None:
+        """Init."""
+        super().__init__(**kwargs)
+        self.title = title
+        self.author = author
+        self.book_id = book_id
+        self.tags = tags or []
+        self.rating = rating
+        self.isbn = isbn
+        self.isbn13 = isbn13
+        self.review = review
+        self.series_titles = series_titles or []
+        self.parse()
 
     def _get_template(self) -> BookTemplate:
         """Template."""
         return get_templates().book
 
-    @cache  # pylint: disable=method-cache-max-size-none
     def _get_template_context(self) -> Dict[str, Any]:
         """Template context."""
         return {
@@ -69,7 +87,6 @@ class BookFile(DataFile):  # pylint: disable=too-many-instance-attributes
                 for series_match in series_regex.compiled.finditer(self._content)
             ]
 
-    @cache  # pylint: disable=method-cache-max-size-none
     def render_body(self) -> Optional[str]:
         """Render file body."""
         assert self.tags is not None  # to please mypy
@@ -82,7 +99,6 @@ class BookFile(DataFile):  # pylint: disable=too-many-instance-attributes
         return get_templates().book.render_body(self._get_template_context())
 
     @classmethod
-    @cache
     def file_suffix(cls) -> str:
         """File suffix."""
         file_name = cls(folder=Path(), title="title", author="author").file_name
@@ -96,6 +112,7 @@ class BookFile(DataFile):  # pylint: disable=too-many-instance-attributes
         Even if this file also exists that does not matter because this it the book
         with the same ID.
         """
+        assert self.folder is not None  # to please mypy
         assert self.content is not None  # to please mypy
         if (
             (self.folder / self.file_name).exists()
@@ -193,14 +210,9 @@ class BookFile(DataFile):  # pylint: disable=too-many-instance-attributes
         return is_book_id_parsed and is_title_parsed and is_author_parsed and is_series_parsed
 
     @property
-    # @cache
     def series(self) -> List[SeriesFile]:
         """List of series objects constructed from series_names."""
         return [
             SeriesFile(folder=self.folder, title=title, author=self.author)
             for title in self.series_titles
         ]
-
-    def __hash__(self) -> int:
-        """Dataclass set it to None as it is not frozen."""
-        return hash(self.__repr__())

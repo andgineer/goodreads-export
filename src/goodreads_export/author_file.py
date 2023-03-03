@@ -1,9 +1,7 @@
 """Author's file."""  # pylint: disable=duplicate-code
 import urllib.parse
-from dataclasses import dataclass, field
-from functools import cache
 from pathlib import Path
-from typing import Any, Dict
+from typing import Any, Dict, Optional
 
 from goodreads_export.book_file import BookFile
 from goodreads_export.clean_file_name import clean_file_name
@@ -12,7 +10,6 @@ from goodreads_export.series_file import SeriesList
 from goodreads_export.templates import AuthorTemplate, get_templates
 
 
-@dataclass(kw_only=True, eq=False)
 class AuthorFile(DataFile):  # pylint: disable=too-many-instance-attributes
     """Author's file.
 
@@ -22,19 +19,30 @@ class AuthorFile(DataFile):  # pylint: disable=too-many-instance-attributes
     """
 
     name: str  # primary author name
-    names: list[str] = field(default_factory=list)
-    series: SeriesList = field(default_factory=SeriesList, repr=False)
-    books: list[BookFile] = field(default_factory=list, repr=False)
+    names: list[str]
+    series: SeriesList
+    books: list[BookFile]
 
-    def __post_init__(self) -> None:
+    def __init__(
+        self,
+        name: str,
+        names: Optional[list[str]] = None,
+        series: Optional[SeriesList] = None,
+        books: Optional[list[BookFile]] = None,
+        **kwargs: Any,
+    ) -> None:  # pylint: disable=unused-argument
         """Extract fields from content."""
-        self.parse()  # we do not run parse on content assign during __init__()
+        super().__init__(**kwargs)
+        self.name = name
+        self.names = names or []
+        self.series = series or SeriesList()
+        self.books = books or []
+        self.parse()
 
     def _get_template(self) -> AuthorTemplate:
         """Template."""
         return get_templates().author
 
-    @cache  # pylint: disable=method-cache-max-size-none
     def _get_template_context(self) -> Dict[str, Any]:
         """Template context."""
         return {
@@ -65,7 +73,7 @@ class AuthorFile(DataFile):  # pylint: disable=too-many-instance-attributes
     def write(self) -> None:
         """Write file to path."""
         assert self.content is not None  # to please mypy
-        with (self.folder / self.file_name).open("w", encoding="utf8") as file:
+        with self.path.open("w", encoding="utf8") as file:
             file.write(self.content)
 
     def merge(self, other: "AuthorFile") -> None:
@@ -89,7 +97,3 @@ class AuthorFile(DataFile):  # pylint: disable=too-many-instance-attributes
             print(f"Author name {author_name} is not parsed from content\n{author_file.content}")
             print(f"using the pattern\n{get_templates().author.names_regexes[0].regex}")
         return is_author_parsed
-
-    def __hash__(self) -> int:
-        """Dataclass set it to None as it is not frozen."""
-        return hash(self.__repr__())

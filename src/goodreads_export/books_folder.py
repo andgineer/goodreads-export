@@ -135,7 +135,7 @@ class BooksFolder:
             name=book.author,
             folder=self.folder / SUBFOLDERS["authors"],
         )
-        if not (author_file.folder / author_file.file_name).is_file():
+        if not author_file.path.is_file():
             author_file.write()
             return True
         return False
