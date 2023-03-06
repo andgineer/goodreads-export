@@ -15,7 +15,7 @@ class SeriesFile(DataFile):  # pylint: disable=too-many-instance-attributes
     title: Optional[str]
 
     def __init__(
-        self, author: Optional[str] = None, title: Optional[str] = None, **kwargs: Any
+        self, *, author: Optional[str] = None, title: Optional[str] = None, **kwargs: Any
     ) -> None:
         """Extract fields from content."""
         super().__init__(**kwargs)
@@ -55,7 +55,7 @@ class SeriesFile(DataFile):  # pylint: disable=too-many-instance-attributes
     @classmethod
     def file_suffix(cls) -> str:
         """File suffix."""
-        file_name = SeriesFile(folder=Path(), title="title", author="author").file_name
+        file_name = SeriesFile(title="title", author="author").file_name
         assert file_name  # to make mypy happy
         return file_name.suffix
 
@@ -73,7 +73,7 @@ class SeriesFile(DataFile):  # pylint: disable=too-many-instance-attributes
         """Check regex work for the template."""
         author_name = "Mark Twain"
         title = "title"
-        series_file = cls(folder=Path(), title=title, author=author_name)
+        series_file = cls(title=title, author=author_name)
         series_file.content = series_file.render_body()
         is_title_parsed = series_file.title == title
         is_author_parsed = series_file.author == author_name

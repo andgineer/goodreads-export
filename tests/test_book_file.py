@@ -86,7 +86,6 @@ def test_book_file_defaults_from_class(book_markdown):
     fields = BookFile(
         content=book_markdown,
         title=title,
-        folder=Path(),
         author=initial_author,
     )
     book_file.content = book_markdown
@@ -109,7 +108,7 @@ def test_book_file_duplicate_name(book_markdown):
     """
     author = "Author"
     book_file = BookFile(
-        folder=Path(),
+        folder=Path(),  # we mock the Path.exists anyway so it does not matter
         author=author,
         content=book_markdown,
         book_id="123",

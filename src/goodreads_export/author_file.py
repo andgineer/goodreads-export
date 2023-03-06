@@ -1,6 +1,5 @@
 """Author's file."""  # pylint: disable=duplicate-code
 import urllib.parse
-from pathlib import Path
 from typing import Any, Dict, Optional
 
 from goodreads_export.book_file import BookFile
@@ -25,6 +24,7 @@ class AuthorFile(DataFile):  # pylint: disable=too-many-instance-attributes
 
     def __init__(
         self,
+        *,
         name: str,
         names: Optional[list[str]] = None,
         series: Optional[SeriesList] = None,
@@ -90,7 +90,7 @@ class AuthorFile(DataFile):  # pylint: disable=too-many-instance-attributes
     def check(cls: type["AuthorFile"]) -> bool:
         """Check regex work for the template."""
         author_name = "Mark Twain"
-        author_file = cls(folder=Path(), name=author_name)
+        author_file = cls(name=author_name)
         author_file.content = author_file.render_body()
         is_author_parsed = author_file.names == [author_name]
         if not is_author_parsed:

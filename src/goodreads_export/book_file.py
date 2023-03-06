@@ -30,6 +30,7 @@ class BookFile(DataFile):  # pylint: disable=too-many-instance-attributes
 
     def __init__(  # pylint: disable=too-many-arguments
         self,
+        *,
         title: Optional[str] = None,
         author: Optional[str] = None,
         book_id: Optional[str] = None,
@@ -101,7 +102,7 @@ class BookFile(DataFile):  # pylint: disable=too-many-instance-attributes
     @classmethod
     def file_suffix(cls) -> str:
         """File suffix."""
-        file_name = cls(folder=Path(), title="title", author="author").file_name
+        file_name = cls(title="title", author="author").file_name
         assert file_name
         return file_name.suffix
 
@@ -180,7 +181,6 @@ class BookFile(DataFile):  # pylint: disable=too-many-instance-attributes
         series_titles = ["Voyages extraordinaires"]
         review = "This is a review\nin two lines"
         book_file = cls(
-            folder=Path(),
             book_id=book_id,
             title=title,
             author=author,

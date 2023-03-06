@@ -16,6 +16,7 @@ class DataFile:
 
     def __init__(
         self,
+        *,
         folder: Optional[Path] = None,
         file_name: Optional[Path] = None,
         content: Optional[str] = None,
