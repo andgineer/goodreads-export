@@ -19,7 +19,7 @@ def test_books_folder_load(test_case):
     assert sorted(book.title for book in books.books.values()) == sorted(
         [book["title"] for book in test_case.meta["existed"]["books"]]
     )
-    assert sorted(book.author for book in books.books.values()) == sorted(
+    assert sorted(book._author_name for book in books.books.values()) == sorted(
         [book["author"] for book in test_case.meta["existed"]["books"]]
     )
     assert sorted(author.name for author in books.authors.values()) == sorted(

@@ -2,8 +2,9 @@
 import os
 import urllib.parse
 from pathlib import Path
-from typing import Any, Dict, List, Optional
+from typing import Any, Callable, Dict, List, Optional
 
+from goodreads_export.author_file import AuthorFile
 from goodreads_export.clean_file_name import clean_file_name
 from goodreads_export.data_file import DataFile
 from goodreads_export.series_file import SeriesFile
@@ -19,7 +20,8 @@ class BookFile(DataFile):  # pylint: disable=too-many-instance-attributes
     """
 
     title: Optional[str]
-    author: Optional[str]
+    author: Optional[AuthorFile]
+    _get_author: Optional[Callable[[Optional["BookFile"], str], AuthorFile]] = None
     book_id: Optional[str]
     tags: List[str]
     rating: Optional[int]
@@ -32,7 +34,9 @@ class BookFile(DataFile):  # pylint: disable=too-many-instance-attributes
         self,
         *,
         title: Optional[str] = None,
-        author: Optional[str] = None,
+        get_author: Optional[Callable[[Optional["BookFile"], str], AuthorFile]] = None,
+        author: Optional[AuthorFile] = None,
+        author_name: Optional[str] = None,
         book_id: Optional[str] = None,
         tags: Optional[List[str]] = None,
         rating: Optional[int] = None,
@@ -44,8 +48,13 @@ class BookFile(DataFile):  # pylint: disable=too-many-instance-attributes
     ) -> None:
         """Init."""
         super().__init__(**kwargs)
-        self.title = title
+        self._get_author = get_author
+        assert (
+            author is None or author_name is None
+        ), "Only one of author or author_name can be set"
         self.author = author
+        self._author_name = author_name  # should be after assigning self.author
+        self.title = title
         self.book_id = book_id
         self.tags = tags or []
         self.rating = rating
@@ -81,7 +90,7 @@ class BookFile(DataFile):  # pylint: disable=too-many-instance-attributes
             assert link_match is not None  # to please mypy
             self.book_id = link_match[book_regex.book_id_group]
             self.title = link_match[book_regex.title_group]
-            self.author = link_match[book_regex.author_group]
+            self._author_name = link_match[book_regex.author_group]
         if series_regex := get_templates().book.series_regexes.choose_regex(self._content):
             self.series_titles = [
                 series_match[series_regex.series_group]
@@ -102,7 +111,7 @@ class BookFile(DataFile):  # pylint: disable=too-many-instance-attributes
     @classmethod
     def file_suffix(cls) -> str:
         """File suffix."""
-        file_name = cls(title="title", author="author").file_name
+        file_name = cls(title="title", author=AuthorFile(name="author")).file_name
         assert file_name
         return file_name.suffix
 
@@ -146,13 +155,30 @@ class BookFile(DataFile):  # pylint: disable=too-many-instance-attributes
         In content replace author name only, do not re-render content to keep possible user changes intact.
         """
         self.delete_file()
-        assert self.author is not None  # to please mypy
-        old_author_name = self.author
-        self.author = new_author
+        assert self._author_name is not None  # to please mypy
+        old_author_name = self._author_name
+        self._author_name = new_author
         self._file_name = None  # to force re-rendering
         assert self.content is not None  # to please mypy
         self.content = self.content.replace(old_author_name, new_author)
         self.write()
+
+    @property
+    def _author_name(self) -> Optional[str]:
+        """Author name."""
+        return self.author.name if self.author is not None else None
+
+    @_author_name.setter
+    def _author_name(self, name: str) -> None:
+        """Book author name."""
+        if name is not None:
+            self.author = self.get_author(name)
+
+    def get_author(self: Optional["BookFile"], name: str) -> AuthorFile:
+        """Book author file."""
+        if self and self._get_author is not None:
+            return self._get_author(self, name)
+        return AuthorFile(name=name)
 
     def create_series_files(self) -> Dict[str, Path]:
         """Create series files if they do not exist.
@@ -162,7 +188,7 @@ class BookFile(DataFile):  # pylint: disable=too-many-instance-attributes
         """
         # todo in perfect world we create series from author
         assert self.series_titles is not None
-        assert self.author is not None
+        assert self._author_name is not None
         created_series_files = {}
         for series in self.series:
             if not series.path.is_file():
@@ -174,7 +200,7 @@ class BookFile(DataFile):  # pylint: disable=too-many-instance-attributes
     @classmethod
     def check(cls) -> bool:
         """Check regexps for the template."""
-        author = "Jules Verne"
+        author_name = "Jules Verne"
         book_id = "54479"
         title = "Around the World in Eighty Days"
         tags = ["#adventure", "#classics", "#fiction", "#novel", "#travel"]
@@ -183,7 +209,7 @@ class BookFile(DataFile):  # pylint: disable=too-many-instance-attributes
         book_file = cls(
             book_id=book_id,
             title=title,
-            author=author,
+            author=AuthorFile(name=author_name),
             tags=tags,
             series_titles=series_titles,
             review=review,
@@ -192,11 +218,11 @@ class BookFile(DataFile):  # pylint: disable=too-many-instance-attributes
         book_file.content = book_file.render_body()
         is_book_id_parsed = book_file.book_id == book_id
         is_title_parsed = book_file.title == title
-        is_author_parsed = book_file.author == author
+        is_author_parsed = book_file._author_name == author_name
         is_series_parsed = book_file.series_titles == series_titles
         # assert book_file.series == ['']
         if not is_author_parsed:
-            print(f"Author name {author} is not parsed from content\n{book_file.content}")
+            print(f"Author name {author_name} is not parsed from content\n{book_file.content}")
             print(f"using the pattern\n{get_templates().book.goodreads_link_regexes[0].regex}")
         if not is_book_id_parsed:
             print(f"Book ID {book_id} is not parsed from content\n{book_file.content}")
@@ -213,6 +239,6 @@ class BookFile(DataFile):  # pylint: disable=too-many-instance-attributes
     def series(self) -> List[SeriesFile]:
         """List of series objects constructed from series_names."""
         return [
-            SeriesFile(folder=self.folder, title=title, author=self.author)
+            SeriesFile(folder=self.folder, title=title, author=self._author_name)
             for title in self.series_titles
         ]

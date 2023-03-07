@@ -1,12 +1,14 @@
 """Author's file."""  # pylint: disable=duplicate-code
 import urllib.parse
-from typing import Any, Dict, Optional
+from typing import TYPE_CHECKING, Any, Dict, Optional
 
-from goodreads_export.book_file import BookFile
 from goodreads_export.clean_file_name import clean_file_name
 from goodreads_export.data_file import DataFile
 from goodreads_export.series_file import SeriesList
 from goodreads_export.templates import AuthorTemplate, get_templates
+
+if TYPE_CHECKING:
+    from goodreads_export.book_file import BookFile
 
 
 class AuthorFile(DataFile):  # pylint: disable=too-many-instance-attributes
@@ -20,7 +22,7 @@ class AuthorFile(DataFile):  # pylint: disable=too-many-instance-attributes
     name: str  # primary author name
     names: list[str]
     series: SeriesList
-    books: list[BookFile]
+    books: list["BookFile"]
 
     def __init__(
         self,
@@ -28,7 +30,7 @@ class AuthorFile(DataFile):  # pylint: disable=too-many-instance-attributes
         name: str,
         names: Optional[list[str]] = None,
         series: Optional[SeriesList] = None,
-        books: Optional[list[BookFile]] = None,
+        books: Optional[list["BookFile"]] = None,
         **kwargs: Any,
     ) -> None:  # pylint: disable=unused-argument
         """Extract fields from content."""

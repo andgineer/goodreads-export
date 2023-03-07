@@ -1,7 +1,7 @@
 """Create files for books."""
 import os
 from pathlib import Path
-from typing import Dict
+from typing import Dict, Optional
 
 from goodreads_export.author_file import AuthorFile
 from goodreads_export.book_file import BookFile
@@ -90,7 +90,8 @@ class BooksFolder:
                 book.author = primary_author  # use the same author name for all synonyms
 
             if book.book_id not in self.books:
-                if book.author not in self.authors and self.create_author_file(book):
+                if book.author not in self.authors:
+                    self.authors[book.author] = self.create_author_file(book)
                     self.stat.authors_added += 1
                     self.log.progress_description(authors_bar_title, f"Added author {book.author}")
                 added_file_path = self.create_book_file(book)
@@ -104,6 +105,12 @@ class BooksFolder:
 
         Return the filename.
         """
+
+        def get_author(
+            book_file: Optional[BookFile], name: str  # pylint: disable=unused-argument
+        ) -> AuthorFile:
+            return self.authors[name]  # we know it exist because we created it before
+
         if book.review == "" and book.rating == 0:
             subfolder = SUBFOLDERS["toread"]
         else:
@@ -112,7 +119,8 @@ class BooksFolder:
             title=book.title,
             folder=self.folder / subfolder,
             tags=book.tags,
-            author=self.authors[book.author].name if book.author in self.authors else book.author,
+            get_author=get_author,
+            author_name=book.author,
             book_id=book.book_id,
             rating=book.rating,
             isbn=book.isbn,
@@ -124,7 +132,7 @@ class BooksFolder:
         book_file.write()
         return os.path.join(subfolder, book_file.file_name)
 
-    def create_author_file(self, book: Book) -> bool:
+    def create_author_file(self, book: Book) -> AuthorFile:
         """Create author file if id does not exist.
 
         Do not change already existed file.
@@ -137,8 +145,7 @@ class BooksFolder:
         )
         if not author_file.path.is_file():
             author_file.write()
-            return True
-        return False
+        return author_file
 
     def load_series(self, folder: Path, authors: Dict[str, AuthorFile]) -> None:
         """Load existed series.
@@ -189,16 +196,16 @@ class BooksFolder:
             else:
                 assert book.author is not None  # to make mypy happy
                 books[book.book_id] = book
-                if book.author not in authors:
+                if book.author.name not in authors:
                     self.log.info(
-                        f"Book file {file_name} has author '{book.author}' "
+                        f"Book file {file_name} has author '{book.author.name}' "
                         "without author file, creating the file."
                     )
-                    authors[book.author] = AuthorFile(
-                        name=book.author, folder=self.folder / SUBFOLDERS["authors"]
+                    authors[book.author.name] = AuthorFile(
+                        name=book.author.name, folder=self.folder / SUBFOLDERS["authors"]
                     )
-                    authors[book.author].write()
-                authors[book.author].books.append(book)
+                    authors[book.author.name].write()
+                authors[book.author.name].books.append(book)
         return books
 
     def load_authors(self, folder: Path) -> Dict[str, AuthorFile]:
