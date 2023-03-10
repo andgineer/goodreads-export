@@ -1,21 +1,23 @@
 """Series file."""
 import urllib.parse
 from pathlib import Path
-from typing import Any, Dict, List, Optional, Union
+from typing import TYPE_CHECKING, Any, Dict, List, Optional, Union
 
-from goodreads_export.clean_file_name import clean_file_name
 from goodreads_export.data_file import DataFile
 from goodreads_export.templates import SeriesTemplate, get_templates
+
+if TYPE_CHECKING:
+    from goodreads_export.library import AuthorFile
 
 
 class SeriesFile(DataFile):  # pylint: disable=too-many-instance-attributes
     """Series' file."""
 
-    author: Optional[str]
+    author: Optional["AuthorFile"]
     title: Optional[str]
 
     def __init__(
-        self, *, author: Optional[str] = None, title: Optional[str] = None, **kwargs: Any
+        self, *, author: Optional["AuthorFile"] = None, title: Optional[str] = None, **kwargs: Any
     ) -> None:
         """Extract fields from content."""
         super().__init__(**kwargs)
@@ -33,7 +35,6 @@ class SeriesFile(DataFile):  # pylint: disable=too-many-instance-attributes
             "series": self,
             "author": self.author,
             "urlencode": urllib.parse.urlencode,
-            "clean_file_name": clean_file_name,
         }
 
     def parse(self) -> None:
@@ -45,17 +46,16 @@ class SeriesFile(DataFile):  # pylint: disable=too-many-instance-attributes
                 match = regex.compiled.search(self._content)
                 assert match  # to make mypy happy
                 self.title = match[regex.title_group]
-                self.author = match[regex.author_group]
+                self.author = self.library.get_author(match[regex.author_group])
 
     @classmethod
     def is_file_name(cls, file_name: Union[str, Path]) -> bool:
         """Return True if file name if indicate this is series description file."""
         return get_templates().series.file_name_regexes.choose_regex(str(file_name)) is not None
 
-    @classmethod
-    def file_suffix(cls) -> str:
+    def file_suffix(self) -> str:
         """File suffix."""
-        file_name = SeriesFile(title="title", author="author").file_name
+        file_name = self.file_name
         assert file_name  # to make mypy happy
         return file_name.suffix
 
@@ -68,24 +68,26 @@ class SeriesFile(DataFile):  # pylint: disable=too-many-instance-attributes
         assert self.content is not None  # to please mypy
         self.path.write_text(self.content, encoding="utf8")
 
-    @classmethod
-    def check(cls: type["SeriesFile"]) -> bool:
-        """Check regex work for the template."""
-        author_name = "Mark Twain"
-        title = "title"
-        series_file = cls(title=title, author=author_name)
-        series_file.content = series_file.render_body()
-        is_title_parsed = series_file.title == title
-        is_author_parsed = series_file.author == author_name
+    def check(self) -> bool:
+        """Check regexps for the template.
+
+        Create file from fields and after that parse it and compare parsed values with the initial fields
+        """
+        title = self.title
+        assert self.author is not None  # to please mypy
+        author_name = self.author.name
+        self.content = self.render_body()
+        is_title_parsed = self.title == title
+        is_author_parsed = self.author.name == author_name
         if not is_title_parsed:
-            print(f"Series title {title} is not parsed from content\n{series_file.content}")
+            print(f"Series title {title} is not parsed from content\n{self.content}")
             print(f"using the pattern\n{get_templates().series.content_regexes[0].regex}")
         if not is_author_parsed:
-            print(f"Author name {author_name} is not parsed from content\n{series_file.content}")
+            print(f"Author name {author_name} is not parsed from content\n{self.content}")
             print(f"using the pattern\n{get_templates().series.content_regexes[0].regex}")
-        series_file_name = series_file.file_name
+        series_file_name = self.file_name
         assert series_file_name is not None  # to please mypy
-        is_file_name = cls.is_file_name(series_file_name)
+        is_file_name = self.is_file_name(series_file_name)
         if not is_file_name:
             print(f"Series file name {series_file_name} is not recognized")
             print(f"using the pattern\n{get_templates().series.file_name_regexes[0].regex}")
@@ -99,8 +101,8 @@ class SeriesFile(DataFile):  # pylint: disable=too-many-instance-attributes
         self.delete_file()
         assert self.author is not None  # to please mypy
         assert self.content is not None  # to please mypy
-        old_author_name = self.author
-        self.author = new_author
+        old_author_name = self.author.name
+        self.author = self.library.get_author(new_author)
         self._file_name = None  # to force re-rendering
         self.content = self.content.replace(old_author_name, new_author)
         self.write()

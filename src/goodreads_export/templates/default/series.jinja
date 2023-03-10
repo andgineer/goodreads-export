@@ -1,4 +1,4 @@
-{{ clean_file_name(author) }} - {{ clean_file_name(series.title) }} - series.md
+{{ author.name }} - {{ series.title }} - series.md
 
 {%
         set search_params = urlencode(
@@ -10,5 +10,5 @@
             }
         )
 -%}
-[[{{ clean_file_name(author) }}]]
+[[{{ author.file_link }}]]
 [{{ series.title }}](https://www.goodreads.com/search?{{ search_params }})

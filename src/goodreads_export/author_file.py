@@ -2,7 +2,6 @@
 import urllib.parse
 from typing import TYPE_CHECKING, Any, Dict, Optional
 
-from goodreads_export.clean_file_name import clean_file_name
 from goodreads_export.data_file import DataFile
 from goodreads_export.series_file import SeriesList
 from goodreads_export.templates import AuthorTemplate, get_templates
@@ -50,7 +49,6 @@ class AuthorFile(DataFile):  # pylint: disable=too-many-instance-attributes
         return {
             "author": self,
             "urlencode": urllib.parse.urlencode,
-            "clean_file_name": clean_file_name,
         }
 
     def parse(self) -> None:
@@ -88,14 +86,15 @@ class AuthorFile(DataFile):  # pylint: disable=too-many-instance-attributes
         self.series += other.series
         other.delete_file()
 
-    @classmethod
-    def check(cls: type["AuthorFile"]) -> bool:
-        """Check regex work for the template."""
-        author_name = "Mark Twain"
-        author_file = cls(name=author_name)
-        author_file.content = author_file.render_body()
-        is_author_parsed = author_file.names == [author_name]
+    def check(self) -> bool:
+        """Check regexps for the template.
+
+        Create file from fields and after that parse it and compare parsed values with the initial fields
+        """
+        name = self.name
+        self.content = self.render_body()
+        is_author_parsed = self.names == [name]
         if not is_author_parsed:
-            print(f"Author name {author_name} is not parsed from content\n{author_file.content}")
+            print(f"Author name {name} is not parsed from content\n{self.content}")
             print(f"using the pattern\n{get_templates().author.names_regexes[0].regex}")
         return is_author_parsed

@@ -8,6 +8,8 @@ from typing import Any, Dict, List, Optional, TypeVar
 import jinja2
 from jinja2 import DebugUndefined
 
+from goodreads_export.clean_file_name import clean_file_name
+
 try:
     import tomllib
 except ModuleNotFoundError:
@@ -127,7 +129,9 @@ class FileTemplate:
 
     def render_file_name(self, context: Dict[str, Any]) -> Path:
         """Render file name with context."""
-        return Path(self.env.jinja.from_string(self.file_name_template).render(context))
+        return Path(
+            clean_file_name(self.env.jinja.from_string(self.file_name_template).render(context))
+        )
 
     def render_file_link(self, context: Dict[str, Any]) -> str:
         """Render link with context.
@@ -136,7 +140,7 @@ class FileTemplate:
         """
         if self.file_link_template is None:
             return Path(context["file_name"]).stem
-        return self.env.jinja.from_string(self.file_link_template).render(context)
+        return clean_file_name(self.env.jinja.from_string(self.file_link_template).render(context))
 
     def render_body(self, context: Dict[str, Any]) -> str:
         """Render file body with context."""

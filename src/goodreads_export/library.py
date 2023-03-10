@@ -19,24 +19,25 @@ SUBFOLDERS = {
 BOOKS_SUBFOLDERS = [SUBFOLDERS["reviews"], SUBFOLDERS["toread"]]
 
 
-class BooksFolder:
+class Library:
     """Create files for books and authors."""
 
     stat = Stat()
 
-    def __init__(self, folder: Path, log: Log) -> None:
+    def __init__(self, folder: Optional[Path] = None, log: Optional[Log] = None) -> None:
         """Initialize."""
         self.folder = folder
-        self.log = log
+        self.log = log or Log()
 
         self.books: Dict[str, BookFile] = {}
         self.authors: Dict[str, AuthorFile] = {}
         self.primary_authors: Dict[str, AuthorFile] = {}
-        self.authors = self.load_authors(folder / SUBFOLDERS["authors"])
-        for books_subfolder in BOOKS_SUBFOLDERS:
-            self.load_series(folder / books_subfolder, self.authors)
-        for books_subfolder in BOOKS_SUBFOLDERS:
-            self.books |= self.load_books(folder / books_subfolder, self.authors)
+        if folder is not None:
+            self.authors = self.load_authors(folder / SUBFOLDERS["authors"])
+            for books_subfolder in BOOKS_SUBFOLDERS:
+                self.load_series(folder / books_subfolder, self.authors)
+            for books_subfolder in BOOKS_SUBFOLDERS:
+                self.books |= self.load_books(folder / books_subfolder, self.authors)
 
     def merge_author_names(self) -> None:
         """Replace all known versions of author names (translations, misspellings) with one primary name.
@@ -69,6 +70,7 @@ class BooksFolder:
     def dump(self, books: GoodreadsBooks) -> None:
         """Save books and authors as md-files."""
         for subfolder in SUBFOLDERS.values():
+            assert self.folder is not None  # for mypy
             os.makedirs(self.folder / subfolder, exist_ok=True)
 
         reviews_bar_title = "Review"
@@ -105,21 +107,16 @@ class BooksFolder:
 
         Return the filename.
         """
-
-        def get_author(
-            book_file: Optional[BookFile], name: str  # pylint: disable=unused-argument
-        ) -> AuthorFile:
-            return self.authors[name]  # we know it exist because we created it before
-
         if book.review == "" and book.rating == 0:
             subfolder = SUBFOLDERS["toread"]
         else:
             subfolder = SUBFOLDERS["reviews"]
+        assert self.folder is not None  # for mypy
         book_file = BookFile(
+            library=self,
             title=book.title,
             folder=self.folder / subfolder,
             tags=book.tags,
-            get_author=get_author,
             author_name=book.author,
             book_id=book.book_id,
             rating=book.rating,
@@ -139,7 +136,9 @@ class BooksFolder:
 
         Return True if author file was added, False otherwise
         """
+        assert self.folder is not None  # for mypy
         author_file = AuthorFile(
+            library=self,
             name=book.author,
             folder=self.folder / SUBFOLDERS["authors"],
         )
@@ -147,15 +146,30 @@ class BooksFolder:
             author_file.write()
         return author_file
 
+    def get_author(self, name: str) -> AuthorFile:
+        """Get author file."""
+        if name not in self.authors:
+            if self.folder is None:
+                return AuthorFile(library=self, name=name)
+            self.log.info(f"Creating author '{name}' ")
+            self.authors[name] = AuthorFile(
+                library=self, name=name, folder=self.folder / SUBFOLDERS["authors"]
+            )
+            self.authors[name].write()
+        return self.authors[name]
+
     def load_series(self, folder: Path, authors: Dict[str, AuthorFile]) -> None:
         """Load existed series.
 
         Add them to authors.
         Could add series with the same title to the same author if they are in different files.
         """
-        for file_name in folder.glob(f"*{SeriesFile.file_suffix()}"):
+        dummy_author = AuthorFile(library=Library(), name="author", folder=folder)
+        dummy_series = SeriesFile(library=Library(), author=dummy_author, title="title")
+        for file_name in folder.glob(f"*{dummy_series.file_suffix()}"):
             if SeriesFile.is_file_name(file_name):
                 series = SeriesFile(
+                    library=self,
                     folder=folder,
                     file_name=Path(file_name.name),
                     content=file_name.read_text(encoding="utf8"),
@@ -163,10 +177,10 @@ class BooksFolder:
                 if series.author is None:
                     self.log.info(f"Series file {file_name} has no author name")
                     continue
-                if series.author not in authors:
+                if series.author.name not in authors:
                     self.log.info(f"Series file {file_name} has author without author file")
                     continue
-                authors[series.author].series.append(series)
+                authors[series.author.name].series.append(series)
                 self.stat.series_added += 1
 
     def load_books(self, folder: Path, authors: Dict[str, AuthorFile]) -> Dict[str, BookFile]:
@@ -177,16 +191,17 @@ class BooksFolder:
         This way we ignore "- series" files and unknown files.
         """
         books: Dict[str, BookFile] = {}
-        for file_name in folder.glob(f"*{BookFile.file_suffix()}"):
-            book = BookFile(
+        dummy_author = AuthorFile(library=Library(), name="author", folder=folder)
+        dummy_book = BookFile(library=Library(), author=dummy_author, title="title")
+        for file_name in folder.glob(f"*{dummy_book.file_suffix()}"):
+            book = BookFile(  # also create author file if not yet existed
+                library=self,
                 folder=folder,
                 file_name=Path(file_name.name),
                 content=file_name.read_text(encoding="utf8"),
             )
-            if book.book_id is None:
-                if SeriesFile.file_suffix == BookFile.file_suffix and not SeriesFile.is_file_name(
-                    file_name
-                ):
+            if book.book_id is None or book.author is None:
+                if not SeriesFile.is_file_name(file_name):
                     self.stat.skipped_unknown_files += 1
             elif book.book_id in books:
                 raise ValueError(
@@ -194,17 +209,7 @@ class BooksFolder:
                     f"and {books[book.book_id].file_name}"
                 )
             else:
-                assert book.author is not None  # to make mypy happy
                 books[book.book_id] = book
-                if book.author.name not in authors:
-                    self.log.info(
-                        f"Book file {file_name} has author '{book.author.name}' "
-                        "without author file, creating the file."
-                    )
-                    authors[book.author.name] = AuthorFile(
-                        name=book.author.name, folder=self.folder / SUBFOLDERS["authors"]
-                    )
-                    authors[book.author.name].write()
                 authors[book.author.name].books.append(book)
         return books
 
@@ -214,9 +219,10 @@ class BooksFolder:
         Return loaded authors
         """
         authors: Dict[str, AuthorFile] = {}
-        dummy_author = AuthorFile(name="author", folder=folder)
+        dummy_author = AuthorFile(library=Library(), name="author", folder=folder)
         for file_name in folder.glob(f"*{dummy_author.file_name.suffix}"):
             author = AuthorFile(
+                library=self,
                 folder=folder,
                 file_name=Path(file_name.name),
                 name=file_name.stem,  # will be replaced by parsing file content
@@ -230,3 +236,26 @@ class BooksFolder:
             else:
                 self.stat.skipped_unknown_files += 1
         return authors
+
+    def check_templates(self) -> None:
+        """Check templates and regexes."""
+        author_name = "Jules Verne"
+        book_id = "54479"
+        title = "Around the World in Eighty Days"
+        tags = ["#adventure", "#classics", "#fiction", "#novel", "#travel"]
+        series_titles = ["Voyages extraordinaires"]
+        review = "This is a review\nin two lines"
+        author = AuthorFile(library=Library(), name=author_name)
+        author.check()
+        BookFile(
+            library=Library(),
+            book_id=book_id,
+            title=title,
+            author=author,
+            tags=tags,
+            series_titles=series_titles,
+            review=review,
+            rating=5,
+        ).check()
+        title = "title"
+        SeriesFile(library=Library(), title=title, author=author).check()

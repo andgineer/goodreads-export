@@ -1,13 +1,16 @@
 from pathlib import Path
 
 from goodreads_export.author_file import AuthorFile
+from goodreads_export.library import Library
 
 
 def test_author_file_initial_nonbook_content(author_markdown):
+    library = Library()
     content = "Content"
     file_name = "123 - Title - Author.md"
     initial_author = "Author"
     author_file = AuthorFile(
+        library=library,
         name=initial_author,
         file_name=Path(file_name),
         content=content,
@@ -29,10 +32,12 @@ def are_names_in_content(author_file, author_markdown):
 
 
 def test_author_file_initial_author_content(author_markdown):
+    library = Library()
     content = author_markdown
     file_name = "123 - Title - Author.md"
     initial_author = "Author"
     author_file = AuthorFile(
+        library=library,
         content=content,
         name=initial_author,
         file_name=Path(file_name),
@@ -46,10 +51,12 @@ def test_author_file_initial_author_content(author_markdown):
 
 
 def test_author_file_defaults_from_content(author_markdown):
+    library = Library()
     initial_content = author_markdown
     file_name = "123 - Title - Author.md"
     initial_author = "Author"
     author_file = AuthorFile(
+        library=library,
         content=initial_content,
         file_name=Path(file_name),
         name=initial_author,
@@ -64,8 +71,10 @@ def test_author_file_defaults_from_content(author_markdown):
 
 
 def test_author_file_defaults_from_class(author_markdown):
+    library = Library()
     initial_author = "Author"
     author_file = AuthorFile(
+        library=library,
         name=initial_author,
     )
     assert author_file.name == initial_author
@@ -83,4 +92,5 @@ def test_author_file_defaults_from_class(author_markdown):
 
 
 def test_author_check():
-    assert AuthorFile.check()
+    library = Library()
+    assert AuthorFile(library=library, name="Author").check()

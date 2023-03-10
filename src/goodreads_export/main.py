@@ -5,12 +5,9 @@ from pathlib import Path
 
 import click
 
-from goodreads_export.author_file import AuthorFile
-from goodreads_export.book_file import BookFile
-from goodreads_export.books_folder import BooksFolder
 from goodreads_export.goodreads_book import GoodreadsBooks
+from goodreads_export.library import Library
 from goodreads_export.log import Log
-from goodreads_export.series_file import SeriesFile
 from goodreads_export.version import VERSION
 
 GOODREAD_EXPORT_FILE_NAME = "goodreads_library_export.csv"
@@ -117,9 +114,9 @@ def import_(ctx: click.Context, csv_file: str, output_folder: Path) -> None:
         sys.exit(1)
 
 
-def merge_authors(log: Log, output_folder: Path) -> BooksFolder:
+def merge_authors(log: Log, output_folder: Path) -> Library:
     """Merge authors."""
-    books_folder = BooksFolder(output_folder, log)
+    books_folder = Library(output_folder, log)
     log.start(f"Reading existing files from {output_folder}")
     print(
         f" loaded {len(books_folder.books)} books, {len(books_folder.authors)} authors, "
@@ -147,9 +144,8 @@ def check(ctx: click.Context, output_folder: Path) -> None:
     try:
         assert output_folder
         log: Log = ctx.obj["log"]
-        assert BookFile.check()
-        assert AuthorFile.check()
-        assert SeriesFile.check()
+        library = Library()  # we need library without actual folder to run template checks
+        library.check_templates()
         log.info("Templates are consistent with extraction regexes.")
     except Exception as exc:  # pylint: disable=broad-except
         print(f"\n{exc}")

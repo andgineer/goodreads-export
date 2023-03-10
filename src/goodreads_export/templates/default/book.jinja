@@ -1,6 +1,6 @@
-{{ clean_file_name(author.name) }} - {{ clean_file_name(book.title) }}.md
+{{ author.name }} - {{ book.title }}.md
 
-[[{{ clean_file_name(author.name) }}]]: [{{ book.title }}](https://www.goodreads.com/book/show/{{ book.book_id }})
+[[{{ author.file_link }}]]: [{{ book.title }}](https://www.goodreads.com/book/show/{{ book.book_id }})
 ISBN{{ book.isbn }} (ISBN13{{ book.isbn13 }})
 {%- if book.series %}
 {% for series in book.series -%}

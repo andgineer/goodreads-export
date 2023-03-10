@@ -4,17 +4,21 @@ from unittest.mock import patch
 import goodreads_export.book_file
 from goodreads_export.book_file import BookFile
 from goodreads_export.clean_file_name import clean_file_name
+from goodreads_export.library import Library
 
 
 def test_book_file_initial_nonbook_content(book_markdown):
+    library = Library()
+    initial_author = "Author"
+    author = library.get_author(name=initial_author)
     initial_content = "Content"
     file_name = "123 - Title - Author.md"
-    initial_author = "Author"
     book_file = BookFile(
+        library=library,
         file_name=Path(file_name),
         book_id="123",
         title="Title",
-        author_name=initial_author,
+        author=author,
         content=initial_content,
     )
     assert book_file.book_id is None  # no book id in content
@@ -29,14 +33,17 @@ def test_book_file_initial_nonbook_content(book_markdown):
 
 
 def test_book_file_initial_book_content(book_markdown):
+    library = Library()
+    initial_author = "Author"
+    author = library.get_author(name=initial_author)
     content = book_markdown
     file_name = Path("123 - Title - Author.md")
-    initial_author = "Author"
     book_file = BookFile(
+        library=library,
         content=content,
         book_id="123",
         title="Title",
-        author_name=initial_author,
+        author=author,
         file_name=file_name,
     )
     assert book_file._file_name == file_name
@@ -49,14 +56,17 @@ def test_book_file_initial_book_content(book_markdown):
 
 
 def test_book_file_defaults_from_content(book_markdown):
+    library = Library()
+    initial_author = "Author"
+    author = library.get_author(name=initial_author)
     initial_content = book_markdown
     file_name = "123 - Title - Author.md"
-    initial_author = "Author"
     book_file = BookFile(
+        library=library,
         file_name=Path(file_name),
         content=initial_content,
         title="Title",
-        author_name=initial_author,
+        author=author,
     )
     assert f"www.goodreads.com/book/show/{book_file.book_id}" in initial_content
     assert f"[{book_file.title}]" in initial_content
@@ -69,13 +79,16 @@ def test_book_file_defaults_from_content(book_markdown):
 
 
 def test_book_file_defaults_from_class(book_markdown):
-    initial_content = "Content"
+    library = Library()
     initial_author = "Author"
+    author = library.get_author(name=initial_author)
+    initial_content = "Content"
     title = "Title"
     book_file = BookFile(
+        library=library,
         content=initial_content,
         title=title,
-        author_name=initial_author,
+        author=author,
     )
     assert book_file.book_id is None
     assert book_file.title is None  # no title in initial_content
@@ -84,6 +97,7 @@ def test_book_file_defaults_from_class(book_markdown):
     assert book_file.content == initial_content
 
     fields = BookFile(
+        library=library,
         content=book_markdown,
         title=title,
         author_name=initial_author,
@@ -106,10 +120,13 @@ def test_book_file_duplicate_name(book_markdown):
 
     It should add the book id to the file name.
     """
-    author = "Author"
+    initial_author = "Author"
+    library = Library()
+    author = library.get_author(name=initial_author)
     book_file = BookFile(
+        library=library,
         folder=Path(),  # we mock the Path.exists anyway so it does not matter
-        author_name=author,
+        author=author,
         content=book_markdown,
         book_id="123",
         title="Title",
@@ -130,4 +147,13 @@ def test_book_file_duplicate_name(book_markdown):
 
 
 def test_book_file_check():
-    assert BookFile.check()
+    initial_author = "Author"
+    library = Library()
+    author = library.get_author(name=initial_author)
+    assert BookFile(
+        library=library,
+        folder=Path(),  # we mock the Path.exists anyway so it does not matter
+        author=author,
+        book_id="123",
+        title="Title",
+    ).check()

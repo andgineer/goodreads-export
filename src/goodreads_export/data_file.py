@@ -1,14 +1,18 @@
 """Object stored in the file."""
 import os
 from pathlib import Path
-from typing import Any, Dict, Optional
+from typing import TYPE_CHECKING, Any, Dict, Optional
 
 from goodreads_export.templates import FileTemplate
+
+if TYPE_CHECKING:
+    from goodreads_export.library import Library
 
 
 class DataFile:
     """Object stored in the file."""
 
+    library: "Library"
     folder: Optional[Path]
 
     _file_name: Optional[Path]
@@ -17,11 +21,13 @@ class DataFile:
     def __init__(
         self,
         *,
+        library: "Library",
         folder: Optional[Path] = None,
         file_name: Optional[Path] = None,
         content: Optional[str] = None,
     ) -> None:
         """Init."""
+        self.library = library
         self.folder = folder
         self._file_name = file_name
         self._content = content
