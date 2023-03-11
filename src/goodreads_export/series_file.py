@@ -1,27 +1,20 @@
 """Series file."""
 import urllib.parse
 from pathlib import Path
-from typing import TYPE_CHECKING, Any, Dict, List, Optional, Union
+from typing import Any, Dict, List, Optional, Union
 
-from goodreads_export.data_file import DataFile
+from goodreads_export.authored_file import AuthoredFile
 from goodreads_export.templates import SeriesTemplate, get_templates
 
-if TYPE_CHECKING:
-    from goodreads_export.library import AuthorFile
 
-
-class SeriesFile(DataFile):  # pylint: disable=too-many-instance-attributes
+class SeriesFile(AuthoredFile):
     """Series' file."""
 
-    author: Optional["AuthorFile"]
     title: Optional[str]
 
-    def __init__(
-        self, *, author: Optional["AuthorFile"] = None, title: Optional[str] = None, **kwargs: Any
-    ) -> None:
+    def __init__(self, *, title: Optional[str] = None, **kwargs: Any) -> None:
         """Extract fields from content."""
         super().__init__(**kwargs)
-        self.author = author
         self.title = title
         self.parse()
 
@@ -57,11 +50,6 @@ class SeriesFile(DataFile):  # pylint: disable=too-many-instance-attributes
         """Render series body."""
         return get_templates().series.render_body(self._get_template_context())
 
-    def write(self) -> None:
-        """Write file to path."""
-        assert self.content is not None  # to please mypy
-        self.path.write_text(self.content, encoding="utf8")
-
     def check(self) -> bool:
         """Check regexps for the template.
 
@@ -86,20 +74,6 @@ class SeriesFile(DataFile):  # pylint: disable=too-many-instance-attributes
             print(f"Series file name {series_file_name} is not recognized")
             print(f"using the pattern\n{get_templates().series.file_name_regexes[0].regex}")
         return is_title_parsed and is_author_parsed and is_file_name
-
-    def rename_author(self, new_author: str) -> None:
-        """Rename author.
-
-        We do not re-render the file fully to keep intact possible user changes in it.
-        """
-        self.delete_file()
-        assert self.author is not None  # to please mypy
-        assert self.content is not None  # to please mypy
-        old_author_name = self.author.name
-        self.author = self.library.get_author(new_author)
-        self._file_name = None  # to force re-rendering
-        self.content = self.content.replace(old_author_name, new_author)
-        self.write()
 
 
 class SeriesList(List[SeriesFile]):

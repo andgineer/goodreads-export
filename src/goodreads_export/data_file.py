@@ -26,7 +26,7 @@ class DataFile:
         file_name: Optional[Path] = None,
         content: Optional[str] = None,
     ) -> None:
-        """Init."""
+        """Set fields from args."""
         self.library = library
         self.folder = folder
         self._file_name = file_name
@@ -94,3 +94,7 @@ class DataFile:
         """Return file path."""
         assert self.folder is not None
         return self.folder / self.file_name
+
+    def write(self) -> None:
+        """Write file to path."""
+        self.path.write_text(self.content, encoding="utf8")

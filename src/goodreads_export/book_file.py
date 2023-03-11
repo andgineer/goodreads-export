@@ -4,13 +4,12 @@ import urllib.parse
 from pathlib import Path
 from typing import Any, Dict, List, Optional
 
-from goodreads_export.author_file import AuthorFile
-from goodreads_export.data_file import DataFile
+from goodreads_export.authored_file import AuthoredFile
 from goodreads_export.series_file import SeriesFile
 from goodreads_export.templates import BookTemplate, get_templates
 
 
-class BookFile(DataFile):  # pylint: disable=too-many-instance-attributes
+class BookFile(AuthoredFile):  # pylint: disable=too-many-instance-attributes
     """Book's markdown file.
 
     On init extract fields from `content` - override other parameters.
@@ -19,7 +18,6 @@ class BookFile(DataFile):  # pylint: disable=too-many-instance-attributes
     """
 
     title: Optional[str]
-    author: Optional[AuthorFile]
     book_id: Optional[str]
     tags: List[str]
     rating: Optional[int]
@@ -32,7 +30,6 @@ class BookFile(DataFile):  # pylint: disable=too-many-instance-attributes
         self,
         *,
         title: Optional[str] = None,
-        author: Optional[AuthorFile] = None,
         book_id: Optional[str] = None,
         tags: Optional[List[str]] = None,
         rating: Optional[int] = None,
@@ -44,7 +41,6 @@ class BookFile(DataFile):  # pylint: disable=too-many-instance-attributes
     ) -> None:
         """Init."""
         super().__init__(**kwargs)
-        self.author = author
         self.title = title
         self.book_id = book_id
         self.tags = tags or []
@@ -111,8 +107,7 @@ class BookFile(DataFile):  # pylint: disable=too-many-instance-attributes
             self.file_name = Path(
                 f"{self.file_name.with_suffix('')} - {self.book_id}{self.file_name.suffix}"
             )
-        with (self.folder / self.file_name).open("w", encoding="utf8") as file:
-            file.write(self.content)
+        super().write()
 
     def delete_series_files(self) -> Dict[str, Path]:
         """Delete series files for review.
@@ -127,20 +122,6 @@ class BookFile(DataFile):  # pylint: disable=too-many-instance-attributes
                 os.remove(series_file_path)
                 deleted_series_files[series] = series_file_path
         return deleted_series_files
-
-    def rename_author(self, new_author: str) -> None:
-        """Rename author in book file.
-
-        In content replace author name only, do not re-render content to keep possible user changes intact.
-        """
-        self.delete_file()
-        assert self.author is not None  # to please mypy
-        old_author_name = self.author.name
-        self.author = self.library.get_author(new_author)
-        self._file_name = None  # to force re-rendering
-        assert self.content is not None  # to please mypy
-        self.content = self.content.replace(old_author_name, new_author)
-        self.write()
 
     def create_series_files(self) -> Dict[str, Path]:
         """Create series files if they do not exist.

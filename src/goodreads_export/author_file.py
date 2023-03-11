@@ -10,7 +10,7 @@ if TYPE_CHECKING:
     from goodreads_export.book_file import BookFile
 
 
-class AuthorFile(DataFile):  # pylint: disable=too-many-instance-attributes
+class AuthorFile(DataFile):
     """Author's file.
 
     On init extract fields from `content` - override name(s).
@@ -69,12 +69,6 @@ class AuthorFile(DataFile):  # pylint: disable=too-many-instance-attributes
     def render_body(self) -> str:
         """Render file body."""
         return get_templates().author.render_body(self._get_template_context())
-
-    def write(self) -> None:
-        """Write file to path."""
-        assert self.content is not None  # to please mypy
-        with self.path.open("w", encoding="utf8") as file:
-            file.write(self.content)
 
     def merge(self, other: "AuthorFile") -> None:
         """Merge other author with this one."""
