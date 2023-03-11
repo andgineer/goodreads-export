@@ -25,8 +25,8 @@ class AuthoredFile(DataFile, ABC):
         """
         self.delete_file()
         assert self.author is not None  # to please mypy
-        old_author_name = self.author.name
+        old_author_link = self.author.file_link
         self.author = self.library.get_author(new_author)
         self._file_name = None  # to force re-rendering
-        self.content = self.content.replace(old_author_name, new_author)
+        self.content = self.content.replace(old_author_link, self.author.file_link)
         self.write()
