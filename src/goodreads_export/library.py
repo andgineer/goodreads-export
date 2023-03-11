@@ -1,4 +1,4 @@
-"""Create files for books."""
+"""Library of ooks."""
 import os
 from pathlib import Path
 from typing import Dict, Optional
@@ -20,7 +20,7 @@ BOOKS_SUBFOLDERS = [SUBFOLDERS["reviews"], SUBFOLDERS["toread"]]
 
 
 class Library:
-    """Create files for books and authors."""
+    """Books and authors."""
 
     stat = Stat()
 
@@ -117,7 +117,7 @@ class Library:
             title=book.title,
             folder=self.folder / subfolder,
             tags=book.tags,
-            author_name=book.author,
+            author=self.get_author(book.author),
             book_id=book.book_id,
             rating=book.rating,
             isbn=book.isbn,

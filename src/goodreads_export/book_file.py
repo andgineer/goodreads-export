@@ -33,7 +33,6 @@ class BookFile(DataFile):  # pylint: disable=too-many-instance-attributes
         *,
         title: Optional[str] = None,
         author: Optional[AuthorFile] = None,
-        author_name: Optional[str] = None,
         book_id: Optional[str] = None,
         tags: Optional[List[str]] = None,
         rating: Optional[int] = None,
@@ -45,11 +44,7 @@ class BookFile(DataFile):  # pylint: disable=too-many-instance-attributes
     ) -> None:
         """Init."""
         super().__init__(**kwargs)
-        assert (
-            author is None or author_name is None
-        ), "Only one of author or author_name can be set"
         self.author = author
-        self._author_name = author_name  # should be after assigning self.author
         self.title = title
         self.book_id = book_id
         self.tags = tags or []
@@ -85,7 +80,7 @@ class BookFile(DataFile):  # pylint: disable=too-many-instance-attributes
             assert link_match is not None  # to please mypy
             self.book_id = link_match[book_regex.book_id_group]
             self.title = link_match[book_regex.title_group]
-            self._author_name = link_match[book_regex.author_group]
+            self.author = self.library.get_author(link_match[book_regex.author_group])
         if series_regex := get_templates().book.series_regexes.choose_regex(self._content):
             self.series_titles = [
                 series_match[series_regex.series_group]
@@ -149,24 +144,13 @@ class BookFile(DataFile):  # pylint: disable=too-many-instance-attributes
         In content replace author name only, do not re-render content to keep possible user changes intact.
         """
         self.delete_file()
-        assert self._author_name is not None  # to please mypy
-        old_author_name = self._author_name
+        assert self.author is not None  # to please mypy
+        old_author_name = self.author.name
         self.author = self.library.get_author(new_author)
         self._file_name = None  # to force re-rendering
         assert self.content is not None  # to please mypy
         self.content = self.content.replace(old_author_name, new_author)
         self.write()
-
-    @property
-    def _author_name(self) -> Optional[str]:
-        """Author name."""
-        return self.author.name if self.author is not None else None
-
-    @_author_name.setter
-    def _author_name(self, name: str) -> None:
-        """Book author name."""
-        if name is not None:
-            self.author = self.library.get_author(name)
 
     def create_series_files(self) -> Dict[str, Path]:
         """Create series files if they do not exist.
@@ -175,8 +159,6 @@ class BookFile(DataFile):  # pylint: disable=too-many-instance-attributes
         Return created series files {series name: series file path}
         """
         # todo in perfect world we create series from author
-        assert self.series_titles is not None
-        assert self._author_name is not None
         created_series_files = {}
         for series in self.series:
             if not series.path.is_file():
