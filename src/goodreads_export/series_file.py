@@ -53,12 +53,6 @@ class SeriesFile(DataFile):  # pylint: disable=too-many-instance-attributes
         """Return True if file name if indicate this is series description file."""
         return get_templates().series.file_name_regexes.choose_regex(str(file_name)) is not None
 
-    def file_suffix(self) -> str:
-        """File suffix."""
-        file_name = self.file_name
-        assert file_name  # to make mypy happy
-        return file_name.suffix
-
     def render_body(self) -> str:
         """Render series body."""
         return get_templates().series.render_body(self._get_template_context())

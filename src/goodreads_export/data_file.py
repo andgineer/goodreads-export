@@ -60,7 +60,7 @@ class DataFile:
         """Return file link."""
         return self._get_template().render_file_link({"file_name": self.file_name})
 
-    def render_body(self) -> Optional[str]:
+    def render_body(self) -> str:
         """Return rendered body."""
         raise NotImplementedError()
 
@@ -69,7 +69,7 @@ class DataFile:
         raise NotImplementedError()
 
     @property
-    def content(self) -> Optional[str]:
+    def content(self) -> str:
         """File content.
 
         Automatically generate content from object's fields if not assigned.

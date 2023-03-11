@@ -166,7 +166,7 @@ class Library:
         """
         dummy_author = AuthorFile(library=Library(), name="author", folder=folder)
         dummy_series = SeriesFile(library=Library(), author=dummy_author, title="title")
-        for file_name in folder.glob(f"*{dummy_series.file_suffix()}"):
+        for file_name in folder.glob(f"*{dummy_series.file_name.suffix}"):
             if SeriesFile.is_file_name(file_name):
                 series = SeriesFile(
                     library=self,

@@ -87,7 +87,7 @@ class BookFile(DataFile):  # pylint: disable=too-many-instance-attributes
                 for series_match in series_regex.compiled.finditer(self._content)
             ]
 
-    def render_body(self) -> Optional[str]:
+    def render_body(self) -> str:
         """Render file body."""
         assert self.tags is not None  # to please mypy
         if "#book/book" not in self.tags:
@@ -106,12 +106,8 @@ class BookFile(DataFile):  # pylint: disable=too-many-instance-attributes
         with the same ID.
         """
         assert self.folder is not None  # to please mypy
-        assert self.content is not None  # to please mypy
-        if (
-            (self.folder / self.file_name).exists()
-            and self.book_id is not None
-            and self.book_id not in str(self.file_name)
-        ):
+        assert self.book_id is not None  # to please mypy
+        if (self.folder / self.file_name).exists() and self.book_id not in str(self.file_name):
             self.file_name = Path(
                 f"{self.file_name.with_suffix('')} - {self.book_id}{self.file_name.suffix}"
             )
