@@ -193,7 +193,7 @@ class Library:
         books: Dict[str, BookFile] = {}
         dummy_author = AuthorFile(library=Library(), name="author", folder=folder)
         dummy_book = BookFile(library=Library(), author=dummy_author, title="title")
-        for file_name in folder.glob(f"*{dummy_book.file_suffix()}"):
+        for file_name in folder.glob(f"*{dummy_book.file_name.suffix}"):
             book = BookFile(  # also create author file if not yet existed
                 library=self,
                 folder=folder,

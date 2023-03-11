@@ -98,12 +98,6 @@ class BookFile(DataFile):  # pylint: disable=too-many-instance-attributes
                 self.tags.append(rating_tag)
         return get_templates().book.render_body(self._get_template_context())
 
-    def file_suffix(self) -> str:
-        """File suffix."""
-        file_name = self.file_name
-        assert file_name
-        return file_name.suffix
-
     def write(self) -> None:
         """Write markdown file to path.
 
@@ -158,7 +152,6 @@ class BookFile(DataFile):  # pylint: disable=too-many-instance-attributes
         Do not change already existed files.
         Return created series files {series name: series file path}
         """
-        # todo in perfect world we create series from author
         created_series_files = {}
         for series in self.series:
             if not series.path.is_file():
