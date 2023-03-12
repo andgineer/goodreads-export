@@ -12,6 +12,29 @@ from goodreads_export.version import VERSION
 
 GOODREAD_EXPORT_FILE_NAME = "goodreads_library_export.csv"
 
+VERBOSE_OPTION = click.option(
+    "--verbose",
+    "-v",
+    "verbose",
+    is_flag=True,
+    default=False,
+    help="""Increase verbosity.""",
+    nargs=1,
+)
+
+
+def merge_authors(log: Log, output_folder: Path) -> Library:
+    """Merge authors."""
+    books_folder = Library(output_folder, log)
+    log.start(f"Reading existing files from {output_folder}")
+    print(
+        f" loaded {len(books_folder.books)} books, {len(books_folder.authors)} authors, "
+        f"skipped {books_folder.stat.skipped_unknown_files} unknown files"
+        f" and {books_folder.stat.series_added} series files.",
+    )
+    books_folder.merge_author_names()
+    return books_folder
+
 
 @click.group(invoke_without_command=True)
 @click.pass_context
@@ -23,16 +46,7 @@ GOODREAD_EXPORT_FILE_NAME = "goodreads_library_export.csv"
     help="Show version.",
     nargs=1,
 )
-@click.option(
-    "--verbose",
-    "-v",
-    "verbose",
-    is_flag=True,
-    default=False,
-    help="""Increase verbosity.""",
-    nargs=1,
-)
-def main(ctx: click.Context, verbose: bool, version: bool) -> None:
+def main(ctx: click.Context, version: bool) -> None:
     """Create md-files from https://www.goodreads.com/ CSV export.
 
     For example, you can create nice structure in Obsidian.
@@ -47,8 +61,6 @@ def main(ctx: click.Context, verbose: bool, version: bool) -> None:
     For example: `goodreads-export import --help`.
     """
     try:
-        ctx.ensure_object(dict)
-        ctx.obj["log"] = Log(verbose)
         if version:
             print(f"{VERSION}")
             sys.exit(0)
@@ -62,13 +74,13 @@ def main(ctx: click.Context, verbose: bool, version: bool) -> None:
 
 
 @main.command(name="import")
-@click.pass_context
 @click.argument(
     "output_folder",
     default=".",
     type=click.Path(exists=True, path_type=Path),
     nargs=1,
 )
+@VERBOSE_OPTION
 @click.option(
     "--in",
     "-i",
@@ -78,7 +90,7 @@ def main(ctx: click.Context, verbose: bool, version: bool) -> None:
 if you specify just folder it will look for file with this name in that folder.""",
     nargs=1,
 )
-def import_(ctx: click.Context, csv_file: str, output_folder: Path) -> None:
+def import_(verbose: bool, csv_file: str, output_folder: Path) -> None:
     """Convert goodreads export CSV file to markdown files.
 
     OUTPUT_FOLDER
@@ -88,7 +100,7 @@ def import_(ctx: click.Context, csv_file: str, output_folder: Path) -> None:
     Documentation https://andgineer.github.io/goodreads-export/
     """
     try:
-        log: Log = ctx.obj["log"]
+        log = Log(verbose)
 
         if os.path.isdir(
             csv_file
@@ -114,28 +126,15 @@ def import_(ctx: click.Context, csv_file: str, output_folder: Path) -> None:
         sys.exit(1)
 
 
-def merge_authors(log: Log, output_folder: Path) -> Library:
-    """Merge authors."""
-    books_folder = Library(output_folder, log)
-    log.start(f"Reading existing files from {output_folder}")
-    print(
-        f" loaded {len(books_folder.books)} books, {len(books_folder.authors)} authors, "
-        f"skipped {books_folder.stat.skipped_unknown_files} unknown files"
-        f" and {books_folder.stat.series_added} series files.",
-    )
-    books_folder.merge_author_names()
-    return books_folder
-
-
 @main.command()
-@click.pass_context
 @click.argument(
     "output_folder",
     default=".",
     type=click.Path(exists=True, path_type=Path),
     nargs=1,
 )
-def check(ctx: click.Context, output_folder: Path) -> None:
+@VERBOSE_OPTION
+def check(verbose: bool, output_folder: Path) -> None:
     """Check templates consistency with extraction regexes.
 
     Loads templates and regexes from OUTPUT_FOLDER/templates.
@@ -143,7 +142,7 @@ def check(ctx: click.Context, output_folder: Path) -> None:
     """
     try:
         assert output_folder
-        log: Log = ctx.obj["log"]
+        log = Log(verbose)
         library = Library()  # we need library without actual folder to run template checks
         library.check_templates()
         log.info("Templates are consistent with extraction regexes.")
@@ -153,14 +152,14 @@ def check(ctx: click.Context, output_folder: Path) -> None:
 
 
 @main.command()
-@click.pass_context
 @click.argument(
     "output_folder",
     default=".",
     type=click.Path(exists=True, path_type=Path),
     nargs=1,
 )
-def merge(ctx: click.Context, output_folder: Path) -> None:
+@VERBOSE_OPTION
+def merge(verbose: bool, output_folder: Path) -> None:
     """Merge authors only.
 
     Use it if you need only re-link to primary author names
@@ -173,7 +172,7 @@ def merge(ctx: click.Context, output_folder: Path) -> None:
     """
     try:
         assert output_folder
-        log: Log = ctx.obj["log"]
+        log = Log(verbose)
         books_folder = merge_authors(log, output_folder)
         print(
             f"Renamed {books_folder.stat.authors_renamed} authors.",

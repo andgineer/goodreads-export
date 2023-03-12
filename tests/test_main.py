@@ -86,7 +86,7 @@ def test_main_verbose(test_case):
             f.write(test_case.csv.open("r", encoding="utf8").read())
         result = runner.invoke(
             main,
-            ["--verbose", "import"],
+            ["import", "--verbose"],
         )
     assert result.exit_code == 0, f"stdout: {result.output}"
     assert "loaded 0 books, 0 authors, skipped 0 unknown files" in result.output
