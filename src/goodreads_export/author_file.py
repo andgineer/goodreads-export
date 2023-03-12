@@ -4,7 +4,7 @@ from typing import TYPE_CHECKING, Any, Dict, Optional
 
 from goodreads_export.data_file import DataFile
 from goodreads_export.series_file import SeriesList
-from goodreads_export.templates import AuthorTemplate, get_templates
+from goodreads_export.templates import AuthorTemplate
 
 if TYPE_CHECKING:
     from goodreads_export.book_file import BookFile
@@ -42,7 +42,7 @@ class AuthorFile(DataFile):
 
     def _get_template(self) -> AuthorTemplate:
         """Template."""
-        return get_templates().author
+        return self.library.templates.author
 
     def _get_template_context(self) -> Dict[str, Any]:
         """Template context."""
@@ -60,7 +60,7 @@ class AuthorFile(DataFile):
         """
         if self._content is not None:
             self.names = []
-            if regex := get_templates().author.names_regexes.choose_regex(self._content):
+            if regex := self._get_template().names_regexes.choose_regex(self._content):
                 self.names = [
                     match[regex.name_group] for match in regex.compiled.finditer(self._content)
                 ]
@@ -68,7 +68,7 @@ class AuthorFile(DataFile):
 
     def render_body(self) -> str:
         """Render file body."""
-        return get_templates().author.render_body(self._get_template_context())
+        return self._get_template().render_body(self._get_template_context())
 
     def merge(self, other: "AuthorFile") -> None:
         """Merge other author with this one."""
@@ -90,5 +90,5 @@ class AuthorFile(DataFile):
         is_author_parsed = self.names == [name]
         if not is_author_parsed:
             print(f"Author name {name} is not parsed from content\n{self.content}")
-            print(f"using the pattern\n{get_templates().author.names_regexes[0].regex}")
+            print(f"using the pattern\n{self._get_template().names_regexes[0].regex}")
         return is_author_parsed

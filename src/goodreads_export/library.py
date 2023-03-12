@@ -9,6 +9,7 @@ from goodreads_export.goodreads_book import Book, GoodreadsBooks
 from goodreads_export.log import Log
 from goodreads_export.series_file import SeriesFile
 from goodreads_export.stat import Stat
+from goodreads_export.templates import DEFAULT_EMBEDDED_TEMPLATE, Templates
 
 SUBFOLDERS = {
     "toread": "toread",  # for books without review and rating - supposedly this is from to-read
@@ -24,10 +25,16 @@ class Library:
 
     stat = Stat()
 
-    def __init__(self, folder: Optional[Path] = None, log: Optional[Log] = None) -> None:
+    def __init__(
+        self,
+        folder: Optional[Path] = None,
+        log: Optional[Log] = None,
+        templates: Optional[Templates] = None,
+    ) -> None:
         """Initialize."""
         self.folder = folder
         self.log = log or Log()
+        self.templates = templates or Templates(templates_name=DEFAULT_EMBEDDED_TEMPLATE)
 
         self.books: Dict[str, BookFile] = {}
         self.authors: Dict[str, AuthorFile] = {}
@@ -167,7 +174,7 @@ class Library:
         dummy_author = AuthorFile(library=Library(), name="author", folder=folder)
         dummy_series = SeriesFile(library=Library(), author=dummy_author, title="title")
         for file_name in folder.glob(f"*{dummy_series.file_name.suffix}"):
-            if SeriesFile.is_file_name(file_name):
+            if dummy_series.is_file_name(file_name):
                 series = SeriesFile(
                     library=self,
                     folder=folder,
@@ -193,6 +200,7 @@ class Library:
         books: Dict[str, BookFile] = {}
         dummy_author = AuthorFile(library=Library(), name="author", folder=folder)
         dummy_book = BookFile(library=Library(), author=dummy_author, title="title")
+        dummy_series = SeriesFile(library=Library(), author=dummy_author, title="title")
         for file_name in folder.glob(f"*{dummy_book.file_name.suffix}"):
             book = BookFile(  # also create author file if not yet existed
                 library=self,
@@ -201,7 +209,7 @@ class Library:
                 content=file_name.read_text(encoding="utf8"),
             )
             if book.book_id is None or book.author is None:
-                if not SeriesFile.is_file_name(file_name):
+                if not dummy_series.is_file_name(file_name):
                     self.stat.skipped_unknown_files += 1
             elif book.book_id in books:
                 raise ValueError(
@@ -245,10 +253,10 @@ class Library:
         tags = ["#adventure", "#classics", "#fiction", "#novel", "#travel"]
         series_titles = ["Voyages extraordinaires"]
         review = "This is a review\nin two lines"
-        author = AuthorFile(library=Library(), name=author_name)
+        author = AuthorFile(library=self, name=author_name)
         author.check()
         BookFile(
-            library=Library(),
+            library=self,
             book_id=book_id,
             title=title,
             author=author,
@@ -258,4 +266,4 @@ class Library:
             rating=5,
         ).check()
         title = "title"
-        SeriesFile(library=Library(), title=title, author=author).check()
+        SeriesFile(library=self, title=title, author=author).check()

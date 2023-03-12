@@ -81,3 +81,7 @@ class Log:
     def info(self, message: str) -> None:
         """Print info messages."""
         print(message)
+
+    def error(self, message: str) -> None:
+        """Print error messages."""
+        print(message)

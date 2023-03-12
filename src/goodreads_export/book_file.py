@@ -6,7 +6,7 @@ from typing import Any, Dict, List, Optional
 
 from goodreads_export.authored_file import AuthoredFile
 from goodreads_export.series_file import SeriesFile
-from goodreads_export.templates import BookTemplate, get_templates
+from goodreads_export.templates import BookTemplate
 
 
 class BookFile(AuthoredFile):  # pylint: disable=too-many-instance-attributes
@@ -53,7 +53,7 @@ class BookFile(AuthoredFile):  # pylint: disable=too-many-instance-attributes
 
     def _get_template(self) -> BookTemplate:
         """Template."""
-        return get_templates().book
+        return self.library.templates.book
 
     def _get_template_context(self) -> Dict[str, Any]:
         """Template context."""
@@ -71,13 +71,13 @@ class BookFile(AuthoredFile):  # pylint: disable=too-many-instance-attributes
         self.title = None
         self.author = None
         self.series_titles = []
-        if book_regex := get_templates().book.goodreads_link_regexes.choose_regex(self._content):
+        if book_regex := self._get_template().goodreads_link_regexes.choose_regex(self._content):
             link_match = book_regex.compiled.search(self._content)
             assert link_match is not None  # to please mypy
             self.book_id = link_match[book_regex.book_id_group]
             self.title = link_match[book_regex.title_group]
             self.author = self.library.get_author(link_match[book_regex.author_group])
-        if series_regex := get_templates().book.series_regexes.choose_regex(self._content):
+        if series_regex := self._get_template().series_regexes.choose_regex(self._content):
             self.series_titles = [
                 series_match[series_regex.series_group]
                 for series_match in series_regex.compiled.finditer(self._content)
@@ -92,7 +92,7 @@ class BookFile(AuthoredFile):  # pylint: disable=too-many-instance-attributes
             rating_tag = f"#book/rating{self.rating}"
             if rating_tag not in self.tags:
                 self.tags.append(rating_tag)
-        return get_templates().book.render_body(self._get_template_context())
+        return self._get_template().render_body(self._get_template_context())
 
     def write(self) -> None:
         """Write markdown file to path.
@@ -155,16 +155,16 @@ class BookFile(AuthoredFile):  # pylint: disable=too-many-instance-attributes
         # assert book_file.series == ['']
         if not is_author_parsed:
             print(f"Author name {author_name} is not parsed from content\n{self.content}")
-            print(f"using the pattern\n{get_templates().book.goodreads_link_regexes[0].regex}")
+            print(f"using the pattern\n{self._get_template().goodreads_link_regexes[0].regex}")
         if not is_book_id_parsed:
             print(f"Book ID {book_id} is not parsed from content\n{self.content}")
-            print(f"using the pattern\n{get_templates().book.goodreads_link_regexes[0].regex}")
+            print(f"using the pattern\n{self._get_template().goodreads_link_regexes[0].regex}")
         if not is_title_parsed:
             print(f"Book title {title} is not parsed from content\n{self.content}")
-            print(f"using the pattern\n{get_templates().book.goodreads_link_regexes[0].regex}")
+            print(f"using the pattern\n{self._get_template().goodreads_link_regexes[0].regex}")
         if not is_series_parsed:
             print(f"Series {series_titles[0]} is not parsed from content\n{self.content}")
-            print(f"using the pattern\n{get_templates().book.series_regexes[0].regex}")
+            print(f"using the pattern\n{self._get_template().series_regexes[0].regex}")
         return is_book_id_parsed and is_title_parsed and is_author_parsed and is_series_parsed
 
     @property

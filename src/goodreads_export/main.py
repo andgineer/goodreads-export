@@ -2,15 +2,18 @@
 import os
 import sys
 from pathlib import Path
+from typing import Optional
 
 import click
 
 from goodreads_export.goodreads_book import GoodreadsBooks
 from goodreads_export.library import Library
 from goodreads_export.log import Log
+from goodreads_export.templates import DEFAULT_EMBEDDED_TEMPLATE, Templates
 from goodreads_export.version import VERSION
 
 GOODREAD_EXPORT_FILE_NAME = "goodreads_library_export.csv"
+DEFAULT_TEMPLATES_FOLDER = "./templates"
 
 VERBOSE_OPTION = click.option(
     "--verbose",
@@ -22,18 +25,81 @@ VERBOSE_OPTION = click.option(
     nargs=1,
 )
 
+TEMPLATES_FOLDER_OPTION = click.option(
+    "--templates-folder",
+    "-t",
+    "templates_folder",
+    default=None,
+    type=click.Path(path_type=Path),
+    help=f"""Folder with templates.
+By default look for `{DEFAULT_TEMPLATES_FOLDER}` in folder with books,
+use embedded templates `{DEFAULT_EMBEDDED_TEMPLATE}` if not found""",
+    nargs=1,
+)
 
-def merge_authors(log: Log, output_folder: Path) -> Library:
+TEMPLATES_NAME_OPTION = click.option(
+    "--templates-name",
+    "-n",
+    "templates_name",
+    default=None,
+    help="""Name of the embedded templates to use of the is no templates folder specified.""",
+    nargs=1,
+)
+
+
+BOOKS_FOLDER_OPTION = click.argument(
+    "books_folder",
+    default=".",
+    type=click.Path(exists=True, path_type=Path),
+    nargs=1,
+)
+
+
+def merge_authors(log: Log, books_folder: Path, templates: Templates) -> Library:
     """Merge authors."""
-    books_folder = Library(output_folder, log)
-    log.start(f"Reading existing files from {output_folder}")
+    library = Library(folder=books_folder, log=log, templates=templates)
+    log.start(f"Reading existing files from {library}")
     print(
-        f" loaded {len(books_folder.books)} books, {len(books_folder.authors)} authors, "
-        f"skipped {books_folder.stat.skipped_unknown_files} unknown files"
-        f" and {books_folder.stat.series_added} series files.",
+        f" loaded {len(library.books)} books, {len(library.authors)} authors, "
+        f"skipped {library.stat.skipped_unknown_files} unknown files"
+        f" and {library.stat.series_added} series files.",
     )
-    books_folder.merge_author_names()
-    return books_folder
+    library.merge_author_names()
+    return library
+
+
+def load_templates(
+    log: Log, books_folder: Path, templates_folder: Optional[Path], templates_name: Optional[str]
+) -> Templates:
+    """Load templates.
+
+    If templates_folder is not None, load from this folder.
+    Else load embedded templated with specified or default name.
+    If the temples_folder is None and templates_name is not None,
+    but default templates folder exists, notify that we ignore it.
+    """
+    if templates_name is not None and templates_folder is not None:
+        log.error("You can't use both --templates-name and --templates-folder")
+        sys.exit(1)
+    if templates_folder is None:
+        if (books_folder / DEFAULT_TEMPLATES_FOLDER).is_dir():
+            if templates_name is not None:
+                log.info(
+                    f"Using embedded templates `{templates_name}, "
+                    f"ignore templates in `{DEFAULT_TEMPLATES_FOLDER}`."
+                )
+            else:
+                templates_folder = books_folder / DEFAULT_TEMPLATES_FOLDER
+        if templates_name is None and templates_folder is None:
+            templates_name = DEFAULT_EMBEDDED_TEMPLATE
+    else:
+        if not templates_folder.is_absolute():
+            templates_folder = books_folder / templates_folder
+    try:
+        return Templates(templates_folder=templates_folder, templates_name=templates_name)
+    except Exception as exc:  # pylint: disable=broad-except
+        log.error(f"Error loading templates: {exc}")
+        sys.exit(1)
 
 
 @click.group(invoke_without_command=True)
@@ -74,13 +140,10 @@ def main(ctx: click.Context, version: bool) -> None:
 
 
 @main.command(name="import")
-@click.argument(
-    "output_folder",
-    default=".",
-    type=click.Path(exists=True, path_type=Path),
-    nargs=1,
-)
+@BOOKS_FOLDER_OPTION
 @VERBOSE_OPTION
+@TEMPLATES_FOLDER_OPTION
+@TEMPLATES_NAME_OPTION
 @click.option(
     "--in",
     "-i",
@@ -90,10 +153,16 @@ def main(ctx: click.Context, version: bool) -> None:
 if you specify just folder it will look for file with this name in that folder.""",
     nargs=1,
 )
-def import_(verbose: bool, csv_file: str, output_folder: Path) -> None:
+def import_(
+    verbose: bool,
+    csv_file: str,
+    books_folder: Path,
+    templates_folder: Optional[Path],
+    templates_name: Optional[str],
+) -> None:
     """Convert goodreads export CSV file to markdown files.
 
-    OUTPUT_FOLDER
+    BOOKS_FOLDER
     Folder where we put result. By default, current folder.
     If the folder already exists also merge authors if found author files with many names.
 
@@ -112,13 +181,16 @@ def import_(verbose: bool, csv_file: str, output_folder: Path) -> None:
         log.start(f"Loading reviews from {csv_file}")
         books = GoodreadsBooks(csv_file)
         print(f" loaded {len(books)} reviews.")
-
-        books_folder = merge_authors(log, output_folder)
-        books_folder.dump(books)
+        library = merge_authors(
+            log=log,
+            books_folder=books_folder,
+            templates=load_templates(log, books_folder, templates_folder, templates_name),
+        )
+        library.dump(books)
         print(
-            f"\nAdded {books_folder.stat.books_added} review files, "
-            f"{books_folder.stat.authors_added} author files.",
-            f"Renamed {books_folder.stat.authors_renamed} authors.",
+            f"\nAdded {library.stat.books_added} review files, "
+            f"{library.stat.authors_added} author files.",
+            f"Renamed {library.stat.authors_renamed} authors.",
         )
 
     except Exception as exc:  # pylint: disable=broad-except
@@ -127,23 +199,30 @@ def import_(verbose: bool, csv_file: str, output_folder: Path) -> None:
 
 
 @main.command()
-@click.argument(
-    "output_folder",
-    default=".",
-    type=click.Path(exists=True, path_type=Path),
-    nargs=1,
-)
+@BOOKS_FOLDER_OPTION
 @VERBOSE_OPTION
-def check(verbose: bool, output_folder: Path) -> None:
+@TEMPLATES_FOLDER_OPTION
+@TEMPLATES_NAME_OPTION
+def check(
+    verbose: bool,
+    books_folder: Path,
+    templates_folder: Optional[Path],
+    templates_name: Optional[str],
+) -> None:
     """Check templates consistency with extraction regexes.
 
-    Loads templates and regexes from OUTPUT_FOLDER/templates.
+    Loads templates and regexes from books_folder/templates.
     To create initial files from embedded default use command `goodreads-export init`.
+
+    BOOKS_FOLDER
+    Folder with books file to check.
+    Loads templetes if they are existed in the folder and `-templates-name` is not specified.
     """
     try:
-        assert output_folder
         log = Log(verbose)
-        library = Library()  # we need library without actual folder to run template checks
+        library = Library(  # to run template checks we do not want changes in fs, so no `folder` argument
+            log=log, templates=load_templates(log, books_folder, templates_folder, templates_name)
+        )
         library.check_templates()
         log.info("Templates are consistent with extraction regexes.")
     except Exception as exc:  # pylint: disable=broad-except
@@ -152,30 +231,35 @@ def check(verbose: bool, output_folder: Path) -> None:
 
 
 @main.command()
-@click.argument(
-    "output_folder",
-    default=".",
-    type=click.Path(exists=True, path_type=Path),
-    nargs=1,
-)
+@BOOKS_FOLDER_OPTION
 @VERBOSE_OPTION
-def merge(verbose: bool, output_folder: Path) -> None:
+@TEMPLATES_FOLDER_OPTION
+@TEMPLATES_NAME_OPTION
+def merge(
+    verbose: bool,
+    books_folder: Path,
+    templates_folder: Optional[Path],
+    templates_name: Optional[str],
+) -> None:
     """Merge authors only.
 
     Use it if you need only re-link to primary author names
     without importing goodreads file.
 
-    OUTPUT_FOLDER
+    BOOKS_FOLDER
     Folder to merge authors. By default, current folder.
 
     See https://andgineer.github.io/goodreads-export/ for details.
     """
     try:
-        assert output_folder
         log = Log(verbose)
-        books_folder = merge_authors(log, output_folder)
+        library = merge_authors(
+            log=log,
+            books_folder=books_folder,
+            templates=load_templates(log, books_folder, templates_folder, templates_name),
+        )
         print(
-            f"Renamed {books_folder.stat.authors_renamed} authors.",
+            f"Renamed {library.stat.authors_renamed} authors.",
         )
     except Exception as exc:  # pylint: disable=broad-except
         print(f"\n{exc}")

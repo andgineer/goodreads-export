@@ -15,7 +15,7 @@ try:
 except ModuleNotFoundError:
     import tomli as tomllib  # type: ignore
 
-
+DEFAULT_EMBEDDED_TEMPLATE = "default"
 TEMPLATES_PACKAGE_DATA_FOLDER = "templates"
 BOOK_TEMPLATE_FILE_NAME = "book.jinja"
 AUTHOR_TEMPLATE_FILE_NAME = "author.jinja"
@@ -190,12 +190,25 @@ class Templates:  # pylint: disable=too-few-public-methods
 
     jinja = jinja2.Environment()
 
-    def __init__(self, debug: bool = False) -> None:
-        """Load embeded templates from the package data."""
+    def __init__(
+        self,
+        templates_name: Optional[str] = None,
+        templates_folder: Optional[Path] = None,
+        debug: bool = False,
+    ) -> None:
+        """Load embedded templates from the package data."""
         if debug:
             self.jinja = jinja2.Environment(undefined=DebugUndefined)
+        assert (templates_name is None) or (
+            templates_folder is None
+        ), "Please specify embedded template name or template folder."
         self.templates = self.load_embeded()
-        self.selected = "default"
+        if templates_name not in self.templates:
+            raise ValueError(
+                f"No such embedded template: `{templates_name}`. "
+                f"Existed templates: {list(self.templates.keys())}."
+            )
+        self.selected = templates_name
 
     def load_embeded(self) -> Dict[str, TemplateSet]:
         """Load embeded template.
@@ -276,11 +289,3 @@ class Templates:  # pylint: disable=too-few-public-methods
     def series(self) -> SeriesTemplate:
         """Template for review."""
         return self.templates[self.selected].series
-
-
-_templates = Templates()
-
-
-def get_templates() -> Templates:
-    """Get templates singleton."""
-    return _templates
