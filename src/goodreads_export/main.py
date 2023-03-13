@@ -9,7 +9,7 @@ import click
 from goodreads_export.goodreads_book import GoodreadsBooks
 from goodreads_export.library import Library
 from goodreads_export.log import Log
-from goodreads_export.templates import DEFAULT_EMBEDDED_TEMPLATE, Templates
+from goodreads_export.templates import DEFAULT_EMBEDDED_TEMPLATE, TemplateSet, TemplatesLoader
 from goodreads_export.version import VERSION
 
 GOODREAD_EXPORT_FILE_NAME = "goodreads_library_export.csv"
@@ -55,7 +55,7 @@ BOOKS_FOLDER_OPTION = click.argument(
 )
 
 
-def merge_authors(log: Log, books_folder: Path, templates: Templates) -> Library:
+def merge_authors(log: Log, books_folder: Path, templates: TemplateSet) -> Library:
     """Merge authors."""
     library = Library(folder=books_folder, log=log, templates=templates)
     log.start(f"Reading existing files from {library}")
@@ -70,7 +70,7 @@ def merge_authors(log: Log, books_folder: Path, templates: Templates) -> Library
 
 def load_templates(
     log: Log, books_folder: Path, templates_folder: Optional[Path], templates_name: Optional[str]
-) -> Templates:
+) -> TemplateSet:
     """Load templates.
 
     If templates_folder is not None, load from this folder.
@@ -96,7 +96,9 @@ def load_templates(
         if not templates_folder.is_absolute():
             templates_folder = books_folder / templates_folder
     try:
-        return Templates(templates_folder=templates_folder, templates_name=templates_name)
+        return TemplatesLoader().load(
+            templates_folder=templates_folder, templates_name=templates_name
+        )
     except Exception as exc:  # pylint: disable=broad-except
         log.error(f"Error loading templates: {exc}")
         sys.exit(1)

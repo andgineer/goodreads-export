@@ -1,9 +1,10 @@
 """Templates for the Goodreads Exporter."""
 import re
 from dataclasses import dataclass, field
+from importlib.abc import Traversable
 from importlib.resources import files
 from pathlib import Path
-from typing import Any, Dict, List, Optional, TypeVar
+from typing import Any, Dict, List, Optional, TypeVar, Union
 
 import jinja2
 from jinja2 import DebugUndefined
@@ -17,6 +18,7 @@ except ModuleNotFoundError:
 
 DEFAULT_EMBEDDED_TEMPLATE = "default"
 TEMPLATES_PACKAGE_DATA_FOLDER = "templates"
+CONFIG_FILE_NAME = "regex.toml"
 BOOK_TEMPLATE_FILE_NAME = "book.jinja"
 AUTHOR_TEMPLATE_FILE_NAME = "author.jinja"
 SERIES_TEMPLATE_FILE_NAME = "series.jinja"
@@ -113,7 +115,7 @@ class FileTemplate:
     file_name_template: str = field(init=False)
     file_link_template: str = field(init=False)
 
-    env: "Templates" = field(repr=False)
+    jinja: jinja2.Environment = field(repr=False)
 
     def __post_init__(self) -> None:
         """Split template to file name, optional link and body."""
@@ -130,7 +132,7 @@ class FileTemplate:
     def render_file_name(self, context: Dict[str, Any]) -> Path:
         """Render file name with context."""
         return Path(
-            clean_file_name(self.env.jinja.from_string(self.file_name_template).render(context))
+            clean_file_name(self.jinja.from_string(self.file_name_template).render(context))
         )
 
     def render_file_link(self, context: Dict[str, Any]) -> str:
@@ -140,11 +142,11 @@ class FileTemplate:
         """
         if self.file_link_template is None:
             return Path(context["file_name"]).stem
-        return clean_file_name(self.env.jinja.from_string(self.file_link_template).render(context))
+        return clean_file_name(self.jinja.from_string(self.file_link_template).render(context))
 
     def render_body(self, context: Dict[str, Any]) -> str:
         """Render file body with context."""
-        return self.env.jinja.from_string(self.body_template).render(context)
+        return self.jinja.from_string(self.body_template).render(context)
 
 
 @dataclass(frozen=True)
@@ -180,7 +182,7 @@ class TemplateSet:
     series: SeriesTemplate
 
 
-class Templates:  # pylint: disable=too-few-public-methods
+class TemplatesLoader:  # pylint: disable=too-few-public-methods
     """Templates injection.
 
     Loads embeded templates from package data.
@@ -188,104 +190,97 @@ class Templates:  # pylint: disable=too-few-public-methods
     Otherwise default will be `default` from package data.
     """
 
-    jinja = jinja2.Environment()
-
     def __init__(
         self,
-        templates_name: Optional[str] = None,
-        templates_folder: Optional[Path] = None,
         debug: bool = False,
     ) -> None:
         """Load embedded templates from the package data."""
         if debug:
             self.jinja = jinja2.Environment(undefined=DebugUndefined)
+        else:
+            self.jinja = jinja2.Environment()
+
+    def load(
+        self, templates_name: Optional[str] = None, templates_folder: Optional[Path] = None
+    ) -> TemplateSet:
+        """Load templates."""
         assert (templates_name is None) or (
             templates_folder is None
+        ), "Please specify only embedded template name or template folder, but not both."
+        assert (templates_name is not None) or (
+            templates_folder is not None
         ), "Please specify embedded template name or template folder."
-        self.templates = self.load_embeded()
-        if templates_name not in self.templates:
-            raise ValueError(
-                f"No such embedded template: `{templates_name}`. "
-                f"Existed templates: {list(self.templates.keys())}."
-            )
-        self.selected = templates_name
+        if templates_name is not None:
+            return self.load_embedded(templates_name)
+        assert templates_folder is not None  # to please mypy
+        return self.load_template(templates_folder)
 
-    def load_embeded(self) -> Dict[str, TemplateSet]:
-        """Load embeded template.
+    def load_embedded(self, templates_name: str) -> TemplateSet:
+        """Load embedded template with the name `templates_name`.
 
-        From the package data folder `templates` recursively.
+        From the package data folder `templates`.
+        Raise exception if no such template.
         """
-        result = {}
         templates_resource = files(__package__).joinpath(TEMPLATES_PACKAGE_DATA_FOLDER)
-        for folder in templates_resource.iterdir():
-            if folder.is_dir():
-                regex_config = tomllib.loads(
-                    folder.joinpath("regex.toml").read_text(encoding="utf-8")
-                )
-                result[folder.name] = TemplateSet(
-                    name=folder.name,
-                    author=AuthorTemplate(
-                        env=self,
-                        template=folder.joinpath(AUTHOR_TEMPLATE_FILE_NAME).read_text(
-                            encoding="utf-8"
-                        ),
-                        names_regexes=RegExList(
-                            [
-                                AuthorNamesRegEx(**regex)
-                                for regex in regex_config["regex"]["author"]["names"]
-                            ]
-                        ),
-                    ),
-                    book=BookTemplate(
-                        env=self,
-                        template=folder.joinpath(BOOK_TEMPLATE_FILE_NAME).read_text(
-                            encoding="utf-8"
-                        ),
-                        goodreads_link_regexes=RegExList(
-                            [
-                                BookGoodreadsLinkRegEx(**regex)
-                                for regex in regex_config["regex"]["book"]["goodreads-link"]
-                            ]
-                        ),
-                        series_regexes=RegExList(
-                            [
-                                BookSeriesRegEx(**regex)
-                                for regex in regex_config["regex"]["book"]["series"]
-                            ]
-                        ),
-                    ),
-                    series=SeriesTemplate(
-                        env=self,
-                        template=folder.joinpath(SERIES_TEMPLATE_FILE_NAME).read_text(
-                            encoding="utf-8"
-                        ),
-                        content_regexes=RegExList(
-                            [
-                                SeriesContentRegEx(**regex)
-                                for regex in regex_config["regex"]["series"]["content"]
-                            ]
-                        ),
-                        file_name_regexes=RegExList(
-                            [
-                                SeriesFileNameRegEx(**regex)
-                                for regex in regex_config["regex"]["series"]["file-name"]
-                            ]
-                        ),
-                    ),
-                )
-        return result
+        folder = templates_resource.joinpath(templates_name)
+        if folder.is_dir():
+            return self.load_template(folder)
+        raise ValueError(
+            f"No such embedded template: `{templates_name}`. "
+            f"Existed templates: {list(folder.iterdir())}."
+        )
 
-    @property
-    def author(self) -> AuthorTemplate:
-        """Template for author."""
-        return self.templates[self.selected].author
-
-    @property
-    def book(self) -> BookTemplate:
-        """Template for review."""
-        return self.templates[self.selected].book
-
-    @property
-    def series(self) -> SeriesTemplate:
-        """Template for review."""
-        return self.templates[self.selected].series
+    def load_template(self, folder: Union[Traversable, Path]) -> TemplateSet:
+        """Load template from the folder."""
+        if not folder.joinpath(CONFIG_FILE_NAME).is_file():
+            raise ValueError(f"No regex.toml file in the template folder: {folder}")
+        for template in [
+            AUTHOR_TEMPLATE_FILE_NAME,
+            BOOK_TEMPLATE_FILE_NAME,
+            SERIES_TEMPLATE_FILE_NAME,
+        ]:
+            if not folder.joinpath(template).is_file():
+                raise ValueError(f"No {template} file in the template folder: {folder}")
+        regex_config = tomllib.loads(folder.joinpath(CONFIG_FILE_NAME).read_text(encoding="utf-8"))
+        return TemplateSet(
+            name=folder.name,
+            author=AuthorTemplate(
+                jinja=self.jinja,
+                template=folder.joinpath(AUTHOR_TEMPLATE_FILE_NAME).read_text(encoding="utf-8"),
+                names_regexes=RegExList(
+                    [
+                        AuthorNamesRegEx(**regex)
+                        for regex in regex_config["regex"]["author"]["names"]
+                    ]
+                ),
+            ),
+            book=BookTemplate(
+                jinja=self.jinja,
+                template=folder.joinpath(BOOK_TEMPLATE_FILE_NAME).read_text(encoding="utf-8"),
+                goodreads_link_regexes=RegExList(
+                    [
+                        BookGoodreadsLinkRegEx(**regex)
+                        for regex in regex_config["regex"]["book"]["goodreads-link"]
+                    ]
+                ),
+                series_regexes=RegExList(
+                    [BookSeriesRegEx(**regex) for regex in regex_config["regex"]["book"]["series"]]
+                ),
+            ),
+            series=SeriesTemplate(
+                jinja=self.jinja,
+                template=folder.joinpath(SERIES_TEMPLATE_FILE_NAME).read_text(encoding="utf-8"),
+                content_regexes=RegExList(
+                    [
+                        SeriesContentRegEx(**regex)
+                        for regex in regex_config["regex"]["series"]["content"]
+                    ]
+                ),
+                file_name_regexes=RegExList(
+                    [
+                        SeriesFileNameRegEx(**regex)
+                        for regex in regex_config["regex"]["series"]["file-name"]
+                    ]
+                ),
+            ),
+        )
