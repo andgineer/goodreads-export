@@ -1,0 +1,258 @@
+<!DOCTYPE html>
+<html class="writer-html5" lang="en" >
+<head>
+    <meta charset="utf-8" />
+    <meta http-equiv="X-UA-Compatible" content="IE=edge" />
+    <meta name="viewport" content="width=device-width, initial-scale=1.0" /><meta name="author" content="Andrey Sorokin" /><link rel="canonical" href="https://andgineer.github.io/goodreads-export/docstrings/log/" />
+      <link rel="shortcut icon" href="../../img/favicon.ico" />
+    <title>Log - goodreads-export</title>
+    <link rel="stylesheet" href="../../css/theme.css" />
+    <link rel="stylesheet" href="../../css/theme_extra.css" />
+        <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/highlight.js/10.5.0/styles/github.min.css" />
+    
+      <script>
+        // Current page data
+        var mkdocs_page_name = "Log";
+        var mkdocs_page_input_path = "docstrings/log.md";
+        var mkdocs_page_url = "/goodreads-export/docstrings/log/";
+      </script>
+    
+    <script src="../../js/jquery-3.6.0.min.js" defer></script>
+    <!--[if lt IE 9]>
+      <script src="../../js/html5shiv.min.js"></script>
+    <![endif]-->
+      <script src="https://cdnjs.cloudflare.com/ajax/libs/highlight.js/10.5.0/highlight.min.js"></script>
+      <script>hljs.initHighlightingOnLoad();</script> 
+</head>
+
+<body class="wy-body-for-nav" role="document">
+
+  <div class="wy-grid-for-nav">
+    <nav data-toggle="wy-nav-shift" class="wy-nav-side stickynav">
+    <div class="wy-side-scroll">
+      <div class="wy-side-nav-search">
+          <a href="../.." class="icon icon-home"> goodreads-export
+        </a><div role="search">
+  <form id ="rtd-search-form" class="wy-form" action="../../search.html" method="get">
+      <input type="text" name="q" placeholder="Search docs" title="Type search term here" />
+  </form>
+</div>
+      </div>
+
+      <div class="wy-menu wy-menu-vertical" data-spy="affix" role="navigation" aria-label="Navigation menu">
+              <ul>
+                <li class="toctree-l1"><a class="reference internal" href="../..">Goodreads export to markdown files</a>
+                </li>
+              </ul>
+              <p class="caption"><span class="caption-text">API Reference</span></p>
+              <ul class="current">
+                  <li class="toctree-l1"><a class="reference internal" href="../">Overview</a>
+                  </li>
+                  <li class="toctree-l1"><a class="reference internal" href="../author_file/">Author file</a>
+                  </li>
+                  <li class="toctree-l1"><a class="reference internal" href="../authored_file/">Authored file</a>
+                  </li>
+                  <li class="toctree-l1"><a class="reference internal" href="../book_file/">Book file</a>
+                  </li>
+                  <li class="toctree-l1"><a class="reference internal" href="../clean_file_name/">Clean file name</a>
+                  </li>
+                  <li class="toctree-l1"><a class="reference internal" href="../data_file/">Data file</a>
+                  </li>
+                  <li class="toctree-l1"><a class="reference internal" href="../goodreads_book/">Goodreads book</a>
+                  </li>
+                  <li class="toctree-l1"><a class="reference internal" href="../library/">Library</a>
+                  </li>
+                  <li class="toctree-l1 current"><a class="reference internal current" href="./">Log</a>
+    <ul class="current">
+    <li class="toctree-l2"><a class="reference internal" href="#class-log">class Log</a>
+        <ul>
+    <li class="toctree-l3"><a class="reference internal" href="#method-__init__">method __init__</a>
+    </li>
+    <li class="toctree-l3"><a class="reference internal" href="#method-close_progress">method close_progress</a>
+    </li>
+    <li class="toctree-l3"><a class="reference internal" href="#method-debug">method debug</a>
+    </li>
+    <li class="toctree-l3"><a class="reference internal" href="#method-error">method error</a>
+    </li>
+    <li class="toctree-l3"><a class="reference internal" href="#method-get_terminal_width">method get_terminal_width</a>
+    </li>
+    <li class="toctree-l3"><a class="reference internal" href="#method-info">method info</a>
+    </li>
+    <li class="toctree-l3"><a class="reference internal" href="#method-open_progress">method open_progress</a>
+    </li>
+    <li class="toctree-l3"><a class="reference internal" href="#method-progress">method progress</a>
+    </li>
+    <li class="toctree-l3"><a class="reference internal" href="#method-progress_description">method progress_description</a>
+    </li>
+    <li class="toctree-l3"><a class="reference internal" href="#method-progress_refresh">method progress_refresh</a>
+    </li>
+    <li class="toctree-l3"><a class="reference internal" href="#method-start">method start</a>
+    </li>
+        </ul>
+    </li>
+    </ul>
+                  </li>
+                  <li class="toctree-l1"><a class="reference internal" href="../main/">Main</a>
+                  </li>
+                  <li class="toctree-l1"><a class="reference internal" href="../series_file/">Series file</a>
+                  </li>
+                  <li class="toctree-l1"><a class="reference internal" href="../stat/">Stat</a>
+                  </li>
+                  <li class="toctree-l1"><a class="reference internal" href="../templates/">Templates</a>
+                  </li>
+                  <li class="toctree-l1"><a class="reference internal" href="../version/">Version</a>
+                  </li>
+              </ul>
+      </div>
+    </div>
+    </nav>
+
+    <section data-toggle="wy-nav-shift" class="wy-nav-content-wrap">
+      <nav class="wy-nav-top" role="navigation" aria-label="Mobile navigation menu">
+          <i data-toggle="wy-nav-top" class="fa fa-bars"></i>
+          <a href="../..">goodreads-export</a>
+        
+      </nav>
+      <div class="wy-nav-content">
+        <div class="rst-content"><div role="navigation" aria-label="breadcrumbs navigation">
+  <ul class="wy-breadcrumbs">
+    <li><a href="../.." class="icon icon-home" alt="Docs"></a> &raquo;</li>
+          <li>API Reference &raquo;</li>
+      <li>Log</li>
+    <li class="wy-breadcrumbs-aside">
+          <a href="https://github.com/andgineer/goodreads-export/edit/master/docs/docstrings/log.md">Edit on goodreads-export</a>
+    </li>
+  </ul>
+  <hr/>
+</div>
+          <div role="main" class="document" itemscope="itemscope" itemtype="http://schema.org/Article">
+            <div class="section" itemprop="articleBody">
+              
+                <!-- markdownlint-disable -->
+
+<p><a href="https://github.com/andgineer/goodreads-export/blob/master/src/goodreads_export/log.py#L0"><img align="right" style="float:right;" src="https://img.shields.io/badge/-source-cccccc?style=flat-square"></a></p>
+<h1 id="module-log"><kbd>module</kbd> <code>log</code></h1>
+<p>Logger. </p>
+<hr />
+<p><a href="https://github.com/andgineer/goodreads-export/blob/master/src/goodreads_export/log.py#L9"><img align="right" style="float:right;" src="https://img.shields.io/badge/-source-cccccc?style=flat-square"></a></p>
+<h2 id="class-log"><kbd>class</kbd> <code>Log</code></h2>
+<p>Logger or progress bar. </p>
+<p><a href="https://github.com/andgineer/goodreads-export/blob/master/src/goodreads_export/log.py#L15"><img align="right" style="float:right;" src="https://img.shields.io/badge/-source-cccccc?style=flat-square"></a></p>
+<h3 id="method-__init__"><kbd>method</kbd> <code>__init__</code></h3>
+<pre><code class="language-python">__init__(verbose: bool = False) → None
+</code></pre>
+<p>Initialize logger. </p>
+<hr />
+<p><a href="https://github.com/andgineer/goodreads-export/blob/master/src/goodreads_export/log.py#L60"><img align="right" style="float:right;" src="https://img.shields.io/badge/-source-cccccc?style=flat-square"></a></p>
+<h3 id="method-close_progress"><kbd>method</kbd> <code>close_progress</code></h3>
+<pre><code class="language-python">close_progress() → None
+</code></pre>
+<p>Close progress bars. </p>
+<hr />
+<p><a href="https://github.com/andgineer/goodreads-export/blob/master/src/goodreads_export/log.py#L76"><img align="right" style="float:right;" src="https://img.shields.io/badge/-source-cccccc?style=flat-square"></a></p>
+<h3 id="method-debug"><kbd>method</kbd> <code>debug</code></h3>
+<pre><code class="language-python">debug(message: str) → None
+</code></pre>
+<p>Do not print debug messages in non-verbose mode. </p>
+<hr />
+<p><a href="https://github.com/andgineer/goodreads-export/blob/master/src/goodreads_export/log.py#L85"><img align="right" style="float:right;" src="https://img.shields.io/badge/-source-cccccc?style=flat-square"></a></p>
+<h3 id="method-error"><kbd>method</kbd> <code>error</code></h3>
+<pre><code class="language-python">error(message: str) → None
+</code></pre>
+<p>Print error messages. </p>
+<hr />
+<p><a href="https://github.com/andgineer/goodreads-export/blob/master/src/goodreads_export/log.py#L19"><img align="right" style="float:right;" src="https://img.shields.io/badge/-source-cccccc?style=flat-square"></a></p>
+<h3 id="method-get_terminal_width"><kbd>method</kbd> <code>get_terminal_width</code></h3>
+<pre><code class="language-python">get_terminal_width() → int
+</code></pre>
+<p>Get terminal size. </p>
+<hr />
+<p><a href="https://github.com/andgineer/goodreads-export/blob/master/src/goodreads_export/log.py#L81"><img align="right" style="float:right;" src="https://img.shields.io/badge/-source-cccccc?style=flat-square"></a></p>
+<h3 id="method-info"><kbd>method</kbd> <code>info</code></h3>
+<pre><code class="language-python">info(message: str) → None
+</code></pre>
+<p>Print info messages. </p>
+<hr />
+<p><a href="https://github.com/andgineer/goodreads-export/blob/master/src/goodreads_export/log.py#L31"><img align="right" style="float:right;" src="https://img.shields.io/badge/-source-cccccc?style=flat-square"></a></p>
+<h3 id="method-open_progress"><kbd>method</kbd> <code>open_progress</code></h3>
+<pre><code class="language-python">open_progress(
+    title: str,
+    unit: str,
+    num: Optional[int] = None,
+    bar_format: Optional[str] = None
+) → None
+</code></pre>
+<p>Open progress bar. </p>
+<hr />
+<p><a href="https://github.com/andgineer/goodreads-export/blob/master/src/goodreads_export/log.py#L55"><img align="right" style="float:right;" src="https://img.shields.io/badge/-source-cccccc?style=flat-square"></a></p>
+<h3 id="method-progress"><kbd>method</kbd> <code>progress</code></h3>
+<pre><code class="language-python">progress(title: str) → None
+</code></pre>
+<p>Update progress bar. </p>
+<hr />
+<p><a href="https://github.com/andgineer/goodreads-export/blob/master/src/goodreads_export/log.py#L46"><img align="right" style="float:right;" src="https://img.shields.io/badge/-source-cccccc?style=flat-square"></a></p>
+<h3 id="method-progress_description"><kbd>method</kbd> <code>progress_description</code></h3>
+<pre><code class="language-python">progress_description(title: str, message: str) → None
+</code></pre>
+<p>Update progress bar description. </p>
+<hr />
+<p><a href="https://github.com/andgineer/goodreads-export/blob/master/src/goodreads_export/log.py#L69"><img align="right" style="float:right;" src="https://img.shields.io/badge/-source-cccccc?style=flat-square"></a></p>
+<h3 id="method-progress_refresh"><kbd>method</kbd> <code>progress_refresh</code></h3>
+<pre><code class="language-python">progress_refresh() → None
+</code></pre>
+<p>Refresh progress bars. </p>
+<hr />
+<p><a href="https://github.com/andgineer/goodreads-export/blob/master/src/goodreads_export/log.py#L27"><img align="right" style="float:right;" src="https://img.shields.io/badge/-source-cccccc?style=flat-square"></a></p>
+<h3 id="method-start"><kbd>method</kbd> <code>start</code></h3>
+<pre><code class="language-python">start(message: str) → None
+</code></pre>
+<p>Start message. </p>
+<hr />
+<p><em>This file was automatically generated via <a href="https://github.com/ml-tooling/lazydocs">lazydocs</a>.</em></p>
+              
+            </div>
+          </div><footer>
+    <div class="rst-footer-buttons" role="navigation" aria-label="Footer Navigation">
+        <a href="../library/" class="btn btn-neutral float-left" title="Library"><span class="icon icon-circle-arrow-left"></span> Previous</a>
+        <a href="../main/" class="btn btn-neutral float-right" title="Main">Next <span class="icon icon-circle-arrow-right"></span></a>
+    </div>
+
+  <hr/>
+
+  <div role="contentinfo">
+    <!-- Copyright etc -->
+  </div>
+
+  Built with <a href="https://www.mkdocs.org/">MkDocs</a> using a <a href="https://github.com/readthedocs/sphinx_rtd_theme">theme</a> provided by <a href="https://readthedocs.org">Read the Docs</a>.
+</footer>
+          
+        </div>
+      </div>
+
+    </section>
+
+  </div>
+
+  <div class="rst-versions" role="note" aria-label="Versions">
+  <span class="rst-current-version" data-toggle="rst-current-version">
+    
+    
+      <span><a href="../library/" style="color: #fcfcfc">&laquo; Previous</a></span>
+    
+    
+      <span><a href="../main/" style="color: #fcfcfc">Next &raquo;</a></span>
+    
+  </span>
+</div>
+    <script>var base_url = '../..';</script>
+    <script src="../../js/theme_extra.js" defer></script>
+    <script src="../../js/theme.js" defer></script>
+      <script src="../../search/main.js" defer></script>
+    <script defer>
+        window.onload = function () {
+            SphinxRtdTheme.Navigation.enable(true);
+        };
+    </script>
+
+</body>
+</html>

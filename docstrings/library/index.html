@@ -1,0 +1,264 @@
+<!DOCTYPE html>
+<html class="writer-html5" lang="en" >
+<head>
+    <meta charset="utf-8" />
+    <meta http-equiv="X-UA-Compatible" content="IE=edge" />
+    <meta name="viewport" content="width=device-width, initial-scale=1.0" /><meta name="author" content="Andrey Sorokin" /><link rel="canonical" href="https://andgineer.github.io/goodreads-export/docstrings/library/" />
+      <link rel="shortcut icon" href="../../img/favicon.ico" />
+    <title>Library - goodreads-export</title>
+    <link rel="stylesheet" href="../../css/theme.css" />
+    <link rel="stylesheet" href="../../css/theme_extra.css" />
+        <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/highlight.js/10.5.0/styles/github.min.css" />
+    
+      <script>
+        // Current page data
+        var mkdocs_page_name = "Library";
+        var mkdocs_page_input_path = "docstrings/library.md";
+        var mkdocs_page_url = "/goodreads-export/docstrings/library/";
+      </script>
+    
+    <script src="../../js/jquery-3.6.0.min.js" defer></script>
+    <!--[if lt IE 9]>
+      <script src="../../js/html5shiv.min.js"></script>
+    <![endif]-->
+      <script src="https://cdnjs.cloudflare.com/ajax/libs/highlight.js/10.5.0/highlight.min.js"></script>
+      <script>hljs.initHighlightingOnLoad();</script> 
+</head>
+
+<body class="wy-body-for-nav" role="document">
+
+  <div class="wy-grid-for-nav">
+    <nav data-toggle="wy-nav-shift" class="wy-nav-side stickynav">
+    <div class="wy-side-scroll">
+      <div class="wy-side-nav-search">
+          <a href="../.." class="icon icon-home"> goodreads-export
+        </a><div role="search">
+  <form id ="rtd-search-form" class="wy-form" action="../../search.html" method="get">
+      <input type="text" name="q" placeholder="Search docs" title="Type search term here" />
+  </form>
+</div>
+      </div>
+
+      <div class="wy-menu wy-menu-vertical" data-spy="affix" role="navigation" aria-label="Navigation menu">
+              <ul>
+                <li class="toctree-l1"><a class="reference internal" href="../..">Goodreads export to markdown files</a>
+                </li>
+              </ul>
+              <p class="caption"><span class="caption-text">API Reference</span></p>
+              <ul class="current">
+                  <li class="toctree-l1"><a class="reference internal" href="../">Overview</a>
+                  </li>
+                  <li class="toctree-l1"><a class="reference internal" href="../author_file/">Author file</a>
+                  </li>
+                  <li class="toctree-l1"><a class="reference internal" href="../authored_file/">Authored file</a>
+                  </li>
+                  <li class="toctree-l1"><a class="reference internal" href="../book_file/">Book file</a>
+                  </li>
+                  <li class="toctree-l1"><a class="reference internal" href="../clean_file_name/">Clean file name</a>
+                  </li>
+                  <li class="toctree-l1"><a class="reference internal" href="../data_file/">Data file</a>
+                  </li>
+                  <li class="toctree-l1"><a class="reference internal" href="../goodreads_book/">Goodreads book</a>
+                  </li>
+                  <li class="toctree-l1 current"><a class="reference internal current" href="./">Library</a>
+    <ul class="current">
+    <li class="toctree-l2"><a class="reference internal" href="#global-variables">Global Variables</a>
+    </li>
+    <li class="toctree-l2"><a class="reference internal" href="#class-library">class Library</a>
+        <ul>
+    <li class="toctree-l3"><a class="reference internal" href="#method-__init__">method __init__</a>
+    </li>
+    <li class="toctree-l3"><a class="reference internal" href="#method-check_templates">method check_templates</a>
+    </li>
+    <li class="toctree-l3"><a class="reference internal" href="#method-create_author_file">method create_author_file</a>
+    </li>
+    <li class="toctree-l3"><a class="reference internal" href="#method-create_book_file">method create_book_file</a>
+    </li>
+    <li class="toctree-l3"><a class="reference internal" href="#method-dump">method dump</a>
+    </li>
+    <li class="toctree-l3"><a class="reference internal" href="#method-get_author">method get_author</a>
+    </li>
+    <li class="toctree-l3"><a class="reference internal" href="#method-load_authors">method load_authors</a>
+    </li>
+    <li class="toctree-l3"><a class="reference internal" href="#method-load_books">method load_books</a>
+    </li>
+    <li class="toctree-l3"><a class="reference internal" href="#method-load_series">method load_series</a>
+    </li>
+    <li class="toctree-l3"><a class="reference internal" href="#method-merge_author_names">method merge_author_names</a>
+    </li>
+        </ul>
+    </li>
+    </ul>
+                  </li>
+                  <li class="toctree-l1"><a class="reference internal" href="../log/">Log</a>
+                  </li>
+                  <li class="toctree-l1"><a class="reference internal" href="../main/">Main</a>
+                  </li>
+                  <li class="toctree-l1"><a class="reference internal" href="../series_file/">Series file</a>
+                  </li>
+                  <li class="toctree-l1"><a class="reference internal" href="../stat/">Stat</a>
+                  </li>
+                  <li class="toctree-l1"><a class="reference internal" href="../templates/">Templates</a>
+                  </li>
+                  <li class="toctree-l1"><a class="reference internal" href="../version/">Version</a>
+                  </li>
+              </ul>
+      </div>
+    </div>
+    </nav>
+
+    <section data-toggle="wy-nav-shift" class="wy-nav-content-wrap">
+      <nav class="wy-nav-top" role="navigation" aria-label="Mobile navigation menu">
+          <i data-toggle="wy-nav-top" class="fa fa-bars"></i>
+          <a href="../..">goodreads-export</a>
+        
+      </nav>
+      <div class="wy-nav-content">
+        <div class="rst-content"><div role="navigation" aria-label="breadcrumbs navigation">
+  <ul class="wy-breadcrumbs">
+    <li><a href="../.." class="icon icon-home" alt="Docs"></a> &raquo;</li>
+          <li>API Reference &raquo;</li>
+      <li>Library</li>
+    <li class="wy-breadcrumbs-aside">
+          <a href="https://github.com/andgineer/goodreads-export/edit/master/docs/docstrings/library.md">Edit on goodreads-export</a>
+    </li>
+  </ul>
+  <hr/>
+</div>
+          <div role="main" class="document" itemscope="itemscope" itemtype="http://schema.org/Article">
+            <div class="section" itemprop="articleBody">
+              
+                <!-- markdownlint-disable -->
+
+<p><a href="https://github.com/andgineer/goodreads-export/blob/master/src/goodreads_export/library.py#L0"><img align="right" style="float:right;" src="https://img.shields.io/badge/-source-cccccc?style=flat-square"></a></p>
+<h1 id="module-library"><kbd>module</kbd> <code>library</code></h1>
+<p>Library of ooks. </p>
+<h2 id="global-variables"><strong>Global Variables</strong></h2>
+<ul>
+<li><strong>SUBFOLDERS</strong></li>
+<li><strong>BOOKS_SUBFOLDERS</strong></li>
+</ul>
+<hr />
+<p><a href="https://github.com/andgineer/goodreads-export/blob/master/src/goodreads_export/library.py#L23"><img align="right" style="float:right;" src="https://img.shields.io/badge/-source-cccccc?style=flat-square"></a></p>
+<h2 id="class-library"><kbd>class</kbd> <code>Library</code></h2>
+<p>Books and authors. </p>
+<p><a href="https://github.com/andgineer/goodreads-export/blob/master/src/goodreads_export/library.py#L28"><img align="right" style="float:right;" src="https://img.shields.io/badge/-source-cccccc?style=flat-square"></a></p>
+<h3 id="method-__init__"><kbd>method</kbd> <code>__init__</code></h3>
+<pre><code class="language-python">__init__(
+    folder: Optional[Path] = None,
+    log: Optional[Log] = None,
+    templates: Optional[TemplateSet] = None
+) → None
+</code></pre>
+<p>Initialize. </p>
+<hr />
+<p><a href="https://github.com/andgineer/goodreads-export/blob/master/src/goodreads_export/library.py#L248"><img align="right" style="float:right;" src="https://img.shields.io/badge/-source-cccccc?style=flat-square"></a></p>
+<h3 id="method-check_templates"><kbd>method</kbd> <code>check_templates</code></h3>
+<pre><code class="language-python">check_templates() → None
+</code></pre>
+<p>Check templates and regexes. </p>
+<hr />
+<p><a href="https://github.com/andgineer/goodreads-export/blob/master/src/goodreads_export/library.py#L139"><img align="right" style="float:right;" src="https://img.shields.io/badge/-source-cccccc?style=flat-square"></a></p>
+<h3 id="method-create_author_file"><kbd>method</kbd> <code>create_author_file</code></h3>
+<pre><code class="language-python">create_author_file(book: Book) → AuthorFile
+</code></pre>
+<p>Create author file if id does not exist. </p>
+<p>Do not change already existed file. </p>
+<p>Return True if author file was added, False otherwise </p>
+<hr />
+<p><a href="https://github.com/andgineer/goodreads-export/blob/master/src/goodreads_export/library.py#L112"><img align="right" style="float:right;" src="https://img.shields.io/badge/-source-cccccc?style=flat-square"></a></p>
+<h3 id="method-create_book_file"><kbd>method</kbd> <code>create_book_file</code></h3>
+<pre><code class="language-python">create_book_file(book: Book) → str
+</code></pre>
+<p>Create book file. </p>
+<p>Return the filename. </p>
+<hr />
+<p><a href="https://github.com/andgineer/goodreads-export/blob/master/src/goodreads_export/library.py#L77"><img align="right" style="float:right;" src="https://img.shields.io/badge/-source-cccccc?style=flat-square"></a></p>
+<h3 id="method-dump"><kbd>method</kbd> <code>dump</code></h3>
+<pre><code class="language-python">dump(books: GoodreadsBooks) → None
+</code></pre>
+<p>Save books and authors as md-files. </p>
+<hr />
+<p><a href="https://github.com/andgineer/goodreads-export/blob/master/src/goodreads_export/library.py#L156"><img align="right" style="float:right;" src="https://img.shields.io/badge/-source-cccccc?style=flat-square"></a></p>
+<h3 id="method-get_author"><kbd>method</kbd> <code>get_author</code></h3>
+<pre><code class="language-python">get_author(name: str) → AuthorFile
+</code></pre>
+<p>Get author file. </p>
+<hr />
+<p><a href="https://github.com/andgineer/goodreads-export/blob/master/src/goodreads_export/library.py#L224"><img align="right" style="float:right;" src="https://img.shields.io/badge/-source-cccccc?style=flat-square"></a></p>
+<h3 id="method-load_authors"><kbd>method</kbd> <code>load_authors</code></h3>
+<pre><code class="language-python">load_authors(folder: Path) → Dict[str, AuthorFile]
+</code></pre>
+<p>Load existed authors. </p>
+<p>Return loaded authors </p>
+<hr />
+<p><a href="https://github.com/andgineer/goodreads-export/blob/master/src/goodreads_export/library.py#L193"><img align="right" style="float:right;" src="https://img.shields.io/badge/-source-cccccc?style=flat-square"></a></p>
+<h3 id="method-load_books"><kbd>method</kbd> <code>load_books</code></h3>
+<pre><code class="language-python">load_books(folder: Path, authors: Dict[str, AuthorFile]) → Dict[str, BookFile]
+</code></pre>
+<p>Load existed books. </p>
+<p>Look for goodreads book ID inside files. Return {id: BookFile} for files with book ID, ignore other files. This way we ignore "- series" files and unknown files. </p>
+<hr />
+<p><a href="https://github.com/andgineer/goodreads-export/blob/master/src/goodreads_export/library.py#L168"><img align="right" style="float:right;" src="https://img.shields.io/badge/-source-cccccc?style=flat-square"></a></p>
+<h3 id="method-load_series"><kbd>method</kbd> <code>load_series</code></h3>
+<pre><code class="language-python">load_series(folder: Path, authors: Dict[str, AuthorFile]) → None
+</code></pre>
+<p>Load existed series. </p>
+<p>Add them to authors. Could add series with the same title to the same author if they are in different files. </p>
+<hr />
+<p><a href="https://github.com/andgineer/goodreads-export/blob/master/src/goodreads_export/library.py#L49"><img align="right" style="float:right;" src="https://img.shields.io/badge/-source-cccccc?style=flat-square"></a></p>
+<h3 id="method-merge_author_names"><kbd>method</kbd> <code>merge_author_names</code></h3>
+<pre><code class="language-python">merge_author_names() → None
+</code></pre>
+<p>Replace all known versions of author names (translations, misspellings) with one primary name. </p>
+<p>All author name versions should be listed as links in one author file - just copy them from other author files to that <code>primary</code> author file. Fist name in the link will be used as primary name. </p>
+<p>Reviews will be relinked to the primary name. Author files with non-primary names will be deleted. Also recreate series files with primary author name in the file names. </p>
+<hr />
+<p><em>This file was automatically generated via <a href="https://github.com/ml-tooling/lazydocs">lazydocs</a>.</em></p>
+              
+            </div>
+          </div><footer>
+    <div class="rst-footer-buttons" role="navigation" aria-label="Footer Navigation">
+        <a href="../goodreads_book/" class="btn btn-neutral float-left" title="Goodreads book"><span class="icon icon-circle-arrow-left"></span> Previous</a>
+        <a href="../log/" class="btn btn-neutral float-right" title="Log">Next <span class="icon icon-circle-arrow-right"></span></a>
+    </div>
+
+  <hr/>
+
+  <div role="contentinfo">
+    <!-- Copyright etc -->
+  </div>
+
+  Built with <a href="https://www.mkdocs.org/">MkDocs</a> using a <a href="https://github.com/readthedocs/sphinx_rtd_theme">theme</a> provided by <a href="https://readthedocs.org">Read the Docs</a>.
+</footer>
+          
+        </div>
+      </div>
+
+    </section>
+
+  </div>
+
+  <div class="rst-versions" role="note" aria-label="Versions">
+  <span class="rst-current-version" data-toggle="rst-current-version">
+    
+    
+      <span><a href="../goodreads_book/" style="color: #fcfcfc">&laquo; Previous</a></span>
+    
+    
+      <span><a href="../log/" style="color: #fcfcfc">Next &raquo;</a></span>
+    
+  </span>
+</div>
+    <script>var base_url = '../..';</script>
+    <script src="../../js/theme_extra.js" defer></script>
+    <script src="../../js/theme.js" defer></script>
+      <script src="../../search/main.js" defer></script>
+    <script defer>
+        window.onload = function () {
+            SphinxRtdTheme.Navigation.enable(true);
+        };
+    </script>
+
+</body>
+</html>

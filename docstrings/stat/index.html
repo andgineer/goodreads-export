@@ -1,0 +1,247 @@
+<!DOCTYPE html>
+<html class="writer-html5" lang="en" >
+<head>
+    <meta charset="utf-8" />
+    <meta http-equiv="X-UA-Compatible" content="IE=edge" />
+    <meta name="viewport" content="width=device-width, initial-scale=1.0" /><meta name="author" content="Andrey Sorokin" /><link rel="canonical" href="https://andgineer.github.io/goodreads-export/docstrings/stat/" />
+      <link rel="shortcut icon" href="../../img/favicon.ico" />
+    <title>Stat - goodreads-export</title>
+    <link rel="stylesheet" href="../../css/theme.css" />
+    <link rel="stylesheet" href="../../css/theme_extra.css" />
+        <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/highlight.js/10.5.0/styles/github.min.css" />
+    
+      <script>
+        // Current page data
+        var mkdocs_page_name = "Stat";
+        var mkdocs_page_input_path = "docstrings/stat.md";
+        var mkdocs_page_url = "/goodreads-export/docstrings/stat/";
+      </script>
+    
+    <script src="../../js/jquery-3.6.0.min.js" defer></script>
+    <!--[if lt IE 9]>
+      <script src="../../js/html5shiv.min.js"></script>
+    <![endif]-->
+      <script src="https://cdnjs.cloudflare.com/ajax/libs/highlight.js/10.5.0/highlight.min.js"></script>
+      <script>hljs.initHighlightingOnLoad();</script> 
+</head>
+
+<body class="wy-body-for-nav" role="document">
+
+  <div class="wy-grid-for-nav">
+    <nav data-toggle="wy-nav-shift" class="wy-nav-side stickynav">
+    <div class="wy-side-scroll">
+      <div class="wy-side-nav-search">
+          <a href="../.." class="icon icon-home"> goodreads-export
+        </a><div role="search">
+  <form id ="rtd-search-form" class="wy-form" action="../../search.html" method="get">
+      <input type="text" name="q" placeholder="Search docs" title="Type search term here" />
+  </form>
+</div>
+      </div>
+
+      <div class="wy-menu wy-menu-vertical" data-spy="affix" role="navigation" aria-label="Navigation menu">
+              <ul>
+                <li class="toctree-l1"><a class="reference internal" href="../..">Goodreads export to markdown files</a>
+                </li>
+              </ul>
+              <p class="caption"><span class="caption-text">API Reference</span></p>
+              <ul class="current">
+                  <li class="toctree-l1"><a class="reference internal" href="../">Overview</a>
+                  </li>
+                  <li class="toctree-l1"><a class="reference internal" href="../author_file/">Author file</a>
+                  </li>
+                  <li class="toctree-l1"><a class="reference internal" href="../authored_file/">Authored file</a>
+                  </li>
+                  <li class="toctree-l1"><a class="reference internal" href="../book_file/">Book file</a>
+                  </li>
+                  <li class="toctree-l1"><a class="reference internal" href="../clean_file_name/">Clean file name</a>
+                  </li>
+                  <li class="toctree-l1"><a class="reference internal" href="../data_file/">Data file</a>
+                  </li>
+                  <li class="toctree-l1"><a class="reference internal" href="../goodreads_book/">Goodreads book</a>
+                  </li>
+                  <li class="toctree-l1"><a class="reference internal" href="../library/">Library</a>
+                  </li>
+                  <li class="toctree-l1"><a class="reference internal" href="../log/">Log</a>
+                  </li>
+                  <li class="toctree-l1"><a class="reference internal" href="../main/">Main</a>
+                  </li>
+                  <li class="toctree-l1"><a class="reference internal" href="../series_file/">Series file</a>
+                  </li>
+                  <li class="toctree-l1 current"><a class="reference internal current" href="./">Stat</a>
+    <ul class="current">
+    <li class="toctree-l2"><a class="reference internal" href="#global-variables">Global Variables</a>
+    </li>
+    <li class="toctree-l2"><a class="reference internal" href="#class-stat">class Stat</a>
+        <ul>
+    <li class="toctree-l3"><a class="reference internal" href="#method-unique_author">method unique_author</a>
+    </li>
+        </ul>
+    </li>
+    </ul>
+                  </li>
+                  <li class="toctree-l1"><a class="reference internal" href="../templates/">Templates</a>
+                  </li>
+                  <li class="toctree-l1"><a class="reference internal" href="../version/">Version</a>
+                  </li>
+              </ul>
+      </div>
+    </div>
+    </nav>
+
+    <section data-toggle="wy-nav-shift" class="wy-nav-content-wrap">
+      <nav class="wy-nav-top" role="navigation" aria-label="Mobile navigation menu">
+          <i data-toggle="wy-nav-top" class="fa fa-bars"></i>
+          <a href="../..">goodreads-export</a>
+        
+      </nav>
+      <div class="wy-nav-content">
+        <div class="rst-content"><div role="navigation" aria-label="breadcrumbs navigation">
+  <ul class="wy-breadcrumbs">
+    <li><a href="../.." class="icon icon-home" alt="Docs"></a> &raquo;</li>
+          <li>API Reference &raquo;</li>
+      <li>Stat</li>
+    <li class="wy-breadcrumbs-aside">
+          <a href="https://github.com/andgineer/goodreads-export/edit/master/docs/docstrings/stat.md">Edit on goodreads-export</a>
+    </li>
+  </ul>
+  <hr/>
+</div>
+          <div role="main" class="document" itemscope="itemscope" itemtype="http://schema.org/Article">
+            <div class="section" itemprop="articleBody">
+              
+                <!-- markdownlint-disable -->
+
+<p><a href="https://github.com/andgineer/goodreads-export/blob/master/src/goodreads_export/stat.py#L0"><img align="right" style="float:right;" src="https://img.shields.io/badge/-source-cccccc?style=flat-square"></a></p>
+<h1 id="module-stat"><kbd>module</kbd> <code>stat</code></h1>
+<p>Loading statistics. </p>
+<h2 id="global-variables"><strong>Global Variables</strong></h2>
+<ul>
+<li><strong>ST_MODE</strong></li>
+<li><strong>ST_INO</strong></li>
+<li><strong>ST_DEV</strong></li>
+<li><strong>ST_NLINK</strong></li>
+<li><strong>ST_UID</strong></li>
+<li><strong>ST_GID</strong></li>
+<li><strong>ST_SIZE</strong></li>
+<li><strong>ST_ATIME</strong></li>
+<li><strong>ST_MTIME</strong></li>
+<li><strong>ST_CTIME</strong></li>
+<li><strong>S_IFDIR</strong></li>
+<li><strong>S_IFCHR</strong></li>
+<li><strong>S_IFBLK</strong></li>
+<li><strong>S_IFREG</strong></li>
+<li><strong>S_IFIFO</strong></li>
+<li><strong>S_IFLNK</strong></li>
+<li><strong>S_IFSOCK</strong></li>
+<li><strong>S_IFDOOR</strong></li>
+<li><strong>S_IFPORT</strong></li>
+<li><strong>S_IFWHT</strong></li>
+<li><strong>S_ISUID</strong></li>
+<li><strong>S_ISGID</strong></li>
+<li><strong>S_ENFMT</strong></li>
+<li><strong>S_ISVTX</strong></li>
+<li><strong>S_IREAD</strong></li>
+<li><strong>S_IWRITE</strong></li>
+<li><strong>S_IEXEC</strong></li>
+<li><strong>S_IRWXU</strong></li>
+<li><strong>S_IRUSR</strong></li>
+<li><strong>S_IWUSR</strong></li>
+<li><strong>S_IXUSR</strong></li>
+<li><strong>S_IRWXG</strong></li>
+<li><strong>S_IRGRP</strong></li>
+<li><strong>S_IWGRP</strong></li>
+<li><strong>S_IXGRP</strong></li>
+<li><strong>S_IRWXO</strong></li>
+<li><strong>S_IROTH</strong></li>
+<li><strong>S_IWOTH</strong></li>
+<li><strong>S_IXOTH</strong></li>
+<li><strong>UF_NODUMP</strong></li>
+<li><strong>UF_IMMUTABLE</strong></li>
+<li><strong>UF_APPEND</strong></li>
+<li><strong>UF_OPAQUE</strong></li>
+<li><strong>UF_NOUNLINK</strong></li>
+<li><strong>UF_COMPRESSED</strong></li>
+<li><strong>UF_HIDDEN</strong></li>
+<li><strong>SF_ARCHIVED</strong></li>
+<li><strong>SF_IMMUTABLE</strong></li>
+<li><strong>SF_APPEND</strong></li>
+<li><strong>SF_NOUNLINK</strong></li>
+<li><strong>SF_SNAPSHOT</strong></li>
+<li><strong>FILE_ATTRIBUTE_ARCHIVE</strong></li>
+<li><strong>FILE_ATTRIBUTE_COMPRESSED</strong></li>
+<li><strong>FILE_ATTRIBUTE_DEVICE</strong></li>
+<li><strong>FILE_ATTRIBUTE_DIRECTORY</strong></li>
+<li><strong>FILE_ATTRIBUTE_ENCRYPTED</strong></li>
+<li><strong>FILE_ATTRIBUTE_HIDDEN</strong></li>
+<li><strong>FILE_ATTRIBUTE_INTEGRITY_STREAM</strong></li>
+<li><strong>FILE_ATTRIBUTE_NORMAL</strong></li>
+<li><strong>FILE_ATTRIBUTE_NOT_CONTENT_INDEXED</strong></li>
+<li><strong>FILE_ATTRIBUTE_NO_SCRUB_DATA</strong></li>
+<li><strong>FILE_ATTRIBUTE_OFFLINE</strong></li>
+<li><strong>FILE_ATTRIBUTE_READONLY</strong></li>
+<li><strong>FILE_ATTRIBUTE_REPARSE_POINT</strong></li>
+<li><strong>FILE_ATTRIBUTE_SPARSE_FILE</strong></li>
+<li><strong>FILE_ATTRIBUTE_SYSTEM</strong></li>
+<li><strong>FILE_ATTRIBUTE_TEMPORARY</strong></li>
+<li><strong>FILE_ATTRIBUTE_VIRTUAL</strong></li>
+</ul>
+<hr />
+<p><a href="https://github.com/andgineer/goodreads-export/blob/master/src/goodreads_export/stat.py#L5"><img align="right" style="float:right;" src="https://img.shields.io/badge/-source-cccccc?style=flat-square"></a></p>
+<h2 id="class-stat"><kbd>class</kbd> <code>Stat</code></h2>
+<p>Loading statistics. </p>
+<hr />
+<p><a href="https://github.com/andgineer/goodreads-export/blob/master/src/goodreads_export/stat.py#L15"><img align="right" style="float:right;" src="https://img.shields.io/badge/-source-cccccc?style=flat-square"></a></p>
+<h3 id="method-unique_author"><kbd>method</kbd> <code>unique_author</code></h3>
+<pre><code class="language-python">unique_author(author: str) → bool
+</code></pre>
+<p>Return True if the author is unique. </p>
+<hr />
+<p><em>This file was automatically generated via <a href="https://github.com/ml-tooling/lazydocs">lazydocs</a>.</em></p>
+              
+            </div>
+          </div><footer>
+    <div class="rst-footer-buttons" role="navigation" aria-label="Footer Navigation">
+        <a href="../series_file/" class="btn btn-neutral float-left" title="Series file"><span class="icon icon-circle-arrow-left"></span> Previous</a>
+        <a href="../templates/" class="btn btn-neutral float-right" title="Templates">Next <span class="icon icon-circle-arrow-right"></span></a>
+    </div>
+
+  <hr/>
+
+  <div role="contentinfo">
+    <!-- Copyright etc -->
+  </div>
+
+  Built with <a href="https://www.mkdocs.org/">MkDocs</a> using a <a href="https://github.com/readthedocs/sphinx_rtd_theme">theme</a> provided by <a href="https://readthedocs.org">Read the Docs</a>.
+</footer>
+          
+        </div>
+      </div>
+
+    </section>
+
+  </div>
+
+  <div class="rst-versions" role="note" aria-label="Versions">
+  <span class="rst-current-version" data-toggle="rst-current-version">
+    
+    
+      <span><a href="../series_file/" style="color: #fcfcfc">&laquo; Previous</a></span>
+    
+    
+      <span><a href="../templates/" style="color: #fcfcfc">Next &raquo;</a></span>
+    
+  </span>
+</div>
+    <script>var base_url = '../..';</script>
+    <script src="../../js/theme_extra.js" defer></script>
+    <script src="../../js/theme.js" defer></script>
+      <script src="../../search/main.js" defer></script>
+    <script defer>
+        window.onload = function () {
+            SphinxRtdTheme.Navigation.enable(true);
+        };
+    </script>
+
+</body>
+</html>

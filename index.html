@@ -1,0 +1,275 @@
+<!DOCTYPE html>
+<html class="writer-html5" lang="en" >
+<head>
+    <meta charset="utf-8" />
+    <meta http-equiv="X-UA-Compatible" content="IE=edge" />
+    <meta name="viewport" content="width=device-width, initial-scale=1.0" /><meta name="description" content="None" /><meta name="author" content="Andrey Sorokin" /><link rel="canonical" href="https://andgineer.github.io/goodreads-export/" />
+      <link rel="shortcut icon" href="img/favicon.ico" />
+    <title>goodreads-export</title>
+    <link rel="stylesheet" href="css/theme.css" />
+    <link rel="stylesheet" href="css/theme_extra.css" />
+        <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/highlight.js/10.5.0/styles/github.min.css" />
+    
+      <script>
+        // Current page data
+        var mkdocs_page_name = "Goodreads export to markdown files";
+        var mkdocs_page_input_path = "README.md";
+        var mkdocs_page_url = "/goodreads-export/";
+      </script>
+    
+    <script src="js/jquery-3.6.0.min.js" defer></script>
+    <!--[if lt IE 9]>
+      <script src="js/html5shiv.min.js"></script>
+    <![endif]-->
+      <script src="https://cdnjs.cloudflare.com/ajax/libs/highlight.js/10.5.0/highlight.min.js"></script>
+      <script>hljs.initHighlightingOnLoad();</script> 
+</head>
+
+<body class="wy-body-for-nav" role="document">
+
+  <div class="wy-grid-for-nav">
+    <nav data-toggle="wy-nav-shift" class="wy-nav-side stickynav">
+    <div class="wy-side-scroll">
+      <div class="wy-side-nav-search">
+          <a href="." class="icon icon-home"> goodreads-export
+        </a><div role="search">
+  <form id ="rtd-search-form" class="wy-form" action="./search.html" method="get">
+      <input type="text" name="q" placeholder="Search docs" title="Type search term here" />
+  </form>
+</div>
+      </div>
+
+      <div class="wy-menu wy-menu-vertical" data-spy="affix" role="navigation" aria-label="Navigation menu">
+              <ul class="current">
+                <li class="toctree-l1 current"><a class="reference internal current" href=".">Goodreads export to markdown files</a>
+    <ul class="current">
+    <li class="toctree-l2"><a class="reference internal" href="#how-to-create-goodreads-export-file">How to create goodreads export file</a>
+    </li>
+    <li class="toctree-l2"><a class="reference internal" href="#why-this-lame-approach-with-manually-exported-file">Why this lame approach with manually exported file</a>
+    </li>
+    <li class="toctree-l2"><a class="reference internal" href="#incremental-updates">Incremental updates</a>
+        <ul>
+    <li class="toctree-l3"><a class="reference internal" href="#author-files">Author files</a>
+    </li>
+    <li class="toctree-l3"><a class="reference internal" href="#merging-different-author-names">Merging different author names</a>
+    </li>
+        </ul>
+    </li>
+    <li class="toctree-l2"><a class="reference internal" href="#installation">Installation</a>
+    </li>
+    <li class="toctree-l2"><a class="reference internal" href="#usage">Usage</a>
+    </li>
+    </ul>
+                </li>
+              </ul>
+              <p class="caption"><span class="caption-text">API Reference</span></p>
+              <ul>
+                  <li class="toctree-l1"><a class="reference internal" href="docstrings/">Overview</a>
+                  </li>
+                  <li class="toctree-l1"><a class="reference internal" href="docstrings/author_file/">Author file</a>
+                  </li>
+                  <li class="toctree-l1"><a class="reference internal" href="docstrings/authored_file/">Authored file</a>
+                  </li>
+                  <li class="toctree-l1"><a class="reference internal" href="docstrings/book_file/">Book file</a>
+                  </li>
+                  <li class="toctree-l1"><a class="reference internal" href="docstrings/clean_file_name/">Clean file name</a>
+                  </li>
+                  <li class="toctree-l1"><a class="reference internal" href="docstrings/data_file/">Data file</a>
+                  </li>
+                  <li class="toctree-l1"><a class="reference internal" href="docstrings/goodreads_book/">Goodreads book</a>
+                  </li>
+                  <li class="toctree-l1"><a class="reference internal" href="docstrings/library/">Library</a>
+                  </li>
+                  <li class="toctree-l1"><a class="reference internal" href="docstrings/log/">Log</a>
+                  </li>
+                  <li class="toctree-l1"><a class="reference internal" href="docstrings/main/">Main</a>
+                  </li>
+                  <li class="toctree-l1"><a class="reference internal" href="docstrings/series_file/">Series file</a>
+                  </li>
+                  <li class="toctree-l1"><a class="reference internal" href="docstrings/stat/">Stat</a>
+                  </li>
+                  <li class="toctree-l1"><a class="reference internal" href="docstrings/templates/">Templates</a>
+                  </li>
+                  <li class="toctree-l1"><a class="reference internal" href="docstrings/version/">Version</a>
+                  </li>
+              </ul>
+      </div>
+    </div>
+    </nav>
+
+    <section data-toggle="wy-nav-shift" class="wy-nav-content-wrap">
+      <nav class="wy-nav-top" role="navigation" aria-label="Mobile navigation menu">
+          <i data-toggle="wy-nav-top" class="fa fa-bars"></i>
+          <a href=".">goodreads-export</a>
+        
+      </nav>
+      <div class="wy-nav-content">
+        <div class="rst-content"><div role="navigation" aria-label="breadcrumbs navigation">
+  <ul class="wy-breadcrumbs">
+    <li><a href="." class="icon icon-home" alt="Docs"></a> &raquo;</li>
+      <li>Goodreads export to markdown files</li>
+    <li class="wy-breadcrumbs-aside">
+          <a href="https://github.com/andgineer/goodreads-export/edit/master/docs/README.md">Edit on goodreads-export</a>
+    </li>
+  </ul>
+  <hr/>
+</div>
+          <div role="main" class="document" itemscope="itemscope" itemtype="http://schema.org/Article">
+            <div class="section" itemprop="articleBody">
+              
+                <h1 id="goodreads-export-to-markdown-files">Goodreads export to markdown files</h1>
+<p>Export your goodreads book reviews into markdown files.
+Also creates author markdown files connected to the review.</p>
+<p>In review files there are also links to the goodreads' book page and
+<a href="https://calibre-ebook.com/">Calibre</a> URL to search
+for this book in your local Calibre collection.</p>
+<p>The application add tags based on your <code>shelves</code>.</p>
+<p>This is how that looks like in <a href="https://obsidian.md/">Obsidian</a>:</p>
+<p><img alt="goodreads.png" src="goodreads.png" />
+<img alt="goodreads-author.png" src="goodreads-author.png" /></p>
+<h3 id="how-to-create-goodreads-export-file">How to create goodreads export file</h3>
+<p>This application use CSV file created on goodreads.com.
+How to create goodreads export see in https://www.goodreads.com/review/import</p>
+<p>In 2022 they declared the export feature to be removed by August 2020, but at least at the beginning of
+2023 it still works.</p>
+<p>In fact I created the application as one-time solution to go away from goodreads with
+my 600-something book reviews. But as it still works now I use it also to incrementally update my
+markdown files in Obsidian.</p>
+<h3 id="why-this-lame-approach-with-manually-exported-file">Why this lame approach with manually exported file</h3>
+<p>Goodreads at 2020 had stopped giving out API keys.</p>
+<p>So it's all about making lemonade out of lemons.</p>
+<p>I cannot not use the API to fully automate the process,
+but at least I can still get my data from goodreads.</p>
+<p>Unfortunately with this manual export step included.</p>
+<h3 id="incremental-updates">Incremental updates</h3>
+<p>Application can add reviews to already existed files.</p>
+<p>It reads files from the folders and won't create reviews that are already there.
+This is possible because there are goodreads book ID in the markdown files - inside link to goodreads.</p>
+<p>So even if you rename the file the application still know what book it is about thanks to the
+goodreads link inside the file. This links created by the application and all you have to do
+just do not delete or modify them.</p>
+<h4 id="author-files">Author files</h4>
+<p>Unfortunately there are no author ID in the goodreads export file.</p>
+<p>Despite that the application add to author files link for search on goodreads, with the author
+name inside the link.</p>
+<p>So if you just rename the file, application still will know the original
+author name from the link.
+Of cause you should not delete or modify the link.</p>
+<p>Author name is always get from the link and not from the author file name.</p>
+<h4 id="merging-different-author-names">Merging different author names</h4>
+<p>In goodreads could be a lot of different spellings of the author name plus versions in
+different languages.</p>
+<p>With this application you can merge them so you will have one list of all author book.</p>
+<p>For that all author name versions should be listed as links in one author file -
+just copy them from other author files to that <code>primary</code> author file.
+First link should contain <code>primary</code> name.</p>
+<p>Application will relink all existed and newly created books with other author names
+in this file to this <code>primary</code> name.</p>
+<p>If you need only this re-link without importing goodreads file use option <code>--merge</code>.</p>
+<h3 id="installation">Installation</h3>
+<pre><code>pip install goodreads-export
+</code></pre>
+<p>It will install Linux or Windows script <code>goodreads-export</code>.</p>
+<h3 id="usage">Usage</h3>
+<pre><code>$&gt; goodreads-export --help
+
+Usage: goodreads-export [OPTIONS] COMMAND [ARGS]...
+
+  Create md-files from https://www.goodreads.com/ CSV export.
+
+  For example, you can create nice structure in Obsidian.
+
+  How to create goodreads export see in
+  https://www.goodreads.com/review/import In 2022 they declare it to be
+  removed by August, but at least at the end of 2022 it still works.
+
+  Documentation https://andgineer.github.io/goodreads-export/
+
+  To see help on the commands use `goodreads-export COMMAND --help`. For
+  example: `goodreads-export import --help`.
+
+Options:
+  --version      Show version.
+  -v, --verbose  Increase verbosity.
+  --help         Show this message and exit.
+
+Commands:
+  check   Check templates consistency with extraction regexes.
+  import  Convert goodreads export CSV file to markdown files.
+  merge   Merge authors only.
+
+$&gt; goodreads-export import --help
+
+Usage: goodreads-export import [OPTIONS] [OUTPUT_FOLDER]
+
+  Convert goodreads export CSV file to markdown files.
+
+  OUTPUT_FOLDER Folder where we put result. By default, current folder. If the
+  folder already exists also merge authors if found author files with many
+  names.
+
+  Documentation https://andgineer.github.io/goodreads-export/
+
+Options:
+  -i, --in TEXT  Goodreads export file. By default
+                 `goodreads_library_export.csv`. if you specify just folder it
+                 will look for file with this name in that folder.
+  --help         Show this message and exit.
+</code></pre>
+<p>If we run in the folder with goodreads export file (goodreads_library_export.csv) the
+script without parameters, like that</p>
+<pre><code>goodreads-export import
+</code></pre>
+<p>It will create in this folder subfolders <code>reviws</code>, <code>toread</code>, <code>authors</code> with the md-files.
+If you copy them into Obsidian vault, the files will be inside your Obsidian knowledgebase.</p>
+<h1 id="source-code">source code</h1>
+<p><a href="https://github.com/andgineer/goodreads-export">sorokin.engineer/aios3</a></p>
+              
+            </div>
+          </div><footer>
+    <div class="rst-footer-buttons" role="navigation" aria-label="Footer Navigation">
+        <a href="docstrings/" class="btn btn-neutral float-right" title="Overview">Next <span class="icon icon-circle-arrow-right"></span></a>
+    </div>
+
+  <hr/>
+
+  <div role="contentinfo">
+    <!-- Copyright etc -->
+  </div>
+
+  Built with <a href="https://www.mkdocs.org/">MkDocs</a> using a <a href="https://github.com/readthedocs/sphinx_rtd_theme">theme</a> provided by <a href="https://readthedocs.org">Read the Docs</a>.
+</footer>
+          
+        </div>
+      </div>
+
+    </section>
+
+  </div>
+
+  <div class="rst-versions" role="note" aria-label="Versions">
+  <span class="rst-current-version" data-toggle="rst-current-version">
+    
+    
+    
+      <span><a href="docstrings/" style="color: #fcfcfc">Next &raquo;</a></span>
+    
+  </span>
+</div>
+    <script>var base_url = '.';</script>
+    <script src="js/theme_extra.js" defer></script>
+    <script src="js/theme.js" defer></script>
+      <script src="search/main.js" defer></script>
+    <script defer>
+        window.onload = function () {
+            SphinxRtdTheme.Navigation.enable(true);
+        };
+    </script>
+
+</body>
+</html>
+
+<!--
+MkDocs version : 1.4.2
+Build Date UTC : 2023-03-14 11:47:34.618078+00:00
+-->
