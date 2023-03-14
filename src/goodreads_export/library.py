@@ -9,7 +9,7 @@ from goodreads_export.goodreads_book import Book, GoodreadsBooks
 from goodreads_export.log import Log
 from goodreads_export.series_file import SeriesFile
 from goodreads_export.stat import Stat
-from goodreads_export.templates import DEFAULT_EMBEDDED_TEMPLATE, TemplateSet, TemplatesLoader
+from goodreads_export.templates import TemplateSet, TemplatesLoader
 
 SUBFOLDERS = {
     "toread": "toread",  # for books without review and rating - supposedly this is from to-read
@@ -34,9 +34,7 @@ class Library:
         """Initialize."""
         self.folder = folder
         self.log = log or Log()
-        self.templates = templates or TemplatesLoader().load(
-            templates_name=DEFAULT_EMBEDDED_TEMPLATE
-        )
+        self.templates = templates or TemplatesLoader().load_builtin()
 
         self.books: Dict[str, BookFile] = {}
         self.authors: Dict[str, AuthorFile] = {}

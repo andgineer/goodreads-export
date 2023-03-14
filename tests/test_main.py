@@ -120,7 +120,7 @@ def test_load_templates_both_path_and_folder():
                     log=Log(),
                     books_folder=Path("books"),
                     templates_folder=Path("templates"),
-                    templates_name="default",
+                    builtin_templates_name="default",
                 )
                 assert mock_templates.call_count == 0
                 assert "both" in str(exc.value)
@@ -129,73 +129,81 @@ def test_load_templates_both_path_and_folder():
 def test_load_templates_default_embedded():
     runner = CliRunner()
     with runner.isolated_filesystem():
-        with patch.object(goodreads_export.main.TemplatesLoader, "load") as mock_load_templates:
+        with patch.object(
+            goodreads_export.main.TemplatesLoader, "load_builtin"
+        ) as mock_load_templates:
             load_templates(
-                log=Log(), books_folder=Path("books"), templates_folder=None, templates_name=None
+                log=Log(),
+                books_folder=Path("books"),
+                templates_folder=None,
+                builtin_templates_name=None,
             )
-            mock_load_templates.assert_called_with(templates_folder=None, templates_name="default")
+            mock_load_templates.assert_called_with()
 
 
 def test_load_templates_default_folder_exists():
     runner = CliRunner()
     with runner.isolated_filesystem():
-        with patch.object(goodreads_export.main.TemplatesLoader, "load") as mock_load_templates:
+        with patch.object(
+            goodreads_export.main.TemplatesLoader, "load_folder"
+        ) as mock_load_templates:
             books_folder = Path("books")
             templates_folder = books_folder / DEFAULT_TEMPLATES_FOLDER
             os.makedirs(templates_folder)
             load_templates(
-                log=Log(), books_folder=books_folder, templates_folder=None, templates_name=None
+                log=Log(),
+                books_folder=books_folder,
+                templates_folder=None,
+                builtin_templates_name=None,
             )
-            mock_load_templates.assert_called_with(
-                templates_folder=templates_folder, templates_name=None
-            )
+            mock_load_templates.assert_called_with(templates_folder)
 
 
 def test_load_templates_abs_folder():
     runner = CliRunner()
     with runner.isolated_filesystem():
-        with patch.object(goodreads_export.main.TemplatesLoader, "load") as mock_load_templates:
+        with patch.object(
+            goodreads_export.main.TemplatesLoader, "load_folder"
+        ) as mock_load_templates:
             books_folder = Path("books")
             templates_folder = Path("/templates")
             load_templates(
                 log=Log(),
                 books_folder=books_folder,
                 templates_folder=templates_folder,
-                templates_name=None,
+                builtin_templates_name=None,
             )
-            mock_load_templates.assert_called_with(
-                templates_folder=templates_folder, templates_name=None
-            )
+            mock_load_templates.assert_called_with(templates_folder)
 
 
 def test_load_templates_rel_folder():
     runner = CliRunner()
     with runner.isolated_filesystem():
-        with patch.object(goodreads_export.main.TemplatesLoader, "load") as mock_load_templates:
+        with patch.object(
+            goodreads_export.main.TemplatesLoader, "load_folder"
+        ) as mock_load_templates:
             books_folder = Path("books")
             templates_folder = Path("templates")
             load_templates(
                 log=Log(),
                 books_folder=books_folder,
                 templates_folder=templates_folder,
-                templates_name=None,
+                builtin_templates_name=None,
             )
-            mock_load_templates.assert_called_with(
-                templates_folder=books_folder / templates_folder, templates_name=None
-            )
+            mock_load_templates.assert_called_with(books_folder / templates_folder)
 
 
 def test_load_templates_embedded_name():
     runner = CliRunner()
     with runner.isolated_filesystem():
-        with patch.object(goodreads_export.main.TemplatesLoader, "load") as mock_load_templates:
+        with patch.object(
+            goodreads_export.main.TemplatesLoader, "load_builtin"
+        ) as mock_load_templates:
             templates_name = "some_name"
             load_templates(
                 log=Log(),
                 books_folder=Path("books"),
                 templates_folder=None,
-                templates_name=templates_name,
+                builtin_templates_name=templates_name,
             )
-            mock_load_templates.assert_called_with(
-                templates_folder=None, templates_name=templates_name
-            )
+            mock_load_templates.assert_called_with(templates_name)

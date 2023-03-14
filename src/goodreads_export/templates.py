@@ -16,7 +16,7 @@ try:
 except ModuleNotFoundError:
     import tomli as tomllib  # type: ignore
 
-DEFAULT_EMBEDDED_TEMPLATE = "default"
+DEFAULT_BUILTIN_TEMPLATE = "default"
 TEMPLATES_PACKAGE_DATA_FOLDER = "templates"
 CONFIG_FILE_NAME = "regex.toml"
 BOOK_TEMPLATE_FILE_NAME = "book.jinja"
@@ -200,37 +200,22 @@ class TemplatesLoader:  # pylint: disable=too-few-public-methods
         else:
             self.jinja = jinja2.Environment()
 
-    def load(
-        self, templates_name: Optional[str] = None, templates_folder: Optional[Path] = None
-    ) -> TemplateSet:
-        """Load templates."""
-        assert (templates_name is None) or (
-            templates_folder is None
-        ), "Please specify only embedded template name or template folder, but not both."
-        assert (templates_name is not None) or (
-            templates_folder is not None
-        ), "Please specify embedded template name or template folder."
-        if templates_name is not None:
-            return self.load_embedded(templates_name)
-        assert templates_folder is not None  # to please mypy
-        return self.load_template(templates_folder)
-
-    def load_embedded(self, templates_name: str) -> TemplateSet:
-        """Load embedded template with the name `templates_name`.
+    def load_builtin(self, builtin_name: str = DEFAULT_BUILTIN_TEMPLATE) -> TemplateSet:
+        """Load built-in template with the name `templates_name`.
 
         From the package data folder `templates`.
         Raise exception if no such template.
         """
         templates_resource = files(__package__).joinpath(TEMPLATES_PACKAGE_DATA_FOLDER)
-        folder = templates_resource.joinpath(templates_name)
+        folder = templates_resource.joinpath(builtin_name)
         if folder.is_dir():
-            return self.load_template(folder)
+            return self.load_folder(folder)
         raise ValueError(
-            f"No such embedded template: `{templates_name}`. "
+            f"No such built-in template: `{builtin_name}`. "
             f"Existed templates: {list(folder.iterdir())}."
         )
 
-    def load_template(self, folder: Union[Traversable, Path]) -> TemplateSet:
+    def load_folder(self, folder: Union[Traversable, Path]) -> TemplateSet:
         """Load template from the folder."""
         if not folder.joinpath(CONFIG_FILE_NAME).is_file():
             raise ValueError(f"No regex.toml file in the template folder: {folder}")

@@ -9,7 +9,7 @@ import click
 from goodreads_export.goodreads_book import GoodreadsBooks
 from goodreads_export.library import Library
 from goodreads_export.log import Log
-from goodreads_export.templates import DEFAULT_EMBEDDED_TEMPLATE, TemplateSet, TemplatesLoader
+from goodreads_export.templates import DEFAULT_BUILTIN_TEMPLATE, TemplateSet, TemplatesLoader
 from goodreads_export.version import VERSION
 
 GOODREAD_EXPORT_FILE_NAME = "goodreads_library_export.csv"
@@ -33,16 +33,16 @@ TEMPLATES_FOLDER_OPTION = click.option(
     type=click.Path(path_type=Path),
     help=f"""Folder with templates.
 By default look for `{DEFAULT_TEMPLATES_FOLDER}` in folder with books,
-use embedded templates `{DEFAULT_EMBEDDED_TEMPLATE}` if not found""",
+use embedded templates `{DEFAULT_BUILTIN_TEMPLATE}` if not found""",
     nargs=1,
 )
 
-TEMPLATES_NAME_OPTION = click.option(
-    "--templates-name",
+BUILTIN_TEMPLATES_NAME_OPTION = click.option(
+    "--builtin-name",
     "-n",
-    "templates_name",
+    "builtin_name",
     default=None,
-    help="""Name of the embedded templates to use of the is no templates folder specified.""",
+    help="""Name of the built-in template.""",
     nargs=1,
 )
 
@@ -69,36 +69,39 @@ def merge_authors(log: Log, books_folder: Path, templates: TemplateSet) -> Libra
 
 
 def load_templates(
-    log: Log, books_folder: Path, templates_folder: Optional[Path], templates_name: Optional[str]
+    log: Log,
+    books_folder: Path,
+    templates_folder: Optional[Path],
+    builtin_templates_name: Optional[str],
 ) -> TemplateSet:
     """Load templates.
 
     If templates_folder is not None, load from this folder.
     Else load embedded templated with specified or default name.
-    If the temples_folder is None and templates_name is not None,
+    If the temples_folder is None and builtin_name is not None,
     but default templates folder exists, notify that we ignore it.
     """
-    if templates_name is not None and templates_folder is not None:
+    if builtin_templates_name is not None and templates_folder is not None:
         log.error("You can't use both --templates-name and --templates-folder")
         sys.exit(1)
-    if templates_folder is None:
-        if (books_folder / DEFAULT_TEMPLATES_FOLDER).is_dir():
-            if templates_name is not None:
+    try:
+        if templates_folder is None:
+            if (books_folder / DEFAULT_TEMPLATES_FOLDER).is_dir():
+                if builtin_templates_name is None:
+                    return TemplatesLoader().load_folder(books_folder / DEFAULT_TEMPLATES_FOLDER)
                 log.info(
-                    f"Using embedded templates `{templates_name}, "
+                    f"Using embedded templates `{builtin_templates_name}, "
                     f"ignore templates in `{DEFAULT_TEMPLATES_FOLDER}`."
                 )
-            else:
-                templates_folder = books_folder / DEFAULT_TEMPLATES_FOLDER
-        if templates_name is None and templates_folder is None:
-            templates_name = DEFAULT_EMBEDDED_TEMPLATE
-    else:
-        if not templates_folder.is_absolute():
+                return TemplatesLoader().load_builtin(builtin_templates_name)
+            if builtin_templates_name is None:
+                return TemplatesLoader().load_builtin()
+        elif not templates_folder.is_absolute():
             templates_folder = books_folder / templates_folder
-    try:
-        return TemplatesLoader().load(
-            templates_folder=templates_folder, templates_name=templates_name
-        )
+        if builtin_templates_name is not None:
+            return TemplatesLoader().load_builtin(builtin_templates_name)
+        assert templates_folder is not None  # for mypy
+        return TemplatesLoader().load_folder(templates_folder)
     except Exception as exc:  # pylint: disable=broad-except
         log.error(f"Error loading templates: {exc}")
         sys.exit(1)
@@ -145,7 +148,7 @@ def main(ctx: click.Context, version: bool) -> None:
 @BOOKS_FOLDER_OPTION
 @VERBOSE_OPTION
 @TEMPLATES_FOLDER_OPTION
-@TEMPLATES_NAME_OPTION
+@BUILTIN_TEMPLATES_NAME_OPTION
 @click.option(
     "--in",
     "-i",
@@ -160,7 +163,7 @@ def import_(
     csv_file: str,
     books_folder: Path,
     templates_folder: Optional[Path],
-    templates_name: Optional[str],
+    builtin_name: Optional[str],
 ) -> None:
     """Convert goodreads export CSV file to markdown files.
 
@@ -186,7 +189,7 @@ def import_(
         library = merge_authors(
             log=log,
             books_folder=books_folder,
-            templates=load_templates(log, books_folder, templates_folder, templates_name),
+            templates=load_templates(log, books_folder, templates_folder, builtin_name),
         )
         library.dump(books)
         print(
@@ -204,12 +207,12 @@ def import_(
 @BOOKS_FOLDER_OPTION
 @VERBOSE_OPTION
 @TEMPLATES_FOLDER_OPTION
-@TEMPLATES_NAME_OPTION
+@BUILTIN_TEMPLATES_NAME_OPTION
 def check(
     verbose: bool,
     books_folder: Path,
     templates_folder: Optional[Path],
-    templates_name: Optional[str],
+    builtin_name: Optional[str],
 ) -> None:
     """Check templates consistency with extraction regexes.
 
@@ -223,7 +226,7 @@ def check(
     try:
         log = Log(verbose)
         library = Library(  # to run template checks we do not want changes in fs, so no `folder` argument
-            log=log, templates=load_templates(log, books_folder, templates_folder, templates_name)
+            log=log, templates=load_templates(log, books_folder, templates_folder, builtin_name)
         )
         library.check_templates()
         log.info("Templates are consistent with extraction regexes.")
@@ -236,12 +239,12 @@ def check(
 @BOOKS_FOLDER_OPTION
 @VERBOSE_OPTION
 @TEMPLATES_FOLDER_OPTION
-@TEMPLATES_NAME_OPTION
+@BUILTIN_TEMPLATES_NAME_OPTION
 def merge(
     verbose: bool,
     books_folder: Path,
     templates_folder: Optional[Path],
-    templates_name: Optional[str],
+    builtin_name: Optional[str],
 ) -> None:
     """Merge authors only.
 
@@ -258,7 +261,7 @@ def merge(
         library = merge_authors(
             log=log,
             books_folder=books_folder,
-            templates=load_templates(log, books_folder, templates_folder, templates_name),
+            templates=load_templates(log, books_folder, templates_folder, builtin_name),
         )
         print(
             f"Renamed {library.stat.authors_renamed} authors.",
