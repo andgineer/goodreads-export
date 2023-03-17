@@ -39,7 +39,7 @@ use embedded templates `{DEFAULT_BUILTIN_TEMPLATE}` if not found""",
 
 BUILTIN_TEMPLATES_NAME_OPTION = click.option(
     "--builtin-name",
-    "-n",
+    "-b",
     "builtin_name",
     default=None,
     help="""Name of the built-in template.""",
