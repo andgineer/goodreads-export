@@ -49,7 +49,14 @@ BUILTIN_TEMPLATES_NAME_OPTION = click.option(
 
 BOOKS_FOLDER_OPTION = click.argument(
     "books_folder",
-    default=".",
+    type=click.Path(exists=True, path_type=Path),
+    nargs=1,
+)
+
+
+BOOKS_FOLDER_OPTIONAL_OPTION = click.argument(
+    "books_folder",
+    required=False,
     type=click.Path(exists=True, path_type=Path),
     nargs=1,
 )
@@ -57,20 +64,26 @@ BOOKS_FOLDER_OPTION = click.argument(
 
 def merge_authors(log: Log, books_folder: Path, templates: TemplateSet) -> Library:
     """Merge authors."""
+    library = load_library(log=log, books_folder=books_folder, templates=templates)
+    library.merge_author_names()
+    return library
+
+
+def load_library(log: Log, books_folder: Path, templates: TemplateSet) -> Library:
+    """Load library."""
     library = Library(folder=books_folder, log=log, templates=templates)
-    log.start(f"Reading existing files from {library}")
+    log.start(f"Reading existing files from {books_folder}")
     print(
         f" loaded {len(library.books)} books, {len(library.authors)} authors, "
         f"skipped {library.stat.skipped_unknown_files} unknown files"
         f" and {library.stat.series_added} series files.",
     )
-    library.merge_author_names()
     return library
 
 
 def load_templates(
     log: Log,
-    books_folder: Path,
+    books_folder: Optional[Path],
     templates_folder: Optional[Path],
     builtin_templates_name: Optional[str],
 ) -> TemplateSet:
@@ -86,7 +99,7 @@ def load_templates(
         sys.exit(1)
     try:
         if templates_folder is None:
-            if (books_folder / DEFAULT_TEMPLATES_FOLDER).is_dir():
+            if books_folder is not None and (books_folder / DEFAULT_TEMPLATES_FOLDER).is_dir():
                 if builtin_templates_name is None:
                     return TemplatesLoader().load_folder(books_folder / DEFAULT_TEMPLATES_FOLDER)
                 log.info(
@@ -97,6 +110,10 @@ def load_templates(
             if builtin_templates_name is None:
                 return TemplatesLoader().load_builtin()
         elif not templates_folder.is_absolute():
+            if books_folder is None:
+                raise ValueError(
+                    "if template folder is relative, need books folder to build its full path."
+                )
             templates_folder = books_folder / templates_folder
         if builtin_templates_name is not None:
             return TemplatesLoader().load_builtin(builtin_templates_name)
@@ -204,13 +221,13 @@ def import_(
 
 
 @main.command()
-@BOOKS_FOLDER_OPTION
+@BOOKS_FOLDER_OPTIONAL_OPTION
 @VERBOSE_OPTION
 @TEMPLATES_FOLDER_OPTION
 @BUILTIN_TEMPLATES_NAME_OPTION
 def check(
     verbose: bool,
-    books_folder: Path,
+    books_folder: Optional[Path],
     templates_folder: Optional[Path],
     builtin_name: Optional[str],
 ) -> None:
@@ -225,11 +242,14 @@ def check(
     """
     try:
         log = Log(verbose)
+        templates = load_templates(log, books_folder, templates_folder, builtin_name)
         library = Library(  # to run template checks we do not want changes in fs, so no `folder` argument
-            log=log, templates=load_templates(log, books_folder, templates_folder, builtin_name)
+            log=log, templates=templates
         )
         library.check_templates()
         log.info("Templates are consistent with extraction regexes.")
+        if books_folder is not None:
+            load_library(log=log, books_folder=books_folder, templates=templates)
     except Exception as exc:  # pylint: disable=broad-except
         print(f"\n{exc}")
         sys.exit(1)

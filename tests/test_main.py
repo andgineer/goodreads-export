@@ -30,7 +30,7 @@ def test_main_wrong_csv():
             f.write("-fake-")
         result = runner.invoke(
             main,
-            ["import"],
+            ["import", "."],
         )
     assert result.exit_code == 1, f"stdout: {result.output}"
     assert "Wrong goodreads export file" in result.output
@@ -45,7 +45,7 @@ def test_main_wrong_columns():
             f.write("Author,Fake")
         result = runner.invoke(
             main,
-            ["import"],
+            ["import", "."],
         )
     assert result.exit_code == 1, f"stdout: {result.output}"
     assert "Wrong goodreads export file" in result.output
@@ -58,7 +58,7 @@ def test_main_wrong_folder_csv():
     with runner.isolated_filesystem():
         result = runner.invoke(
             main,
-            ["import", "-i", "."],
+            ["import", ".", "-i", "."],
         )
     assert result.exit_code == 1, f"stdout: {result.output}"
     assert "not found" in result.output
@@ -69,7 +69,7 @@ def test_main_no_csv():
     with runner.isolated_filesystem():
         result = runner.invoke(
             main,
-            ["import", "-i", "fake"],
+            ["import", ".", "-i", "fake"],
         )
     assert result.exit_code == 1, f"stdout: {result.output}"
     assert "not found" in result.output
@@ -80,7 +80,7 @@ def test_main_merge():
     with runner.isolated_filesystem():
         result = runner.invoke(
             main,
-            ["merge"],
+            ["merge", "."],
         )
     assert result.exit_code == 0, f"stdout: {result.output}"
     assert "loaded 0 books, 0 authors, skipped 0 unknown files" in result.output
@@ -93,7 +93,7 @@ def test_main_verbose(test_case):
             f.write(test_case.csv.open("r", encoding="utf8").read())
         result = runner.invoke(
             main,
-            ["import", "--verbose"],
+            ["import", ".", "--verbose"],
         )
     assert result.exit_code == 0, f"stdout: {result.output}"
     assert "loaded 0 books, 0 authors, skipped 0 unknown files" in result.output
