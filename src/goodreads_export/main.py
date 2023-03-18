@@ -31,9 +31,9 @@ TEMPLATES_FOLDER_OPTION = click.option(
     "templates_folder",
     default=None,
     type=click.Path(path_type=Path),
-    help=f"""Folder with templates.
-By default look for `{DEFAULT_TEMPLATES_FOLDER}` in folder with books,
-use embedded templates `{DEFAULT_BUILTIN_TEMPLATE}` if not found""",
+    help=f"""Folder with templates. If not absolute it's relative to `BOOKS_FOLDER`.
+If not specified, look for `{DEFAULT_TEMPLATES_FOLDER}` in `BOOKS_FOLDER`.
+If not found use built-in templates, see `--builtin-name`.""",
     nargs=1,
 )
 
@@ -42,7 +42,7 @@ BUILTIN_TEMPLATES_NAME_OPTION = click.option(
     "-b",
     "builtin_name",
     default=None,
-    help="""Name of the built-in template.""",
+    help=f"""Name of the built-in template. Use `{DEFAULT_BUILTIN_TEMPLATE}` if not specified.""",
     nargs=1,
 )
 
@@ -140,8 +140,9 @@ def main(ctx: click.Context, version: bool) -> None:
     For example, you can create nice structure in Obsidian.
 
     How to create goodreads export see in https://www.goodreads.com/review/import
-    In 2022 they declare it to be removed by August,
-    but at least at the end of 2022 it still works.
+
+    They declare it to be removed by August 2022,
+    but at least in the 2023 it still works.
 
     Documentation https://andgineer.github.io/goodreads-export/
 
@@ -185,10 +186,9 @@ def import_(
     """Convert goodreads export CSV file to markdown files.
 
     BOOKS_FOLDER
-    Folder where we put result. By default, current folder.
-    If the folder already exists also merge authors if found author files with many names.
+    Folder where we put result. Do not change existed files except authors merge if necessary.
 
-    Documentation https://andgineer.github.io/goodreads-export/
+    See details in https://andgineer.github.io/goodreads-export/
     """
     try:
         log = Log(verbose)
@@ -233,12 +233,9 @@ def check(
 ) -> None:
     """Check templates consistency with extraction regexes.
 
-    Loads templates and regexes from books_folder/templates.
-    To create initial files from embedded default use command `goodreads-export init`.
-
     BOOKS_FOLDER
-    Folder with books file to check.
-    Loads templetes if they are existed in the folder and `-templates-name` is not specified.
+    Optional books' folder. Test loading books from the folder.
+    Could load templates from it - see `--templates-folder`.
     """
     try:
         log = Log(verbose)
@@ -266,13 +263,9 @@ def merge(
     templates_folder: Optional[Path],
     builtin_name: Optional[str],
 ) -> None:
-    """Merge authors only.
+    """Merge authors in the `BOOKS_FOLDER`.
 
-    Use it if you need only re-link to primary author names
-    without importing goodreads file.
-
-    BOOKS_FOLDER
-    Folder to merge authors. By default, current folder.
+    Unlike `import` do not need goodreads file.
 
     See https://andgineer.github.io/goodreads-export/ for details.
     """
