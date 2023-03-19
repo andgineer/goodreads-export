@@ -77,6 +77,11 @@ in this file to this `primary` name.
 
 If you need only this re-link without importing goodreads file use option `--merge`.
 
+#### Templates
+
+The application use templates that you can modify.
+Use `init` command to copy built-in templates to some folder and modify them.
+
 ### Installation
 
     pip install goodreads-export
@@ -94,8 +99,10 @@ It will install Linux or Windows script `goodreads-export`.
       For example, you can create nice structure in Obsidian.
 
       How to create goodreads export see in
-      https://www.goodreads.com/review/import In 2022 they declare it to be
-      removed by August, but at least at the end of 2022 it still works.
+      https://www.goodreads.com/review/import
+
+      They declare it to be removed by August 2022, but at least in the 2023 it
+      still works.
 
       Documentation https://andgineer.github.io/goodreads-export/
 
@@ -103,40 +110,49 @@ It will install Linux or Windows script `goodreads-export`.
       example: `goodreads-export import --help`.
 
     Options:
-      --version      Show version.
-      -v, --verbose  Increase verbosity.
-      --help         Show this message and exit.
+      --version  Show version.
+      --help     Show this message and exit.
 
     Commands:
       check   Check templates consistency with extraction regexes.
       import  Convert goodreads export CSV file to markdown files.
-      merge   Merge authors only.
+      init    Create templates folder in path from `--templates-folder`.
+      merge   Merge authors in the `BOOKS_FOLDER`.
 
     $> goodreads-export import --help
 
-    Usage: goodreads-export import [OPTIONS] [OUTPUT_FOLDER]
+    Usage: goodreads-export import [OPTIONS] BOOKS_FOLDER
 
       Convert goodreads export CSV file to markdown files.
 
-      OUTPUT_FOLDER Folder where we put result. By default, current folder. If the
-      folder already exists also merge authors if found author files with many
-      names.
+      BOOKS_FOLDER Folder where we put result. Do not change existed files except
+      authors merge if necessary.
 
-      Documentation https://andgineer.github.io/goodreads-export/
+      See details in https://andgineer.github.io/goodreads-export/
 
     Options:
-      -i, --in TEXT  Goodreads export file. By default
-                     `goodreads_library_export.csv`. if you specify just folder it
-                     will look for file with this name in that folder.
-      --help         Show this message and exit.
+      -v, --verbose                Increase verbosity.
+      -t, --templates-folder PATH  Folder with templates. If not absolute it's
+                                   relative to `BOOKS_FOLDER`. If not specified,
+                                   look for `./templates` in `BOOKS_FOLDER`. If
+                                   not found use built-in templates, see
+                                   `--builtin-name`.
+      -b, --builtin-name TEXT      Name of the built-in template. Use `default` if
+                                   not specified.
+      -i, --in TEXT                Goodreads export file. By default
+                                   `goodreads_library_export.csv`. if you specify
+                                   just folder it will look for file with this
+                                   name in that folder.
+      --help                       Show this message and exit.
 
 If we run in the folder with goodreads export file (goodreads_library_export.csv) the
 script without parameters, like that
 
-    goodreads-export import
+    goodreads-export import .
 
 It will create in this folder subfolders `reviws`, `toread`, `authors` with the md-files.
-If you copy them into Obsidian vault, the files will be inside your Obsidian knowledgebase.
+Alternatively you can specify direct path inside Obsidian vault with your books folder
+and the application will update it.
 
 # source code
 
