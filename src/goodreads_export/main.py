@@ -1,5 +1,6 @@
 """Create md-files from https://www.goodreads.com/ CSV export."""
 import os
+import shutil
 import sys
 from pathlib import Path
 from typing import Optional
@@ -279,6 +280,46 @@ def merge(
         print(
             f"Renamed {library.stat.authors_renamed} authors.",
         )
+    except Exception as exc:  # pylint: disable=broad-except
+        print(f"\n{exc}")
+        sys.exit(1)
+
+
+@main.command()
+@BOOKS_FOLDER_OPTIONAL_OPTION
+@VERBOSE_OPTION
+@TEMPLATES_FOLDER_OPTION
+@BUILTIN_TEMPLATES_NAME_OPTION
+def init(
+    verbose: bool,
+    books_folder: Optional[Path],
+    templates_folder: Path,
+    builtin_name: Optional[str],
+) -> None:
+    """Create templates folder in path from `--templates-folder`.
+
+    Copy the templates from built-ins specified in `--builtin-name`.
+
+    See https://andgineer.github.io/goodreads-export/ for details.
+    """
+    try:
+        if books_folder is None and templates_folder is None:
+            raise ValueError("You should specify `BOOKS_FOLDER` or `--templates-folder`")
+        if books_folder is not None and templates_folder is None:
+            templates_folder = Path(DEFAULT_TEMPLATES_FOLDER)
+        if templates_folder is not None and not templates_folder.is_absolute():
+            if books_folder is None:
+                raise ValueError(
+                    f"To use relative templates folder `{templates_folder}` is necessary `BOOKS_FOLDER`."
+                )
+            templates_folder = books_folder / templates_folder
+        if templates_folder.exists():
+            raise ValueError(f"Templates folder `{templates_folder}` already exists.")
+        if builtin_name is None:
+            builtin_name = DEFAULT_BUILTIN_TEMPLATE
+        log = Log(verbose)
+        shutil.copytree(str(TemplatesLoader.builtin_folder(builtin_name)), templates_folder)
+        log.info(f"Built-in templates `{builtin_name}` copied to `{templates_folder}`")
     except Exception as exc:  # pylint: disable=broad-except
         print(f"\n{exc}")
         sys.exit(1)

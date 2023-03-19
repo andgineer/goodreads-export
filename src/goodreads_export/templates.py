@@ -206,13 +206,19 @@ class TemplatesLoader:  # pylint: disable=too-few-public-methods
         From the package data folder `templates`.
         Raise exception if no such template.
         """
+        folder = self.builtin_folder(builtin_name)
+        return self.load_folder(folder)
+
+    @classmethod
+    def builtin_folder(cls, builtin_name: str) -> Traversable:
+        """Folder with built-in template."""
         templates_resource = files(__package__).joinpath(TEMPLATES_PACKAGE_DATA_FOLDER)
-        folder = templates_resource.joinpath(builtin_name)
-        if folder.is_dir():
-            return self.load_folder(folder)
+        templates_folder = templates_resource.joinpath(builtin_name)
+        if templates_folder.is_dir():
+            return templates_folder
         raise ValueError(
-            f"No such built-in template: `{builtin_name}`. "
-            f"Existed templates: {list(folder.iterdir())}."
+            f"No such built-in template: `{builtin_name}`.\n"
+            f"Existed templates: {[folder.name for folder in templates_resource.iterdir()]}."
         )
 
     def load_folder(self, folder: Union[Traversable, Path]) -> TemplateSet:
