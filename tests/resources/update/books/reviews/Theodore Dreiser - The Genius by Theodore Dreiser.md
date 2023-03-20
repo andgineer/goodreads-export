@@ -6,6 +6,6 @@ review 3.
 line 2.  
 
 
-[Search in Calibre](calibre://search/_?q=The+Genius+by+Theodore+Dreiser)
+[Calibre](calibre://search/_?q=The+Genius+by+Theodore+Dreiser)
 
 #book/english #book/fiction #book/book #book/rating4

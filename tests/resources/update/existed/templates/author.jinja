@@ -1,0 +1,16 @@
+{{ author.name }}.md
+
+{%
+        set search_params = urlencode(
+            {
+                "utf8": "✓",
+                "q": author.name,
+                "search_type": "books",
+                "search[field]": "author",
+            }
+        )
+-%}
+[{{ author.name }}](https://www.goodreads.com/search?{{ search_params }})
+
+#book/author
+

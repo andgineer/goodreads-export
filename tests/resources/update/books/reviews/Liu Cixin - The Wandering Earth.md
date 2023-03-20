@@ -6,6 +6,6 @@ review 1.
 line 2.  
 "double quoted"
 
-[Search in Calibre](calibre://search/_?q=The+Wandering+Earth)
+[Calibre](calibre://search/_?q=The+Wandering+Earth)
 
 #book/audio #book/fiction #book/book #book/rating2

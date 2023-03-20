@@ -1,0 +1,16 @@
+{{ author.name }} - {{ book.title }}.md
+
+[[{{ author.file_link }}]]: [{{ book.title }}](https://www.goodreads.com/book/show/{{ book.book_id }})
+ISBN{{ book.isbn }} (ISBN13{{ book.isbn13 }})
+{%- if book.series %}
+{% for series in book.series -%}
+[[{{ series.file_link }}]]{{ "" if loop.last else " "}}
+{%- endfor -%}
+{% endif %}
+
+{{ book.review }}
+
+[Calibre](calibre://search/_?{{ urlencode({"q": book.title}) }})
+
+{{ " ".join(book.tags) }}
+

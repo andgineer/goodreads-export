@@ -1,0 +1,27 @@
+# to parse old versions you can add additional reqexs like that
+# [[author-names]], [[regex.review.goodreads-link]] etc
+
+[[regex.author.names]]
+regex = '''
+\[([^]]*)\]\(https://www\.goodreads\.com/search\?utf8=%E2%9C%93&q=[^&]*&search_type=books&search%5Bfield%5D=author\)
+'''
+name_group = 1  # index of regex group that return author name
+
+
+[[regex.book.goodreads-link]]
+regex = '\[\[([^]]+)\]\](: \[([^]]*)\]\(https://www\.goodreads\.com/book/show/(\d+)\))'
+book_id_group = 4
+title_group = 3
+author_group = 1
+
+[[regex.book.series]]
+regex = '\[\[[^-]* - ([^-]*) - series\]\]'
+series_group = 1
+
+[[regex.series.file-name]]
+regex = '.* - .* - series\.md$'
+
+[[regex.series.content]]
+regex = '\[\[([^]]+)\]\][.\s]*\[([^]]+)\]\(https://www\.goodreads\.com/search\?[^)]+\)'
+author_group = 1
+title_group = 2
