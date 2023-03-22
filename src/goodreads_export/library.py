@@ -31,7 +31,11 @@ class Library:
         log: Optional[Log] = None,
         templates: Optional[TemplateSet] = None,
     ) -> None:
-        """Initialize."""
+        """Initialize.
+
+        Without `folder` works in detached mode as base for file objects without ability to create files,
+        just to access templates.
+        """
         self.folder = folder
         self.log = log or Log()
         self.templates = templates or TemplatesLoader().load_builtin()
@@ -68,14 +72,14 @@ class Library:
                     and (author := self.authors[author_name]) != primary_author
                 ):
                     self.log.debug(
-                        f"Author {primary_author.name} has synonim {author.name} to merge"
+                        f"Author {primary_author.name} has synonym {author.name} to merge"
                     )
                     self.stat.authors_renamed += 1
                     primary_author.merge(self.authors[author_name])
                     self.authors[author_name] = primary_author
 
     def dump(self, books: GoodreadsBooks) -> None:
-        """Save books and authors as md-files."""
+        """Save library in files."""
         for subfolder in SUBFOLDERS.values():
             assert self.folder is not None  # for mypy
             os.makedirs(self.folder / subfolder, exist_ok=True)

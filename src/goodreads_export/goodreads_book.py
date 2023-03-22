@@ -1,6 +1,6 @@
 """Read goodreads export."""
 import re
-from typing import List, Optional
+from typing import List
 
 import markdownify
 import pandas as pd
@@ -47,13 +47,10 @@ class Book:  # pylint: disable=too-few-public-methods,too-many-instance-attribut
 class GoodreadsBooks(List[Book]):
     """List of books from goodreads export."""
 
-    def __init__(self, csv_file: Optional[str]) -> None:
+    def __init__(self, csv_file: str) -> None:
         """Load books from goodreads export."""
-        if csv_file is None:
-            super().__init__()
-        else:
-            books_df = self.load_reviews(csv_file)
-            super().__init__([Book(row) for _, row in books_df.iterrows()])
+        books_df = self.load_reviews(csv_file)
+        super().__init__([Book(row) for _, row in books_df.iterrows()])
 
     @staticmethod
     def load_reviews(csv_file: str) -> pd.DataFrame:

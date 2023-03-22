@@ -28,5 +28,5 @@ class AuthoredFile(DataFile, ABC):
         old_author_link = self.author.file_link
         self.author = self.library.get_author(new_author)
         self._file_name = None  # to force re-rendering
-        self.content = self.content.replace(old_author_link, self.author.file_link)
+        self._content = self.content.replace(old_author_link, self.author.file_link)
         self.write()
