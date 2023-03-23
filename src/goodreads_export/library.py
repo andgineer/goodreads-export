@@ -79,7 +79,7 @@ class Library:
                     self.authors[author_name] = primary_author
 
     def dump(self, books: GoodreadsBooks) -> None:
-        """Save library in files."""
+        """Save `books` to the library files."""
         for subfolder in SUBFOLDERS.values():
             assert self.folder is not None  # for mypy
             os.makedirs(self.folder / subfolder, exist_ok=True)
