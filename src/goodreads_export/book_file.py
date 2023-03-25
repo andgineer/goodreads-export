@@ -67,9 +67,6 @@ class BookFile(AuthoredFile):  # pylint: disable=too-many-instance-attributes
         """Parse file content."""
         if self._content is None:
             return
-        self.book_id = None
-        self.title = None
-        self.author = None
         self.series_titles = []
         if book_regex := self._get_template().goodreads_link_regexes.choose_regex(self._content):
             link_match = book_regex.compiled.search(self._content)
@@ -77,6 +74,10 @@ class BookFile(AuthoredFile):  # pylint: disable=too-many-instance-attributes
             self.book_id = link_match[book_regex.book_id_group]
             self.title = link_match[book_regex.title_group]
             self.author = self.library.get_author(link_match[book_regex.author_group])
+        else:
+            raise ValueError(
+                f"Cannot extract book information from file content:\n{self._content}"
+            )
         if series_regex := self._get_template().series_regexes.choose_regex(self._content):
             self.series_titles = [
                 series_match[series_regex.series_group]
@@ -144,7 +145,6 @@ class BookFile(AuthoredFile):  # pylint: disable=too-many-instance-attributes
         """
         book_id = self.book_id
         title = self.title
-        assert self.author is not None  # to please mypy
         author_name = self.author.name
         series_titles = self.series_titles
         self.content = self.render_body()

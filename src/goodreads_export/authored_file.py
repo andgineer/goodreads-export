@@ -11,12 +11,13 @@ if TYPE_CHECKING:
 class AuthoredFile(DataFile, ABC):
     """Authored data file."""
 
-    author: Optional["AuthorFile"]
+    author: "AuthorFile"
 
     def __init__(self, *, author: Optional["AuthorFile"] = None, **kwargs: Any) -> None:
         """Set fields from args."""
         super().__init__(**kwargs)
-        self.author = author
+        if author is not None:
+            self.author = author
 
     def rename_author(self, new_author: str) -> None:
         """Rename author.
@@ -24,7 +25,6 @@ class AuthoredFile(DataFile, ABC):
         We do not re-render the file fully to keep intact possible user changes in it.
         """
         self.delete_file()
-        assert self.author is not None  # to please mypy
         old_author_link = self.author.file_link
         self.author = self.library.get_author(new_author)
         self._file_name = None  # to force re-rendering

@@ -206,23 +206,24 @@ class Library:
         dummy_book = BookFile(library=Library(), author=dummy_author, title="title")
         dummy_series = SeriesFile(library=Library(), author=dummy_author, title="title")
         for file_name in folder.glob(f"*{dummy_book.file_name.suffix}"):
-            book = BookFile(  # also create author file if not yet existed
-                library=self,
-                folder=folder,
-                file_name=Path(file_name.name),
-                content=file_name.read_text(encoding="utf8"),
-            )
-            if book.book_id is None or book.author is None:
-                if not dummy_series.is_file_name(file_name):
-                    self.stat.skipped_unknown_files += 1
-            elif book.book_id in books:
-                raise ValueError(
-                    f"Duplicate book ID {book.book_id} in {file_name} "
-                    f"and {books[book.book_id].file_name}"
+            try:
+                book = BookFile(  # also create author file if not yet existed
+                    library=self,
+                    folder=folder,
+                    file_name=Path(file_name.name),
+                    content=file_name.read_text(encoding="utf8"),
                 )
-            else:
+                if book.book_id in books:
+                    raise ValueError(
+                        f"Duplicate book ID {book.book_id} in {file_name} "
+                        f"and {books[book.book_id].file_name}"
+                    )
+                assert book.book_id is not None  # to please mypy
                 books[book.book_id] = book
                 authors[book.author.name].books.append(book)
+            except ValueError:
+                if not dummy_series.is_file_name(file_name):
+                    self.stat.skipped_unknown_files += 1
         return books
 
     def load_authors(self, folder: Path) -> Dict[str, AuthorFile]:
