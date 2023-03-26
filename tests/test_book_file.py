@@ -4,7 +4,7 @@ from unittest.mock import patch
 import pytest
 
 import goodreads_export.book_file
-from goodreads_export.book_file import BookFile
+from goodreads_export.book_file import BookFile, ParseError
 from goodreads_export.library import Library
 
 
@@ -14,7 +14,7 @@ def test_book_file_initial_nonbook_content(book_markdown):
     author = library.get_author(name=initial_author)
     initial_content = "Content"
     file_name = "123 - Title - Author.md"
-    with pytest.raises(ValueError):
+    with pytest.raises(ParseError):
         BookFile(
             library=library,
             file_name=Path(file_name),
@@ -24,16 +24,47 @@ def test_book_file_initial_nonbook_content(book_markdown):
             content=initial_content,
         )
 
+
+def test_book_file_content_assign(book_markdown):
+    library = Library()
+    initial_author = "Author"
+    author = library.get_author(name=initial_author)
+    file_name = Path("123 - Title - Author.md")
+    book_id = "123"
+    title = "Title"
     book_file = BookFile(
         library=library,
-        file_name=Path(file_name),
-        book_id="123",
-        title="Title",
+        file_name=file_name,
+        book_id=book_id,
+        title=title,
         author=author,
-        content=book_markdown,
     )
+    book_file.content = book_markdown
     assert book_file.author.name not in [initial_author, ""]
-    assert f"[[{book_file.author.name}]]" in book_markdown
+    assert f"[[{book_file.author.file_link}]]" in book_markdown
+    assert book_file.book_id != book_id
+    assert book_file.title != title
+    assert book_file.file_name == file_name
+
+
+def test_book_file_without_content(book_markdown):
+    library = Library()
+    initial_author = "Author"
+    author = library.get_author(name=initial_author)
+    file_name = Path("123 - Title - Author.md")
+    book_id = "123"
+    title = "Title"
+    book_file = BookFile(
+        library=library,
+        file_name=file_name,
+        book_id=book_id,
+        title=title,
+        author=author,
+    )
+    assert book_file.author.name == initial_author
+    assert book_file.file_name == file_name
+    assert book_file.book_id == book_id
+    assert book_file.title == title
 
 
 def test_book_file_initial_book_content(book_markdown):
@@ -53,33 +84,10 @@ def test_book_file_initial_book_content(book_markdown):
     assert book_file._file_name == file_name
     assert f"www.goodreads.com/book/show/{book_file.book_id}" in content
     assert f"[{book_file.title}]" in content
-    assert f"[[{book_file.author.name}]]: " in content
+    assert f"[[{book_file.author.file_link}]]: " in content
     assert book_file.file_name == file_name
     assert book_file.content == content
     assert book_file.author.name not in [initial_author, ""]
-
-
-def test_book_file_defaults_from_content(book_markdown):
-    library = Library()
-    initial_author = "Author"
-    author = library.get_author(name=initial_author)
-    initial_content = book_markdown
-    file_name = "123 - Title - Author.md"
-    book_file = BookFile(
-        library=library,
-        file_name=Path(file_name),
-        content=initial_content,
-        title="Title",
-        author=author,
-    )
-    assert f"www.goodreads.com/book/show/{book_file.book_id}" in initial_content
-    assert f"[{book_file.title}]" in initial_content
-    assert f"[[{book_file.author.name}]]: " in initial_content
-    assert str(book_file.file_name) == file_name
-    assert book_file.content == initial_content
-    assert book_file.author.name != initial_author
-    assert f"www.goodreads.com/book/show/{book_file.book_id}" in book_markdown
-    assert f"[{book_file.title}]" in book_markdown
 
 
 def test_book_file_duplicate_name(book_markdown):
@@ -110,7 +118,7 @@ def test_book_file_duplicate_name(book_markdown):
         goodreads_export.book_file.Path, "open"
     ):
         book_file.write()
-    assert book_file.file_name == renamed_filename  # do not add IT int the file name twice
+    assert book_file.file_name == renamed_filename  # do not add book_id into the file name twice
 
 
 def test_book_file_check():

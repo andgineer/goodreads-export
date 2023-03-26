@@ -9,6 +9,10 @@ if TYPE_CHECKING:
     from goodreads_export.library import Library
 
 
+class ParseError(Exception):
+    """Error parsing content."""
+
+
 class DataFile:
     """Object stored in the file."""
 

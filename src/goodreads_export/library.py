@@ -5,6 +5,7 @@ from typing import Dict, Optional
 
 from goodreads_export.author_file import AuthorFile
 from goodreads_export.book_file import BookFile
+from goodreads_export.data_file import ParseError
 from goodreads_export.goodreads_book import Book, GoodreadsBooks
 from goodreads_export.log import Log
 from goodreads_export.series_file import SeriesFile
@@ -179,13 +180,14 @@ class Library:
         dummy_series = SeriesFile(library=Library(), author=dummy_author, title="title")
         for file_name in folder.glob(f"*{dummy_series.file_name.suffix}"):
             if dummy_series.is_file_name(file_name):
-                series = SeriesFile(
-                    library=self,
-                    folder=folder,
-                    file_name=Path(file_name.name),
-                    content=file_name.read_text(encoding="utf8"),
-                )
-                if series.author is None:
+                try:
+                    series = SeriesFile(
+                        library=self,
+                        folder=folder,
+                        file_name=Path(file_name.name),
+                        content=file_name.read_text(encoding="utf8"),
+                    )
+                except ParseError:
                     self.log.info(f"Series file {file_name} has no author name")
                     continue
                 if series.author.name not in authors:
@@ -221,7 +223,7 @@ class Library:
                 assert book.book_id is not None  # to please mypy
                 books[book.book_id] = book
                 authors[book.author.name].books.append(book)
-            except ValueError:
+            except ParseError:
                 if not dummy_series.is_file_name(file_name):
                     self.stat.skipped_unknown_files += 1
         return books

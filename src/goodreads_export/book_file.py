@@ -5,6 +5,7 @@ from pathlib import Path
 from typing import Any, Dict, List, Optional
 
 from goodreads_export.authored_file import AuthoredFile
+from goodreads_export.data_file import ParseError
 from goodreads_export.series_file import SeriesFile
 from goodreads_export.templates import BookTemplate
 
@@ -75,7 +76,7 @@ class BookFile(AuthoredFile):  # pylint: disable=too-many-instance-attributes
             self.title = link_match[book_regex.title_group]
             self.author = self.library.get_author(link_match[book_regex.author_group])
         else:
-            raise ValueError(
+            raise ParseError(
                 f"Cannot extract book information from file content:\n{self._content}"
             )
         if series_regex := self._get_template().series_regexes.choose_regex(self._content):
@@ -152,7 +153,6 @@ class BookFile(AuthoredFile):  # pylint: disable=too-many-instance-attributes
         is_title_parsed = self.title == title
         is_author_parsed = self.author.name == author_name
         is_series_parsed = self.series_titles == series_titles
-        # assert book_file.series == ['']
         if not is_author_parsed:
             print(f"Author name {author_name} is not parsed from content\n{self.content}")
             print(f"using the pattern\n{self._get_template().goodreads_link_regexes[0].regex}")

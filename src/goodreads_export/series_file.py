@@ -4,6 +4,7 @@ from pathlib import Path
 from typing import Any, Dict, List, Optional, Union
 
 from goodreads_export.authored_file import AuthoredFile
+from goodreads_export.data_file import ParseError
 from goodreads_export.templates import SeriesTemplate
 
 
@@ -33,13 +34,15 @@ class SeriesFile(AuthoredFile):
     def parse(self) -> None:
         """Parse file content."""
         if self._content is not None:
-            self.title = None
-            self.author = None
             if regex := self._get_template().content_regexes.choose_regex(self._content):
                 match = regex.compiled.search(self._content)
                 assert match  # to make mypy happy
                 self.title = match[regex.title_group]
                 self.author = self.library.get_author(match[regex.author_group])
+            else:
+                raise ParseError(
+                    f"Cannot extract series information from file content:\n{self._content}"
+                )
 
     def is_file_name(self, file_name: Union[str, Path]) -> bool:
         """Return True if file name if indicate this is series description file."""
