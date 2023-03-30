@@ -1,13 +1,12 @@
 # Goodreads export to markdown files
 
-Export your goodreads book reviews into markdown files.
-Also creates author markdown files connected to the review.
+Export your goodreads book reviews into markdown files using jinja templates.
 
-In review files there are also links to the goodreads' book page and
-[Calibre](https://calibre-ebook.com/) URL to search
-for this book in your local Calibre collection.
-
-The application add tags based on your `shelves`.
+In the current templates:
+- links to the goodreads' book pages
+- [Calibre](https://calibre-ebook.com/) URL to search
+for this book in your local Calibre collection
+- tags based on your `shelves`
 
 This is how that looks like in [Obsidian](https://obsidian.md/):
 
@@ -39,25 +38,17 @@ Unfortunately with this manual export step included.
 
 ### Incremental updates
 
-Application can add reviews to already existed files.
+Application can add reviews to folder with already existed files.
 
 It reads files from the folders and won't create reviews that are already there.
 This is possible because there are goodreads book ID in the markdown files - inside link to goodreads.
 
-So even if you rename the file the application still know what book it is about thanks to the
-goodreads link inside the file. This links created by the application and all you have to do
-just do not delete or modify them.
+If you do not remove this link with ID, even if you rename the file the application still
+know what book it is about.
 
 #### Author files
 
-Unfortunately there are no author ID in the goodreads export file.
-
-Despite that the application add to author files link for search on goodreads, with the author
-name inside the link.
-
-So if you just rename the file, application still will know the original
-author name from the link.
-Of cause you should not delete or modify the link.
+Please do not delete or modify link inside the files, application use them as author IDs.
 
 Author name is always get from the link and not from the author file name.
 
@@ -66,20 +57,20 @@ Author name is always get from the link and not from the author file name.
 In goodreads could be a lot of different spellings of the author name plus versions in
 different languages.
 
-With this application you can merge them so you will have one list of all author book.
+With this application you can merge them.
 
-For that all author name versions should be listed as links in one author file -
-just copy them from other author files to that `primary` author file.
+For that all author names should be listed as links in one author file -
+just copy them from other author files.
+This file with all author names is `primary` author file.
+
 First link should contain `primary` name.
+Application will relink all existed and newly created books to the `primary` name.
 
-Application will relink all existed and newly created books with other author names
-in this file to this `primary` name.
-
-If you need only this re-link without importing goodreads file use option `--merge`.
+If you need re-link only without importing goodreads file use option `--merge`.
 
 #### Templates
 
-The application use templates that you can modify.
+The application use jinja templates that you can modify.
 Use `init` command to copy built-in templates to some folder and modify them.
 
 ### Installation
