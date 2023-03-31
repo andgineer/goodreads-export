@@ -1,9 +1,9 @@
-"""Loading statistics."""
+"""Work statistics."""
 from typing import Set
 
 
 class Stat:  # pylint: disable=too-few-public-methods
-    """Loading statistics."""
+    """Work statistics."""
 
     books_added: int = 0
     authors_added: int = 0

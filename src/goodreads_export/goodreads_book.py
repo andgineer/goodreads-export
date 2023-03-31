@@ -1,4 +1,4 @@
-"""Read goodreads export."""
+"""Goodreads export CSV parser."""
 import re
 from typing import List
 

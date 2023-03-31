@@ -37,4 +37,4 @@ Github actin will automatically update the pip package on pypi.org
 
 Documentation generated from source code.
 
-[reference](docstrings/)
+[reference](https://andgineer.github.io/goodreads-export/docstrings/)

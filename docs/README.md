@@ -73,6 +73,8 @@ If you need re-link only without importing goodreads file use option `--merge`.
 The application use jinja templates that you can modify.
 Use `init` command to copy built-in templates to some folder and modify them.
 
+In `regex.toml` are specified regexes to extract data from file.
+
 ### Installation
 
     pip install goodreads-export
@@ -85,15 +87,7 @@ It will install Linux or Windows script `goodreads-export`.
 
     Usage: goodreads-export [OPTIONS] COMMAND [ARGS]...
 
-      Create md-files from https://www.goodreads.com/ CSV export.
-
-      For example, you can create nice structure in Obsidian.
-
-      How to create goodreads export see in
-      https://www.goodreads.com/review/import
-
-      They declare it to be removed by August 2022, but at least in the 2023 it
-      still works.
+      Create markdown files from https://www.goodreads.com/ CSV export.
 
       Documentation https://andgineer.github.io/goodreads-export/
 

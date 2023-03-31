@@ -1,4 +1,4 @@
-"""Create md-files from https://www.goodreads.com/ CSV export."""
+"""Command line interface."""
 import os
 import shutil
 import sys
@@ -136,14 +136,7 @@ def load_templates(
     nargs=1,
 )
 def main(ctx: click.Context, version: bool) -> None:
-    """Create md-files from https://www.goodreads.com/ CSV export.
-
-    For example, you can create nice structure in Obsidian.
-
-    How to create goodreads export see in https://www.goodreads.com/review/import
-
-    They declare it to be removed by August 2022,
-    but at least in the 2023 it still works.
+    """Create markdown files from https://www.goodreads.com/ CSV export.
 
     Documentation https://andgineer.github.io/goodreads-export/
 

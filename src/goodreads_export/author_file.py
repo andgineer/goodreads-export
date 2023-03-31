@@ -1,4 +1,4 @@
-"""Author's file."""  # pylint: disable=duplicate-code
+"""Author's object."""
 import urllib.parse
 from typing import TYPE_CHECKING, Any, Dict, Optional
 
@@ -11,7 +11,7 @@ if TYPE_CHECKING:
 
 
 class AuthorFile(DataFile):
-    """Author's file.
+    """Author's object.
 
     On init extract fields from `content` - override name(s).
     To re-parse the `content` call `parse()`.

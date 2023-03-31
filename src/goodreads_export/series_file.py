@@ -1,4 +1,4 @@
-"""Series file."""
+"""Series object."""
 import urllib.parse
 from pathlib import Path
 from typing import Any, Dict, List, Optional, Union
@@ -9,7 +9,7 @@ from goodreads_export.templates import SeriesTemplate
 
 
 class SeriesFile(AuthoredFile):
-    """Series' file."""
+    """Series' object."""
 
     title: Optional[str]
 

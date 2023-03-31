@@ -1,4 +1,4 @@
-"""Book's file."""
+"""Book's object."""
 import os
 import urllib.parse
 from pathlib import Path
@@ -11,7 +11,7 @@ from goodreads_export.templates import BookTemplate
 
 
 class BookFile(AuthoredFile):  # pylint: disable=too-many-instance-attributes
-    """Book's markdown file.
+    """Book's object.
 
     On init extract fields from `content` - override other parameters.
     To re-parse the `content` call `parse()`.

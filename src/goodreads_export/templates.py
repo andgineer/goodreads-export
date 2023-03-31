@@ -1,4 +1,4 @@
-"""Templates for the Goodreads Exporter."""
+"""Templates."""
 import re
 from dataclasses import dataclass, field
 from importlib.abc import Traversable
