@@ -2,10 +2,10 @@
 [![Coverage Status](https://coveralls.io/repos/github/andgineer/goodreads-export/badge.svg?branch=main)](https://coveralls.io/github/andgineer/goodreads-export?branch=main)
 # Export goodreads books into markdown files (Obsidian etc)
 
-![goodreads.png](docs/goodreads.png)
-![goodreads-author.png](docs/goodreads-author.png)
+![goodreads.png](https://andgineer.github.io/goodreads-export/goodreads.png)
+![goodreads-author.png](https://andgineer.github.io/goodreads-export/goodreads-author.png)
 
-# Documentation
+# User manual
 
 [goodreads-export](https://andgineer.github.io/goodreads-export/)
 
