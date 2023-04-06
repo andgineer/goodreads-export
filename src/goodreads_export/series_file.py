@@ -58,7 +58,6 @@ class SeriesFile(AuthoredFile):
         Create file from fields and after that parse it and compare parsed values with the initial fields
         """
         title = self.title
-        assert self.author is not None  # to please mypy
         author_name = self.author.name
         self.content = self.render_body()
         is_title_parsed = self.title == title
