@@ -14,10 +14,10 @@ class AuthoredFile(DataFile, ABC):
     author: "AuthorFile"
 
     def __init__(self, *, author: Optional["AuthorFile"] = None, **kwargs: Any) -> None:
-        """Set fields from args."""
-        super().__init__(**kwargs)
+        """Parse content if provided."""
         if author is not None:
             self.author = author
+        super().__init__(**kwargs)
 
     def rename_author(self, new_author: str) -> None:
         """Rename author.

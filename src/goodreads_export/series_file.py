@@ -14,10 +14,9 @@ class SeriesFile(AuthoredFile):
     title: Optional[str]
 
     def __init__(self, *, title: Optional[str] = None, **kwargs: Any) -> None:
-        """Extract fields from content."""
-        super().__init__(**kwargs)
+        """Set fields from args. Rewrite them from content if provided."""
         self.title = title
-        self.parse()
+        super().__init__(**kwargs)
 
     def _get_template(self) -> SeriesTemplate:
         """Template."""
@@ -33,16 +32,16 @@ class SeriesFile(AuthoredFile):
 
     def parse(self) -> None:
         """Parse file content."""
-        if self._content is not None:
-            if regex := self._get_template().content_regexes.choose_regex(self._content):
-                match = regex.compiled.search(self._content)
-                assert match  # to make mypy happy
-                self.title = match[regex.title_group]
-                self.author = self.library.get_author(match[regex.author_group])
-            else:
-                raise ParseError(
-                    f"Cannot extract series information from file content:\n{self._content}"
-                )
+        assert self._content is not None  # to make mypy happy
+        if regex := self._get_template().content_regexes.choose_regex(self._content):
+            match = regex.compiled.search(self._content)
+            assert match  # to make mypy happy
+            self.title = match[regex.title_group]
+            self.author = self.library.get_author(match[regex.author_group])
+        else:
+            raise ParseError(
+                f"Cannot extract series information from file content:\n{self._content}"
+            )
 
     def is_file_name(self, file_name: Union[str, Path]) -> bool:
         """Return True if file name if indicate this is series description file."""

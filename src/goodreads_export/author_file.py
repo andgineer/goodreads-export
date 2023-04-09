@@ -13,9 +13,7 @@ if TYPE_CHECKING:
 class AuthorFile(DataFile):
     """Author's object.
 
-    On init extract fields from `content` - override name(s).
-    To re-parse the `content` call `parse()`.
-    `render()` generate `content` from fields.
+    On init extract `names` from `content` if defined.
     """
 
     name: str  # primary author name
@@ -32,13 +30,12 @@ class AuthorFile(DataFile):
         books: Optional[list["BookFile"]] = None,
         **kwargs: Any,
     ) -> None:  # pylint: disable=unused-argument
-        """Extract fields from content."""
-        super().__init__(**kwargs)
+        """Set fields from args. Rewrite them from content if provided."""
         self.name = name
         self.names = names or []
         self.series = series or SeriesList()
         self.books = books or []
-        self.parse()
+        super().__init__(**kwargs)
 
     def _get_template(self) -> AuthorTemplate:
         """Template."""
@@ -58,13 +55,13 @@ class AuthorFile(DataFile):
 
         self.names is [] and no change in self.name if no names found in content.
         """
-        if self._content is not None:
-            self.names = []
-            if regex := self._get_template().names_regexes.choose_regex(self._content):
-                self.names = [
-                    match[regex.name_group] for match in regex.compiled.finditer(self._content)
-                ]
-                self.name = self.names[0]  # first name is primary
+        assert self._content is not None  # to make mypy happy
+        self.names = []
+        if regex := self._get_template().names_regexes.choose_regex(self._content):
+            self.names = [
+                match[regex.name_group] for match in regex.compiled.finditer(self._content)
+            ]
+            self.name = self.names[0]  # first name is primary
 
     def render_body(self) -> str:
         """Render file body."""

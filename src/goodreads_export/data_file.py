@@ -34,7 +34,7 @@ class DataFile:
         self.library = library
         self.folder = folder
         self._file_name = file_name
-        self._content = content
+        self.content = content  # type: ignore  # setter could handle None
 
     def _get_template(self) -> FileTemplate:
         """Template."""
@@ -83,10 +83,11 @@ class DataFile:
         return self._content
 
     @content.setter
-    def content(self, content: str) -> None:
+    def content(self, content: Optional[str]) -> None:
         """Set content and parse it."""
         self._content = content
-        self.parse()
+        if content is not None:
+            self.parse()
 
     def delete_file(self) -> None:
         """Delete the series file."""

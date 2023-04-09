@@ -11,12 +11,7 @@ from goodreads_export.templates import BookTemplate
 
 
 class BookFile(AuthoredFile):  # pylint: disable=too-many-instance-attributes
-    """Book's object.
-
-    On init extract fields from `content` - override other parameters.
-    To re-parse the `content` call `parse()`.
-    `render()` generate `content` from fields.
-    """
+    """Book's object."""
 
     title: Optional[str]
     book_id: Optional[str]
@@ -40,8 +35,7 @@ class BookFile(AuthoredFile):  # pylint: disable=too-many-instance-attributes
         series_titles: Optional[List[str]] = None,
         **kwargs: Any,
     ) -> None:
-        """Init."""
-        super().__init__(**kwargs)
+        """Set fields from args. Rewrite them from content if provided."""
         self.title = title
         self.book_id = book_id
         self.tags = tags or []
@@ -50,7 +44,7 @@ class BookFile(AuthoredFile):  # pylint: disable=too-many-instance-attributes
         self.isbn13 = isbn13
         self.review = review
         self.series_titles = series_titles or []
-        self.parse()
+        super().__init__(**kwargs)
 
     def _get_template(self) -> BookTemplate:
         """Template."""
@@ -66,8 +60,7 @@ class BookFile(AuthoredFile):  # pylint: disable=too-many-instance-attributes
 
     def parse(self) -> None:
         """Parse file content."""
-        if self._content is None:
-            return
+        assert self._content is not None  # to make mypy happy
         self.series_titles = []
         if book_regex := self._get_template().goodreads_link_regexes.choose_regex(self._content):
             link_match = book_regex.compiled.search(self._content)
