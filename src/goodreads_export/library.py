@@ -215,12 +215,12 @@ class Library:
                     file_name=Path(file_name.name),
                     content=file_name.read_text(encoding="utf8"),
                 )
+                assert book.book_id is not None, "Book ID is None for file {file_name}"
                 if book.book_id in books:
                     raise ValueError(
                         f"Duplicate book ID {book.book_id} in {file_name} "
                         f"and {books[book.book_id].file_name}"
                     )
-                assert book.book_id is not None  # to please mypy
                 books[book.book_id] = book
                 authors[book.author.name].books.append(book)
             except ParseError:

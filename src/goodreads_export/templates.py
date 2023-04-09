@@ -90,7 +90,6 @@ class RegExList(List[RegExSubClass]):
         """Choose regex that matches the content."""
         if content is not None:
             for regex in self:
-                assert regex.compiled is not None  # to please mypy
                 if regex.compiled.search(content) is not None:
                     assert issubclass(regex.__class__, RegEx)
                     return regex

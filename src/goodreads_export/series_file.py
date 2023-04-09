@@ -11,11 +11,12 @@ from goodreads_export.templates import SeriesTemplate
 class SeriesFile(AuthoredFile):
     """Series' object."""
 
-    title: Optional[str]
+    title: str
 
     def __init__(self, *, title: Optional[str] = None, **kwargs: Any) -> None:
         """Set fields from args. Rewrite them from content if provided."""
-        self.title = title
+        if title is not None:
+            self.title = title
         super().__init__(**kwargs)
 
     def _get_template(self) -> SeriesTemplate:
@@ -32,10 +33,13 @@ class SeriesFile(AuthoredFile):
 
     def parse(self) -> None:
         """Parse file content."""
-        assert self._content is not None  # to make mypy happy
+        assert self._content is not None, "Cannot parse None content"
         if regex := self._get_template().content_regexes.choose_regex(self._content):
             match = regex.compiled.search(self._content)
-            assert match  # to make mypy happy
+            assert match, (
+                "impossible happened: after successfull `search` in "
+                "`choose_regex` got `None` for search with same params"
+            )
             self.title = match[regex.title_group]
             self.author = self.library.get_author(match[regex.author_group])
         else:
@@ -68,7 +72,6 @@ class SeriesFile(AuthoredFile):
             print(f"Author name {author_name} is not parsed from content\n{self.content}")
             print(f"using the pattern\n{self._get_template().content_regexes[0].regex}")
         series_file_name = self.file_name
-        assert series_file_name is not None  # to please mypy
         is_file_name = self.is_file_name(series_file_name)
         if not is_file_name:
             print(f"Series file name {series_file_name} is not recognized")

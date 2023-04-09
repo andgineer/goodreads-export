@@ -55,7 +55,7 @@ class AuthorFile(DataFile):
 
         self.names is [] and no change in self.name if no names found in content.
         """
-        assert self._content is not None  # to make mypy happy
+        assert self._content is not None, "Cannot parse None content"
         self.names = []
         if regex := self._get_template().names_regexes.choose_regex(self._content):
             self.names = [
