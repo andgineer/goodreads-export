@@ -118,8 +118,9 @@ def load_templates(
             templates_folder = books_folder / templates_folder
         if builtin_templates_name is not None:
             return TemplatesLoader().load_builtin(builtin_templates_name)
-        assert templates_folder is not None  # for mypy
-        return TemplatesLoader().load_folder(templates_folder)
+        return TemplatesLoader().load_folder(
+            templates_folder  # type: ignore  # mypy bug, if templates folder is None we exit earlier
+        )
     except Exception as exc:  # pylint: disable=broad-except
         log.error(f"Error loading templates: {exc}")
         sys.exit(1)

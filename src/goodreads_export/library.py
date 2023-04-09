@@ -82,7 +82,7 @@ class Library:
     def dump(self, books: GoodreadsBooks) -> None:
         """Save `books` to the library files."""
         for subfolder in SUBFOLDERS.values():
-            assert self.folder is not None  # for mypy
+            assert self.folder is not None, "Cannot save books to None folder"
             os.makedirs(self.folder / subfolder, exist_ok=True)
 
         reviews_bar_title = "Review"
@@ -123,7 +123,7 @@ class Library:
             subfolder = SUBFOLDERS["toread"]
         else:
             subfolder = SUBFOLDERS["reviews"]
-        assert self.folder is not None  # for mypy
+        assert self.folder is not None, "Cannot save books to None folder"
         book_file = BookFile(
             library=self,
             title=book.title,
@@ -148,7 +148,7 @@ class Library:
 
         Return True if author file was added, False otherwise
         """
-        assert self.folder is not None  # for mypy
+        assert self.folder is not None, "Cannot save author to None folder"
         author_file = AuthorFile(
             library=self,
             name=book.author,
