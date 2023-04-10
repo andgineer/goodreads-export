@@ -2,7 +2,7 @@
 import urllib.parse
 from typing import TYPE_CHECKING, Any, Dict, Optional
 
-from goodreads_export.data_file import DataFile
+from goodreads_export.data_file import DataFile, ParseError
 from goodreads_export.series_file import SeriesList
 from goodreads_export.templates import AuthorTemplate
 
@@ -11,10 +11,7 @@ if TYPE_CHECKING:
 
 
 class AuthorFile(DataFile):
-    """Author's object.
-
-    On init extract `names` from `content` if defined.
-    """
+    """Author's object."""
 
     name: str  # primary author name
     names: list[str]
@@ -32,7 +29,8 @@ class AuthorFile(DataFile):
     ) -> None:  # pylint: disable=unused-argument
         """Set fields from args. Rewrite them from content if provided."""
         self.name = name
-        self.names = names or []
+        self.names = names if names is not None else [name]
+        assert name in self.names, "Primary name must be in names"
         self.series = series or SeriesList()
         self.books = books or []
         super().__init__(**kwargs)
@@ -62,6 +60,10 @@ class AuthorFile(DataFile):
                 match[regex.name_group] for match in regex.compiled.finditer(self._content)
             ]
             self.name = self.names[0]  # first name is primary
+        else:
+            raise ParseError(
+                f"Cannot extract author information from file content:\n{self._content}"
+            )
 
     def render_body(self) -> str:
         """Render file body."""

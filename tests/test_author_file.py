@@ -1,6 +1,9 @@
 from pathlib import Path
 
+import pytest
+
 from goodreads_export.author_file import AuthorFile
+from goodreads_export.data_file import ParseError
 from goodreads_export.library import Library
 
 
@@ -9,19 +12,13 @@ def test_author_file_initial_nonbook_content(author_markdown):
     content = "Content"
     file_name = "123 - Title - Author.md"
     initial_author = "Author"
-    author_file = AuthorFile(
-        library=library,
-        name=initial_author,
-        file_name=Path(file_name),
-        content=content,
-    )
-    assert author_file.name == "Author"
-    assert author_file.file_name == Path(file_name)
-    assert author_file.content == content
-
-    author_file.content = author_markdown
-    author_file.parse()
-    are_names_in_content(author_file, author_markdown)
+    with pytest.raises(ParseError):
+        AuthorFile(
+            library=library,
+            name=initial_author,
+            file_name=Path(file_name),
+            content=content,
+        )
 
 
 def are_names_in_content(author_file, author_markdown):
@@ -83,11 +80,31 @@ def test_author_file_defaults_from_class(author_markdown):
         author_file.content
         == "[Author](https://www.goodreads.com/search?utf8=%E2%9C%93&q=Author&search_type=books&search%5Bfield%5D=author)\n\n#book/author\n"
     )
-    assert author_file.names == []
+    assert author_file.names == [initial_author]
 
     author_file.content = author_markdown
-    author_file.parse()
     assert author_file.content == author_markdown
+    are_names_in_content(author_file, author_markdown)
+
+
+def test_author_file_init_without_content(author_markdown):
+    library = Library()
+    file_name = "123 - Title - Author.md"
+    initial_author = "Author"
+    author_file = AuthorFile(
+        library=library,
+        name=initial_author,
+        file_name=Path(file_name),
+    )
+    assert author_file.name == initial_author
+    assert author_file.file_name == Path(file_name)
+    assert author_file.content == (
+        f"[{initial_author}](https://www.goodreads.com/search?utf8=%E2%9C%93"
+        f"&q={initial_author}&search_type=books&search%5Bfield%5D=author)\n\n#book/author\n"
+    )
+    assert author_file.names == ["Author"]
+
+    author_file.content = author_markdown
     are_names_in_content(author_file, author_markdown)
 
 
