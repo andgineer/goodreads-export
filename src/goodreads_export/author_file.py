@@ -76,8 +76,8 @@ class AuthorFile(DataFile):
         self.series += other.series
         other.delete_file()
 
-    def delete_series_files(self) -> Dict[str, Path]:
-        """Delete series files.
+    def delete_series(self) -> Dict[str, Path]:
+        """Delete series and their files.
 
         Return deleted series files {series name: series file path}
         """
