@@ -26,7 +26,7 @@ class AuthorFile(DataFile):
         series: Optional[SeriesList] = None,
         books: Optional[list["BookFile"]] = None,
         **kwargs: Any,
-    ) -> None:  # pylint: disable=unused-argument
+    ) -> None:
         """Set fields from args. Rewrite them from content if provided."""
         self.name = name
         self.names = names if names is not None else [name]

@@ -112,12 +112,10 @@ class BookFile(AuthoredFile):  # pylint: disable=too-many-instance-attributes
         Return deleted series files {series name: series file path}
         """
         deleted_series_files = {}
-        assert self.series_titles is not None
-        for series in self.series_titles:
-            series_file_path = self.folder / self.series_file_name(series)  # type: ignore  # pylint: disable=no-member
-            if series_file_path.exists():
-                os.remove(series_file_path)
-                deleted_series_files[series] = series_file_path
+        for series in self.series:
+            if series.path.exists():
+                os.remove(series.path)
+                deleted_series_files[series.title] = series.path
         return deleted_series_files
 
     def create_series_files(self) -> Dict[str, Path]:
