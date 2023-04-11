@@ -32,7 +32,7 @@ class AuthorFile(DataFile):
         """Set fields from args. Rewrite them from content if provided."""
         self.name = name
         self.names = names if names is not None else [name]
-        assert name in self.names, "Primary name must be in names"
+        assert name in self.names, f"Primary name '{name}' must be in names {self.names}"
         self.series = series or SeriesList()
         self.books = books or []
         super().__init__(**kwargs)
@@ -61,10 +61,6 @@ class AuthorFile(DataFile):
             raise ParseError(
                 f"Cannot extract author information from file content:\n{self._content}"
             )
-
-    def render_body(self) -> str:
-        """Render file body."""
-        return self._get_template().render_body(self._get_template_context())
 
     def merge(self, other: "AuthorFile") -> None:
         """Merge other author with this one."""

@@ -80,16 +80,6 @@ class BookFile(AuthoredFile):  # pylint: disable=too-many-instance-attributes
                 for series_match in series_regex.compiled.finditer(self._content)
             ]
 
-    def render_body(self) -> str:
-        """Render file body."""
-        if "#book/book" not in self.tags:
-            self.tags.append("#book/book")
-        if self.rating is not None and self.rating > 0:
-            rating_tag = f"#book/rating{self.rating}"
-            if rating_tag not in self.tags:
-                self.tags.append(rating_tag)
-        return self._get_template().render_body(self._get_template_context())
-
     def write(self) -> None:
         """Write markdown file to path.
 

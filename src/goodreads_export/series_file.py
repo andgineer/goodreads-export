@@ -51,10 +51,6 @@ class SeriesFile(AuthoredFile):
         """Return True if file name if indicate this is series description file."""
         return self._get_template().file_name_regexes.choose_regex(str(file_name)) is not None
 
-    def render_body(self) -> str:
-        """Render series body."""
-        return self._get_template().render_body(self._get_template_context())
-
     def check(self) -> bool:
         """Check regexps for the template.
 

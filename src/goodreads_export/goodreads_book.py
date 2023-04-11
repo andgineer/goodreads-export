@@ -30,10 +30,17 @@ class Book:  # pylint: disable=too-few-public-methods,too-many-instance-attribut
             self.review = markdownify.markdownify(goodreads["My Review"])
         else:
             self.review = ""
-        if not isinstance(goodreads["Bookshelves"], str):
-            self.tags = []
-        else:
-            self.tags = [f"#book/{shelf.strip()}" for shelf in goodreads["Bookshelves"].split(",")]
+        self.tags = (
+            [f"#book/{shelf.strip()}" for shelf in goodreads["Bookshelves"].split(",")]
+            if isinstance(goodreads["Bookshelves"], str)
+            else []
+        )
+        if "#book/book" not in self.tags:
+            self.tags.append("#book/book")
+        if self.rating is not None and self.rating > 0:
+            rating_tag = f"#book/rating{self.rating}"
+            if rating_tag not in self.tags:
+                self.tags.append(rating_tag)
         self.isbn = goodreads["ISBN"]
         self.isbn13 = goodreads["ISBN13"]
         if series_list_match := re.search(r"\(([^)\n]*)\)", self.title):

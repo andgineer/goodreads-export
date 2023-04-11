@@ -66,7 +66,7 @@ class DataFile:
 
     def render_body(self) -> str:
         """Return rendered body."""
-        raise NotImplementedError()
+        return self._get_template().render_body(self._get_template_context())
 
     def parse(self) -> None:
         """Parse file content."""
