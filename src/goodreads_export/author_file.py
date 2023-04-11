@@ -1,5 +1,7 @@
 """Author's object."""
+import os
 import urllib.parse
+from pathlib import Path
 from typing import TYPE_CHECKING, Any, Dict, Optional
 
 from goodreads_export.data_file import DataFile, ParseError
@@ -47,12 +49,7 @@ class AuthorFile(DataFile):
         }
 
     def parse(self) -> None:
-        """Parse file content.
-
-        Set self.names to the names in the content and self.name to the first name.
-
-        self.names is [] and no change in self.name if no names found in content.
-        """
+        """Parse file content."""
         assert self._content is not None, "Cannot parse None content"
         self.names = []
         if regex := self._get_template().names_regexes.choose_regex(self._content):
@@ -78,6 +75,19 @@ class AuthorFile(DataFile):
         self.books += other.books
         self.series += other.series
         other.delete_file()
+
+    def delete_series_files(self) -> Dict[str, Path]:
+        """Delete series files.
+
+        Return deleted series files {series name: series file path}
+        """
+        deleted_series_files = {}
+        for series in self.series:
+            if series.path.exists():
+                os.remove(series.path)
+                deleted_series_files[series.title] = series.path
+        self.series.clear()
+        return deleted_series_files
 
     def check(self) -> bool:
         """Check regexps for the template.

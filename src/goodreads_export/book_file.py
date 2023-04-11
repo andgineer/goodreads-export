@@ -1,5 +1,4 @@
 """Book's object."""
-import os
 import urllib.parse
 from pathlib import Path
 from typing import Any, Dict, List, Optional
@@ -105,18 +104,6 @@ class BookFile(AuthoredFile):  # pylint: disable=too-many-instance-attributes
                 f"{self.file_name.with_suffix('')} - {self.book_id}{self.file_name.suffix}"
             )
         super().write()
-
-    def delete_series_files(self) -> Dict[str, Path]:
-        """Delete series files for review.
-
-        Return deleted series files {series name: series file path}
-        """
-        deleted_series_files = {}
-        for series in self.series:
-            if series.path.exists():
-                os.remove(series.path)
-                deleted_series_files[series.title] = series.path
-        return deleted_series_files
 
     def create_series_files(self) -> Dict[str, Path]:
         """Create series files if they do not exist.
