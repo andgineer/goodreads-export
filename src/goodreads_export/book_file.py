@@ -84,7 +84,7 @@ class BookFile(AuthoredFile):  # pylint: disable=too-many-instance-attributes
         """Write markdown file to path.
 
         If the file with `author - title.md` already exists, append book ID to the file name.
-        Even if this file also exists that does not matter because this it the book
+        Even if this file also exists that does not matter because that should be the book
         with the same ID.
         """
         assert self.folder is not None, "Cannot write to None folder"
@@ -113,28 +113,16 @@ class BookFile(AuthoredFile):  # pylint: disable=too-many-instance-attributes
 
         Create file from fields and after that parse it and compare parsed values with the initial fields
         """
-        book_id = self.book_id
-        title = self.title
-        author_name = self.author.name
-        series_titles = self.series_titles
-        self.content = self.render_body()
-        is_book_id_parsed = self.book_id == book_id
-        is_title_parsed = self.title == title
-        is_author_parsed = self.author.name == author_name
-        is_series_parsed = self.series_titles == series_titles
-        if not is_author_parsed:
-            print(f"Author name {author_name} is not parsed from content\n{self.content}")
-            print(f"using the pattern\n{self._get_template().goodreads_link_regexes[0].regex}")
-        if not is_book_id_parsed:
-            print(f"Book ID {book_id} is not parsed from content\n{self.content}")
-            print(f"using the pattern\n{self._get_template().goodreads_link_regexes[0].regex}")
-        if not is_title_parsed:
-            print(f"Book title {title} is not parsed from content\n{self.content}")
-            print(f"using the pattern\n{self._get_template().goodreads_link_regexes[0].regex}")
-        if not is_series_parsed:
-            print(f"Series {series_titles[0]} is not parsed from content\n{self.content}")
-            print(f"using the pattern\n{self._get_template().series_regexes[0].regex}")
-        return is_book_id_parsed and is_title_parsed and is_author_parsed and is_series_parsed
+        checks: Dict[str, Dict[str, Any]] = {
+            "Book ID": {"value": lambda: self.book_id},
+            "Book title": {"value": lambda: self.title},
+            "Author name": {"value": lambda: self.author.name},
+            "Series": {
+                "value": lambda: self.series_titles,
+                "regex": self._get_template().series_regexes[0].regex,
+            },
+        }
+        return self.check_regexes(checks, self._get_template().goodreads_link_regexes[0].regex)
 
     @property
     def series(self) -> List[SeriesFile]:

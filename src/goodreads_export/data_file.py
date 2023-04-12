@@ -103,3 +103,19 @@ class DataFile:
     def write(self) -> None:
         """Write file to path."""
         self.path.write_text(self.content, encoding="utf8")
+
+    def check_regexes(self, checks: Dict[str, Dict[str, Any]], default_regex: str) -> bool:
+        """Check regexps.
+
+        `checks` is a dict of {check name: {initial value, parsed value function, regexp}}
+        """
+        for check in checks.values():
+            check["initial"] = check["value"]()
+        self.content = self.render_body()
+        result = True
+        for name, check in checks.items():
+            if check["initial"] != check["value"]():
+                print(f"{name} {check['initial']} is not parsed from content\n{self.content}")
+                print(f"using the pattern\n{check.get('regex', default_regex)}")
+                result = False
+        return result

@@ -63,7 +63,7 @@ class AuthorFile(DataFile):
             )
 
     def merge(self, other: "AuthorFile") -> None:
-        """Merge other author with this one."""
+        """Merge `other` author with this one."""
         for book in other.books:
             book.rename_author(self.name)
         for series in other.series:
@@ -90,10 +90,7 @@ class AuthorFile(DataFile):
 
         Create file from fields and after that parse it and compare parsed values with the initial fields
         """
-        name = self.name
-        self.content = self.render_body()
-        is_author_parsed = self.names == [name]
-        if not is_author_parsed:
-            print(f"Author name {name} is not parsed from content\n{self.content}")
-            print(f"using the pattern\n{self._get_template().names_regexes[0].regex}")
-        return is_author_parsed
+        checks: Dict[str, Dict[str, Any]] = {
+            "Author name": {"value": lambda: self.name},
+        }
+        return self.check_regexes(checks, self._get_template().names_regexes[0].regex)

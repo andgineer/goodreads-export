@@ -56,23 +56,21 @@ class SeriesFile(AuthoredFile):
 
         Create file from fields and after that parse it and compare parsed values with the initial fields
         """
-        title = self.title
-        author_name = self.author.name
-        self.content = self.render_body()
-        is_title_parsed = self.title == title
-        is_author_parsed = self.author.name == author_name
-        if not is_title_parsed:
-            print(f"Series title {title} is not parsed from content\n{self.content}")
-            print(f"using the pattern\n{self._get_template().content_regexes[0].regex}")
-        if not is_author_parsed:
-            print(f"Author name {author_name} is not parsed from content\n{self.content}")
-            print(f"using the pattern\n{self._get_template().content_regexes[0].regex}")
+        checks: Dict[str, Dict[str, Any]] = {
+            "Series title": {"value": lambda: self.title},
+            "Author name": {"value": lambda: self.author.name},
+        }
+        fields_parsed = self.check_regexes(checks, self._get_template().content_regexes[0].regex)
+
+        # force file name render and check the result
+        self._file_name = None
         series_file_name = self.file_name
         is_file_name = self.is_file_name(series_file_name)
         if not is_file_name:
             print(f"Series file name {series_file_name} is not recognized")
             print(f"using the pattern\n{self._get_template().file_name_regexes[0].regex}")
-        return is_title_parsed and is_author_parsed and is_file_name
+
+        return fields_parsed and is_file_name
 
 
 class SeriesList(List[SeriesFile]):
