@@ -113,16 +113,18 @@ class BookFile(AuthoredFile):  # pylint: disable=too-many-instance-attributes
 
         Create file from fields and after that parse it and compare parsed values with the initial fields
         """
-        checks: Dict[str, Dict[str, Any]] = {
-            "Book ID": {"value": lambda: self.book_id},
-            "Book title": {"value": lambda: self.title},
-            "Author name": {"value": lambda: self.author.name},
-            "Series": {
-                "value": lambda: self.series_titles,
-                "regex": self._get_template().series_regexes[0].regex,
+        return self.check_regexes(
+            {
+                "Book ID": {"value": lambda: self.book_id},
+                "Book title": {"value": lambda: self.title},
+                "Author name": {"value": lambda: self.author.name},
+                "Series": {
+                    "value": lambda: self.series_titles,
+                    "regex": self._get_template().series_regexes[0].regex,
+                },
             },
-        }
-        return self.check_regexes(checks, self._get_template().goodreads_link_regexes[0].regex)
+            self._get_template().goodreads_link_regexes[0].regex,
+        )
 
     @property
     def series(self) -> List[SeriesFile]:

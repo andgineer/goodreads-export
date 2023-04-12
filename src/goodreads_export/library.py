@@ -1,4 +1,4 @@
-"""Library of ooks."""
+"""Library of books."""
 import os
 from pathlib import Path
 from typing import Dict, Optional
@@ -34,8 +34,11 @@ class Library:
     ) -> None:
         """Initialize.
 
-        Without `folder` works in detached mode as base for file objects without ability to create files,
-        just to access templates.
+        Without `folder` is fully functional except saving to files.
+        That mode is convenient for templates utilization and for tests.
+        Of course no files load in that mode.
+
+        if `templates` is not provided, builtin templates will be used.
         """
         self.folder = folder
         self.log = log or Log()
@@ -52,15 +55,13 @@ class Library:
                 self.books |= self.load_books(folder / books_subfolder, self.authors)
 
     def merge_author_names(self) -> None:
-        """Replace all known versions of author names (translations, misspellings) with one primary name.
+        """Replace all different author names (translations, misspellings) with `primary` name.
 
-        All author name versions should be listed as links in one author file -
-        just copy them from other author files to that `primary` author file.
-        Fist name in the link will be used as primary name.
+        To use this feature, list all author name links in one file by copying them from other author files.
+        The name from the first link will serve as the primary name.
 
-        Reviews will be relinked to the primary name.
-        Author files with non-primary names will be deleted.
-        Also recreate series files with primary author name in the file names.
+        Author names and links in book and series files will be updated to match the `primary` name.
+        Author files with `non-primary` names will be deleted.
         """
         for primary_author in [
             author

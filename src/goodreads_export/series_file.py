@@ -56,11 +56,13 @@ class SeriesFile(AuthoredFile):
 
         Create file from fields and after that parse it and compare parsed values with the initial fields
         """
-        checks: Dict[str, Dict[str, Any]] = {
-            "Series title": {"value": lambda: self.title},
-            "Author name": {"value": lambda: self.author.name},
-        }
-        fields_parsed = self.check_regexes(checks, self._get_template().content_regexes[0].regex)
+        fields_parsed = self.check_regexes(
+            {
+                "Series title": {"value": lambda: self.title},
+                "Author name": {"value": lambda: self.author.name},
+            },
+            self._get_template().content_regexes[0].regex,
+        )
 
         # force file name render and check the result
         self._file_name = None

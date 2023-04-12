@@ -1,5 +1,4 @@
 """Author's object."""
-import os
 import urllib.parse
 from pathlib import Path
 from typing import TYPE_CHECKING, Any, Dict, Optional
@@ -80,7 +79,7 @@ class AuthorFile(DataFile):
         deleted_series_files = {}
         for series in self.series:
             if series.path.exists():
-                os.remove(series.path)
+                series.delete_file()
                 deleted_series_files[series.title] = series.path
         self.series.clear()
         return deleted_series_files
@@ -90,7 +89,7 @@ class AuthorFile(DataFile):
 
         Create file from fields and after that parse it and compare parsed values with the initial fields
         """
-        checks: Dict[str, Dict[str, Any]] = {
-            "Author name": {"value": lambda: self.name},
-        }
-        return self.check_regexes(checks, self._get_template().names_regexes[0].regex)
+        return self.check_regexes(
+            {"Author name": {"value": lambda: self.name}},
+            self._get_template().names_regexes[0].regex,
+        )
