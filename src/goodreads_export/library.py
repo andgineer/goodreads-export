@@ -203,6 +203,23 @@ class Library:
                 authors[series.author.name].series.append(series)
                 self.stat.series_added += 1
 
+    def book_file_mask(self) -> str:
+        """Return Book file mask."""
+        dummy_author = AuthorFile(library=self, name="author")
+        dummy_book = BookFile(library=self, author=dummy_author, title="title")
+        return f"*{dummy_book.file_name.suffix}"
+
+    def author_file_mask(self) -> str:
+        """Return Author file mask."""
+        dummy_author = AuthorFile(library=self, name="author")
+        return f"*{dummy_author.file_name.suffix}"
+
+    def is_series_file_name(self, file_name: Path) -> bool:
+        """Return True if file_name is series file name."""
+        dummy_author = AuthorFile(library=self, name="author")
+        dummy_series = SeriesFile(library=self, author=dummy_author, title="title")
+        return dummy_series.is_file_name(file_name)
+
     def load_books(self, folder: Path, authors: Dict[str, AuthorFile]) -> Dict[str, BookFile]:
         """Load existed books.
 
@@ -211,10 +228,7 @@ class Library:
         This way we ignore "- series" files and unknown files.
         """
         books: Dict[str, BookFile] = {}
-        dummy_author = AuthorFile(library=Library(), name="author", folder=folder)
-        dummy_book = BookFile(library=Library(), author=dummy_author, title="title")
-        dummy_series = SeriesFile(library=Library(), author=dummy_author, title="title")
-        for file_name in folder.glob(f"*{dummy_book.file_name.suffix}"):
+        for file_name in folder.glob(self.book_file_mask()):
             try:
                 book = BookFile(  # also create author file if not yet existed
                     library=self,
@@ -231,7 +245,7 @@ class Library:
                 books[book.book_id] = book
                 authors[book.author.name].books.append(book)
             except ParseError:
-                if not dummy_series.is_file_name(file_name):
+                if not self.is_series_file_name(file_name):
                     self.stat.skipped_unknown_files += 1
         return books
 
@@ -241,8 +255,7 @@ class Library:
         Return loaded authors
         """
         authors: Dict[str, AuthorFile] = {}
-        dummy_author = AuthorFile(library=Library(), name="author", folder=folder)
-        for file_name in folder.glob(f"*{dummy_author.file_name.suffix}"):
+        for file_name in folder.glob(self.author_file_mask()):
             author = AuthorFile(
                 library=self,
                 folder=folder,
