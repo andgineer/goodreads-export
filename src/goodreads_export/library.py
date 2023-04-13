@@ -32,11 +32,10 @@ class Library:
         log: Optional[Log] = None,
         templates: Optional[TemplateSet] = None,
     ) -> None:
-        """Initialize.
+        """Load books from folder if specified.
 
-        Without `folder` is fully functional except saving to files.
+        Without `folder` is fully functional host for book objects except saving to files.
         That mode is convenient for templates utilization and for tests.
-        Of course no files load in that mode.
 
         if `templates` is not provided, builtin templates will be used.
         """
@@ -55,10 +54,10 @@ class Library:
                 self.books |= self.load_books(folder / books_subfolder, self.authors)
 
     def merge_author_names(self) -> None:
-        """Replace all different author names (translations, misspellings) with `primary` name.
+        """Replace all author names (translations, misspellings) with `primary` name.
 
         To use this feature, list all author name links in one file by copying them from other author files.
-        The name from the first link will serve as the primary name.
+        The name from the first link will serve as the `primary` name.
 
         Author names and links in book and series files will be updated to match the `primary` name.
         Author files with `non-primary` names will be deleted.
@@ -74,16 +73,16 @@ class Library:
                     and (author := self.authors[author_name]) != primary_author
                 ):
                     self.log.debug(
-                        f"Author {primary_author.name} has synonym {author.name} to merge"
+                        f"Author `{primary_author.name}` has synonym `{author.name}` to merge"
                     )
                     self.stat.authors_renamed += 1
                     primary_author.merge(self.authors[author_name])
                     self.authors[author_name] = primary_author
 
     def dump(self, books: GoodreadsBooks) -> None:
-        """Save `books` to the library files."""
+        """Save `books` to the library folder."""
+        assert self.folder is not None, "Cannot save books to None folder"
         for subfolder in SUBFOLDERS.values():
-            assert self.folder is not None, "Cannot save books to None folder"
             os.makedirs(self.folder / subfolder, exist_ok=True)
 
         reviews_bar_title = "Review"
@@ -94,25 +93,26 @@ class Library:
         for book in books:
             self.log.progress(reviews_bar_title)
             self.log.progress_description(reviews_bar_title, f"{book.title}")
-            if self.stat.unique_author(book.author):
+            if self.stat.register_author(book.author):
                 self.log.progress(authors_bar_title)
             if book.author in self.authors and book.author != (
                 primary_author := self.authors[book.author].name
             ):
                 self.log.progress_description(
-                    authors_bar_title, f"Author {book.author} changed to {primary_author}"
+                    authors_bar_title, f"Author name `{book.author}` changed to `{primary_author}`"
                 )
-                book.author = primary_author  # use the same author name for all synonyms
+                book.author = primary_author
 
             if book.book_id not in self.books:
                 if book.author not in self.authors:
                     self.authors[book.author] = self.create_author_file(book)
                     self.stat.authors_added += 1
-                    self.log.progress_description(authors_bar_title, f"Added author {book.author}")
+                    self.log.progress_description(
+                        authors_bar_title, f"Added author `{book.author}`"
+                    )
                 added_file_path = self.create_book_file(book)
-                # we know there was no file with this book ID so we added it for sure
                 self.stat.books_added += 1
-                self.log.debug(f"Added book {book.title}, {added_file_path} ")
+                self.log.debug(f"Saved book `{book.title}` to file {added_file_path} ")
         self.log.close_progress()
 
     def create_book_file(self, book: Book) -> str:

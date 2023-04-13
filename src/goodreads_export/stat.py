@@ -12,8 +12,8 @@ class Stat:  # pylint: disable=too-few-public-methods
     authors_renamed: int = 0
     unique_authors: Set[str] = set()
 
-    def unique_author(self, author: str) -> bool:
-        """Return True if the author is unique."""
+    def register_author(self, author: str) -> bool:
+        """Return True if the author is new."""
         if author not in self.unique_authors:
             self.unique_authors.add(author)
             return True
