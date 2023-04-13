@@ -69,7 +69,7 @@ class BookFile(AuthoredFile):  # pylint: disable=too-many-instance-attributes
             )
             self.book_id = link_match[book_regex.book_id_group]
             self.title = link_match[book_regex.title_group]
-            self.author = self.library.get_author(link_match[book_regex.author_group])
+            self.author = self.library.author_factory(link_match[book_regex.author_group])
         else:
             raise ParseError(
                 f"Cannot extract book information from file content:\n{self._content}"

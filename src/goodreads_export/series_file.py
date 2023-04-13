@@ -41,7 +41,7 @@ class SeriesFile(AuthoredFile):
                 "`choose_regex` got `None` for search with same params"
             )
             self.title = match[regex.title_group]
-            self.author = self.library.get_author(match[regex.author_group])
+            self.author = self.library.author_factory(match[regex.author_group])
         else:
             raise ParseError(
                 f"Cannot extract series information from file content:\n{self._content}"

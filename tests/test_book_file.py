@@ -11,7 +11,7 @@ from goodreads_export.library import Library
 def test_book_file_initial_nonbook_content(book_markdown):
     library = Library()
     initial_author = "Author"
-    author = library.get_author(name=initial_author)
+    author = library.author_factory(name=initial_author)
     initial_content = "Content"
     file_name = "123 - Title - Author.md"
     with pytest.raises(ParseError):
@@ -28,7 +28,7 @@ def test_book_file_initial_nonbook_content(book_markdown):
 def test_book_file_content_assign(book_markdown):
     library = Library()
     initial_author = "Author"
-    author = library.get_author(name=initial_author)
+    author = library.author_factory(name=initial_author)
     file_name = Path("123 - Title - Author.md")
     book_id = "123"
     title = "Title"
@@ -50,7 +50,7 @@ def test_book_file_content_assign(book_markdown):
 def test_book_file_without_content(book_markdown):
     library = Library()
     initial_author = "Author"
-    author = library.get_author(name=initial_author)
+    author = library.author_factory(name=initial_author)
     file_name = Path("123 - Title - Author.md")
     book_id = "123"
     title = "Title"
@@ -70,7 +70,7 @@ def test_book_file_without_content(book_markdown):
 def test_book_file_initial_book_content(book_markdown):
     library = Library()
     initial_author = "Author"
-    author = library.get_author(name=initial_author)
+    author = library.author_factory(name=initial_author)
     content = book_markdown
     file_name = Path("123 - Title - Author.md")
     book_file = BookFile(
@@ -97,7 +97,7 @@ def test_book_file_duplicate_name(book_markdown):
     """
     initial_author = "Author"
     library = Library()
-    author = library.get_author(name=initial_author)
+    author = library.author_factory(name=initial_author)
     book_file = BookFile(
         library=library,
         folder=Path(),  # we mock the Path.exists anyway so it does not matter
@@ -124,7 +124,7 @@ def test_book_file_duplicate_name(book_markdown):
 def test_book_file_check():
     initial_author = "Author"
     library = Library()
-    author = library.get_author(name=initial_author)
+    author = library.author_factory(name=initial_author)
     assert BookFile(
         library=library,
         folder=Path(),  # we mock the Path.exists anyway so it does not matter

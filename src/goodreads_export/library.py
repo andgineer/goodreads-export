@@ -120,17 +120,19 @@ class Library:
 
         Return the filename.
         """
+        assert self.folder is not None, "Cannot save books to None folder"
+
         if book.review == "" and book.rating == 0:
             subfolder = SUBFOLDERS["toread"]
         else:
             subfolder = SUBFOLDERS["reviews"]
-        assert self.folder is not None, "Cannot save books to None folder"
+
         book_file = BookFile(
             library=self,
             title=book.title,
             folder=self.folder / subfolder,
             tags=book.tags,
-            author=self.get_author(book.author),
+            author=self.author_factory(book.author),
             book_id=book.book_id,
             rating=book.rating,
             isbn=book.isbn,
@@ -159,8 +161,12 @@ class Library:
             author_file.write()
         return author_file
 
-    def get_author(self, name: str) -> AuthorFile:
-        """Get author file."""
+    def author_factory(self, name: str) -> AuthorFile:
+        """Get author object by name.
+
+        Produce author objects for books and series objects.
+        Store already created objects in self.authors.
+        """
         if name not in self.authors:
             if self.folder is None:
                 return AuthorFile(library=self, name=name)
