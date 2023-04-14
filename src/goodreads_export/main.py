@@ -64,7 +64,7 @@ BOOKS_FOLDER_OPTIONAL_OPTION = click.argument(
 
 
 def merge_authors(log: Log, books_folder: Path, templates: TemplateSet) -> Library:
-    """Merge authors."""
+    """Load library and merge authors."""
     library = load_library(log=log, books_folder=books_folder, templates=templates)
     library.merge_author_names()
     return library
@@ -91,12 +91,15 @@ def load_templates(
     """Load templates.
 
     If templates_folder is not None, load from this folder.
-    Else load embedded templated with specified or default name.
-    If the temples_folder is None and builtin_name is not None,
-    but default templates folder exists, notify that we ignore it.
+
+    Otherwise, load embedded templated with specified or default name.
+    If default templates folder exists in the books_folder, and builtin_name is not None,
+    load the built-in and notify that we ignore existed template folder.
+
+    If built-in explicitly specified, silently ignore the default templates folder.
     """
     if builtin_templates_name is not None and templates_folder is not None:
-        log.error("You can't use both --templates-name and --templates-folder")
+        log.error("You can't specify both `--templates-name` and `--templates-folder`.")
         sys.exit(1)
     try:
         if templates_folder is None:
@@ -209,7 +212,6 @@ def import_(
             f"{library.stat.authors_added} author files.",
             f"Renamed {library.stat.authors_renamed} authors.",
         )
-
     except Exception as exc:  # pylint: disable=broad-except
         print(f"\n{exc}")
         sys.exit(1)
@@ -229,8 +231,8 @@ def check(
     """Check templates consistency with extraction regexes.
 
     BOOKS_FOLDER
-    Optional books' folder. Test loading books from the folder.
-    Could load templates from it - see `--templates-folder`.
+    Optional books' folder. Test loading books from the folder if specified.
+    Also used as root if `--templates-folder` is relative.
     """
     try:
         log = Log(verbose)
@@ -292,7 +294,7 @@ def init(
 ) -> None:
     """Create templates folder in path from `--templates-folder`.
 
-    Copy the templates from built-ins specified in `--builtin-name`.
+    Copy from built-in templates specified in `--builtin-name`.
 
     See https://andgineer.github.io/goodreads-export/ for details.
     """
@@ -304,7 +306,7 @@ def init(
         if templates_folder is not None and not templates_folder.is_absolute():
             if books_folder is None:
                 raise ValueError(
-                    f"To use relative templates folder `{templates_folder}` is necessary `BOOKS_FOLDER`."
+                    f"To use relative templates folder `{templates_folder}` specify root in `BOOKS_FOLDER`."
                 )
             templates_folder = books_folder / templates_folder
         if templates_folder.exists():
