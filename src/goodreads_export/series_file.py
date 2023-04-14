@@ -37,7 +37,7 @@ class SeriesFile(AuthoredFile):
         if regex := self._get_template().content_regexes.choose_regex(self._content):
             match = regex.compiled.search(self._content)
             assert match, (
-                "impossible happened: after successfull `search` in "
+                "impossible happened: after successful `search` in "
                 "`choose_regex` got `None` for search with same params"
             )
             self.title = match[regex.title_group]
@@ -48,7 +48,7 @@ class SeriesFile(AuthoredFile):
             )
 
     def is_file_name(self, file_name: Union[str, Path]) -> bool:
-        """Return True if file name if indicate this is series description file."""
+        """Check `file_name` with series file name regex."""
         return self._get_template().file_name_regexes.choose_regex(str(file_name)) is not None
 
     def check(self) -> bool:
@@ -69,15 +69,12 @@ class SeriesFile(AuthoredFile):
         series_file_name = self.file_name
         is_file_name = self.is_file_name(series_file_name)
         if not is_file_name:
-            print(f"Series file name {series_file_name} is not recognized")
-            print(f"using the pattern\n{self._get_template().file_name_regexes[0].regex}")
+            print(f"Rendered with template `{self._get_template().file_name_template}`)")
+            print(f"file name `{series_file_name}` is not recognized using the pattern:")
+            print(f"{self._get_template().file_name_regexes[0].regex}")
 
         return fields_parsed and is_file_name
 
 
 class SeriesList(List[SeriesFile]):
     """List of SeriesFile objects."""
-
-    def by_title(self) -> Optional[SeriesFile]:
-        """Find 1st series with the title."""
-        return None

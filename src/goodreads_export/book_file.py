@@ -64,7 +64,7 @@ class BookFile(AuthoredFile):  # pylint: disable=too-many-instance-attributes
         if book_regex := self._get_template().goodreads_link_regexes.choose_regex(self._content):
             link_match = book_regex.compiled.search(self._content)
             assert link_match is not None, (
-                "impossible happened: after successfull `search` in "
+                "impossible happened: after successful `search` in "
                 "`choose_regex` got `None` for search with same params"
             )
             self.book_id = link_match[book_regex.book_id_group]

@@ -177,6 +177,29 @@ class Library:
             self.authors[name].write()
         return self.authors[name]
 
+    def book_file_mask(self) -> str:
+        """Return Book file mask."""
+        dummy_author = AuthorFile(library=self, name="author")
+        dummy_book = BookFile(library=self, author=dummy_author, title="title")
+        return f"*{dummy_book.file_name.suffix}"
+
+    def author_file_mask(self) -> str:
+        """Return Author file mask."""
+        dummy_author = AuthorFile(library=self, name="author")
+        return f"*{dummy_author.file_name.suffix}"
+
+    def series_file_mask(self) -> str:
+        """Return Book file mask."""
+        dummy_author = AuthorFile(library=self, name="author")
+        dummy_series = SeriesFile(library=self, author=dummy_author, title="title")
+        return f"*{dummy_series.file_name.suffix}"
+
+    def is_series_file_name(self, file_name: Path) -> bool:
+        """Return True if file_name is series file name."""
+        dummy_author = AuthorFile(library=self, name="author")
+        dummy_series = SeriesFile(library=self, author=dummy_author, title="title")
+        return dummy_series.is_file_name(file_name)
+
     def load_series(self, folder: Path, authors: Dict[str, AuthorFile]) -> None:
         """Load existed series.
 
@@ -185,7 +208,7 @@ class Library:
         """
         dummy_author = AuthorFile(library=Library(), name="author", folder=folder)
         dummy_series = SeriesFile(library=Library(), author=dummy_author, title="title")
-        for file_name in folder.glob(f"*{dummy_series.file_name.suffix}"):
+        for file_name in folder.glob(self.series_file_mask()):
             if dummy_series.is_file_name(file_name):
                 try:
                     series = SeriesFile(
@@ -202,23 +225,6 @@ class Library:
                     continue
                 authors[series.author.name].series.append(series)
                 self.stat.series_added += 1
-
-    def book_file_mask(self) -> str:
-        """Return Book file mask."""
-        dummy_author = AuthorFile(library=self, name="author")
-        dummy_book = BookFile(library=self, author=dummy_author, title="title")
-        return f"*{dummy_book.file_name.suffix}"
-
-    def author_file_mask(self) -> str:
-        """Return Author file mask."""
-        dummy_author = AuthorFile(library=self, name="author")
-        return f"*{dummy_author.file_name.suffix}"
-
-    def is_series_file_name(self, file_name: Path) -> bool:
-        """Return True if file_name is series file name."""
-        dummy_author = AuthorFile(library=self, name="author")
-        dummy_series = SeriesFile(library=self, author=dummy_author, title="title")
-        return dummy_series.is_file_name(file_name)
 
     def load_books(self, folder: Path, authors: Dict[str, AuthorFile]) -> Dict[str, BookFile]:
         """Load existed books.
