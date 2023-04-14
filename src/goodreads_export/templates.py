@@ -26,10 +26,12 @@ SERIES_TEMPLATE_FILE_NAME = "series.jinja"
 
 @dataclass(frozen=True)
 class RegEx:
-    """Regular expression."""
+    """Regular expression.
+
+    Auto compile regex.
+    """
 
     regex: str
-
     compiled: re.Pattern[str] = field(init=False)
 
     def __post_init__(self) -> None:
@@ -39,28 +41,25 @@ class RegEx:
 
 @dataclass(frozen=True)
 class AuthorNamesRegEx(RegEx):
-    """Regular expressions for name links inside author's file."""
+    """Regular expression for name links inside author's file."""
 
-    # we need defaults because we have default in base class
-    name_group: int = -1
+    name_group: int  # group with name
 
 
 @dataclass(frozen=True)
 class BookSeriesRegEx(RegEx):
-    """Regular expressions for series links inside review file."""
+    """Regular expression for series links inside review file."""
 
-    # we need defaults because we have default in base class
-    series_group: int = -1
+    series_group: int  # group with series name
 
 
 @dataclass(frozen=True)
 class BookGoodreadsLinkRegEx(RegEx):
-    """Regular expressions for goodreads links inside review file."""
+    """Regular expression for goodreads links inside review file."""
 
-    # we need defaults because we have default in base class
-    book_id_group: int = -1
-    title_group: int = -1
-    author_group: int = -1
+    book_id_group: int  # group with book ID
+    title_group: int  # group with book title
+    author_group: int  # group with author name
 
 
 @dataclass(frozen=True)
@@ -75,9 +74,8 @@ class SeriesFileNameRegEx(RegEx):
 class SeriesContentRegEx(RegEx):
     """Regular expressions for series file."""
 
-    # we need defaults because we have default in base class
-    title_group: int = -1
-    author_group: int = -1
+    title_group: int  # group with series title
+    author_group: int  # group with author name
 
 
 RegExSubClass = TypeVar("RegExSubClass", bound=RegEx)
@@ -102,8 +100,8 @@ class FileTemplate:
 
     1st line - template for the file name.
 
-    If 2nd line is not empty - it is optional link.
-    Otherwise link is file name without extension and folders part.
+    If 2nd line is not empty - it is template for link to the file to use inside other file.
+    Otherwise, the link is file name without extension and folders part.
 
     After file name and optional link templates should be empty line and then file body template.
     """
@@ -137,7 +135,7 @@ class FileTemplate:
     def render_file_link(self, context: Dict[str, Any]) -> str:
         """Render link with context.
 
-        If link template is not defined - return file name without extension and folders part.
+        If link template is not defined, return file name without extension and folder.
         """
         if self.file_link_template is None:
             return Path(context["file_name"]).stem
@@ -173,7 +171,7 @@ class BookTemplate(FileTemplate):
 
 @dataclass
 class TemplateSet:
-    """Template set to create all necessary files and parse existed ones."""
+    """Template set for all library objects."""
 
     name: str
     author: AuthorTemplate
@@ -181,28 +179,23 @@ class TemplateSet:
     series: SeriesTemplate
 
 
-class TemplatesLoader:  # pylint: disable=too-few-public-methods
-    """Templates injection.
-
-    Loads embeded templates from package data.
-    Loads template from BOOKS_FOLDER/templates - if exists it will be default.
-    Otherwise default will be `default` from package data.
-    """
+class TemplatesLoader:
+    """Templates loader."""
 
     def __init__(
         self,
         debug: bool = False,
     ) -> None:
-        """Load embedded templates from the package data."""
+        """Init jinja environment."""
         if debug:
             self.jinja = jinja2.Environment(undefined=DebugUndefined)
         else:
             self.jinja = jinja2.Environment()
 
     def load_builtin(self, builtin_name: str = DEFAULT_BUILTIN_TEMPLATE) -> TemplateSet:
-        """Load built-in template with the name `templates_name`.
+        """Load built-in template with the name `builtin_name`.
 
-        From the package data folder `templates`.
+        From the goodreads-export package data folder `templates`.
         Raise exception if no such template.
         """
         folder = self.builtin_folder(builtin_name)
@@ -221,16 +214,16 @@ class TemplatesLoader:  # pylint: disable=too-few-public-methods
         )
 
     def load_folder(self, folder: Union[Traversable, Path]) -> TemplateSet:
-        """Load template from the folder."""
+        """Load templates from the folder."""
         if not folder.joinpath(CONFIG_FILE_NAME).is_file():
-            raise ValueError(f"No regex.toml file in the template folder: {folder}")
+            raise ValueError(f"No regex.toml file in the templates folder: {folder}")
         for template in [
             AUTHOR_TEMPLATE_FILE_NAME,
             BOOK_TEMPLATE_FILE_NAME,
             SERIES_TEMPLATE_FILE_NAME,
         ]:
             if not folder.joinpath(template).is_file():
-                raise ValueError(f"No {template} file in the template folder: {folder}")
+                raise ValueError(f"No {template} file in the templates folder: {folder}")
         regex_config = tomllib.loads(folder.joinpath(CONFIG_FILE_NAME).read_text(encoding="utf-8"))
         return TemplateSet(
             name=folder.name,
