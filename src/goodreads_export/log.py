@@ -7,7 +7,11 @@ from tqdm import tqdm
 
 
 class Log:
-    """Logger or progress bar."""
+    """Logger.
+
+    In non-verbose mode show progress bar instead of log.
+    In verbose mode ignore all progress bars' specific commands.
+    """
 
     progress_bar: Dict[str, Dict[str, tqdm]] = {}
     position = 0
@@ -44,7 +48,10 @@ class Log:
             self.position += 2
 
     def progress_description(self, title: str, message: str) -> None:
-        """Update progress bar description."""
+        """Update progress bar description.
+
+        Or log the message if we are in verbose mode.
+        """
         if not self._verbose:
             self.progress_bar[title]["title"].set_description_str(
                 shorten(message, self.get_terminal_width())
@@ -74,7 +81,10 @@ class Log:
                 progress_bar["title"].refresh()
 
     def debug(self, message: str) -> None:
-        """Do not print debug messages in non-verbose mode."""
+        """Print debug message.
+
+        Do nothing in non-verbose mode.
+        """
         if self._verbose:
             print(message)
 
