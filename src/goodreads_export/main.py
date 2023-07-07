@@ -16,7 +16,7 @@ from goodreads_export.version import VERSION
 GOODREAD_EXPORT_FILE_NAME = "goodreads_library_export.csv"
 DEFAULT_TEMPLATES_FOLDER = "./templates"
 
-VERBOSE_OPTION = click.option(
+VERBOSE_OPTION = click.option(  # type: ignore
     "--verbose",
     "-v",
     "verbose",
@@ -26,7 +26,7 @@ VERBOSE_OPTION = click.option(
     nargs=1,
 )
 
-TEMPLATES_FOLDER_OPTION = click.option(
+TEMPLATES_FOLDER_OPTION = click.option(  # type: ignore
     "--templates-folder",
     "-t",
     "templates_folder",
@@ -38,7 +38,7 @@ If not found use built-in templates, see `--builtin-name`.""",
     nargs=1,
 )
 
-BUILTIN_TEMPLATES_NAME_OPTION = click.option(
+BUILTIN_TEMPLATES_NAME_OPTION = click.option(  # type: ignore
     "--builtin-name",
     "-b",
     "builtin_name",
@@ -48,14 +48,14 @@ BUILTIN_TEMPLATES_NAME_OPTION = click.option(
 )
 
 
-BOOKS_FOLDER_OPTION = click.argument(
+BOOKS_FOLDER_OPTION = click.argument(  # type: ignore
     "books_folder",
     type=click.Path(exists=True, path_type=Path),
     nargs=1,
 )
 
 
-BOOKS_FOLDER_OPTIONAL_OPTION = click.argument(
+BOOKS_FOLDER_OPTIONAL_OPTION = click.argument(  # type: ignore
     "books_folder",
     required=False,
     type=click.Path(exists=True, path_type=Path),
@@ -129,7 +129,7 @@ def load_templates(
         sys.exit(1)
 
 
-@click.group(invoke_without_command=True)
+@click.group(invoke_without_command=True)  # type: ignore
 @click.pass_context
 @click.option(
     "--version",
@@ -153,14 +153,14 @@ def main(ctx: click.Context, version: bool) -> None:
             sys.exit(0)
         if not ctx.invoked_subcommand:
             click.echo("Error: Missing command.")
-            click.echo(main.get_help(ctx))
+            click.echo(main.get_help(ctx))  # type: ignore
             sys.exit(1)
     except Exception as exc:  # pylint: disable=broad-except
         print(f"\n{exc}")
         sys.exit(1)
 
 
-@main.command(name="import")
+@main.command(name="import")  # type: ignore
 @BOOKS_FOLDER_OPTION
 @VERBOSE_OPTION
 @TEMPLATES_FOLDER_OPTION
@@ -217,7 +217,7 @@ def import_(
         sys.exit(1)
 
 
-@main.command()
+@main.command()  # type: ignore
 @BOOKS_FOLDER_OPTIONAL_OPTION
 @VERBOSE_OPTION
 @TEMPLATES_FOLDER_OPTION
@@ -249,7 +249,7 @@ def check(
         sys.exit(1)
 
 
-@main.command()
+@main.command()  # type: ignore
 @BOOKS_FOLDER_OPTION
 @VERBOSE_OPTION
 @TEMPLATES_FOLDER_OPTION
@@ -281,7 +281,7 @@ def merge(
         sys.exit(1)
 
 
-@main.command()
+@main.command()  # type: ignore
 @BOOKS_FOLDER_OPTIONAL_OPTION
 @VERBOSE_OPTION
 @TEMPLATES_FOLDER_OPTION
@@ -322,4 +322,4 @@ def init(
 
 
 if __name__ == "__main__":
-    main()  # pylint: disable=no-value-for-parameter
+    main()  # type: ignore  # pylint: disable=no-value-for-parameter
