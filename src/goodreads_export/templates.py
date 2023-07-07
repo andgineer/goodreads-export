@@ -143,7 +143,7 @@ class FileTemplate:
 
     def render_body(self, context: Dict[str, Any]) -> str:
         """Render file body with context."""
-        return self.jinja.from_string(self.body_template).render(context)  # type: ignore
+        return self.jinja.from_string(self.body_template).render(context)
 
 
 @dataclass(frozen=True)
