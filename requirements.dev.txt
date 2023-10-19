@@ -4,23 +4,21 @@
 #
 #    pip-compile requirements.dev.in
 #
-astroid==2.15.5
+astroid==3.0.1
     # via pylint
-black==23.3.0
+black==23.10.0
     # via -r requirements.dev.in
-bleach==6.0.0
-    # via readme-renderer
-bracex==2.3.post1
+bracex==2.4
     # via wcmatch
-build==0.10.0
+build==1.0.3
     # via pip-tools
-certifi==2023.5.7
+certifi==2023.7.22
     # via requests
-cfgv==3.3.1
+cfgv==3.4.0
     # via pre-commit
-charset-normalizer==3.1.0
+charset-normalizer==3.3.0
     # via requests
-click==8.1.4
+click==8.1.7
     # via
     #   black
     #   mkdocs
@@ -32,23 +30,23 @@ coverage[toml]==6.5.0
     #   pytest-cov
 coveralls==3.3.1
     # via -r requirements.dev.in
-dill==0.3.6
+dill==0.3.7
     # via pylint
-distlib==0.3.6
+distlib==0.3.7
     # via virtualenv
 docopt==0.6.2
     # via coveralls
 docutils==0.20.1
     # via readme-renderer
-filelock==3.12.2
+filelock==3.12.4
     # via virtualenv
 ghp-import==2.1.0
     # via mkdocs
-identify==2.5.24
+identify==2.5.30
     # via pre-commit
 idna==3.4
     # via requests
-importlib-metadata==6.7.0
+importlib-metadata==6.8.0
     # via
     #   keyring
     #   twine
@@ -56,37 +54,37 @@ iniconfig==2.0.0
     # via pytest
 isort==5.12.0
     # via pylint
-jaraco-classes==3.2.3
+jaraco-classes==3.3.0
     # via keyring
 jinja2==3.1.2
     # via mkdocs
 keyring==24.2.0
     # via twine
-lazy-object-proxy==1.9.0
-    # via astroid
 lazydocs==0.4.8
     # via -r requirements.dev.in
-markdown==3.3.7
+markdown==3.5
     # via mkdocs
 markdown-it-py==3.0.0
     # via rich
 markupsafe==2.1.3
-    # via jinja2
+    # via
+    #   jinja2
+    #   mkdocs
 mccabe==0.7.0
     # via pylint
 mdurl==0.1.2
     # via markdown-it-py
 mergedeep==1.3.4
     # via mkdocs
-mkdocs==1.4.3
+mkdocs==1.5.3
     # via
     #   -r requirements.dev.in
     #   mkdocs-awesome-pages-plugin
-mkdocs-awesome-pages-plugin==2.9.1
+mkdocs-awesome-pages-plugin==2.9.2
     # via -r requirements.dev.in
-more-itertools==9.1.0
+more-itertools==10.1.0
     # via jaraco-classes
-mypy==1.4.1
+mypy==1.6.1
     # via -r requirements.dev.in
 mypy-extensions==1.0.0
     # via
@@ -94,58 +92,63 @@ mypy-extensions==1.0.0
     #   mypy
 natsort==8.4.0
     # via mkdocs-awesome-pages-plugin
+nh3==0.2.14
+    # via readme-renderer
 nodeenv==1.8.0
     # via pre-commit
-packaging==23.1
+packaging==23.2
     # via
     #   black
     #   build
     #   mkdocs
     #   pytest
-pathspec==0.11.1
-    # via black
-pip-tools==6.14.0
+pathspec==0.11.2
+    # via
+    #   black
+    #   mkdocs
+pip-tools==7.3.0
     # via -r requirements.dev.in
 pkginfo==1.9.6
     # via twine
-platformdirs==3.8.1
+platformdirs==3.11.0
     # via
     #   black
+    #   mkdocs
     #   pylint
     #   virtualenv
-pluggy==1.2.0
+pluggy==1.3.0
     # via pytest
-pre-commit==3.3.3
+pre-commit==3.5.0
     # via -r requirements.dev.in
 pydocstyle==6.3.0
     # via -r requirements.dev.in
-pygments==2.15.1
+pygments==2.16.1
     # via
     #   readme-renderer
     #   rich
-pylint==2.17.4
+pylint==3.0.1
     # via -r requirements.dev.in
 pyproject-hooks==1.0.0
     # via build
-pytest==7.4.0
+pytest==7.4.2
     # via
     #   -r requirements.dev.in
     #   pytest-asyncio
     #   pytest-cov
-pytest-asyncio==0.21.0
+pytest-asyncio==0.21.1
     # via -r requirements.dev.in
 pytest-cov==4.1.0
     # via -r requirements.dev.in
 python-dateutil==2.8.2
     # via ghp-import
-pyyaml==6.0
+pyyaml==6.0.1
     # via
     #   mkdocs
     #   pre-commit
     #   pyyaml-env-tag
 pyyaml-env-tag==0.1
     # via mkdocs
-readme-renderer==40.0
+readme-renderer==42.0
     # via twine
 requests==2.31.0
     # via
@@ -156,41 +159,35 @@ requests-toolbelt==1.0.0
     # via twine
 rfc3986==2.0.0
     # via twine
-rich==13.4.2
+rich==13.6.0
     # via twine
 six==1.16.0
-    # via
-    #   bleach
-    #   python-dateutil
+    # via python-dateutil
 snowballstemmer==2.2.0
     # via pydocstyle
-tomlkit==0.11.8
+tomlkit==0.12.1
     # via pylint
 twine==4.0.2
     # via -r requirements.dev.in
 typer==0.9.0
     # via lazydocs
-typing-extensions==4.7.1
+typing-extensions==4.8.0
     # via
     #   mypy
     #   typer
-urllib3==2.0.3
+urllib3==2.0.7
     # via
     #   requests
     #   twine
-virtualenv==20.23.1
+virtualenv==20.24.5
     # via pre-commit
 watchdog==3.0.0
     # via mkdocs
-wcmatch==8.4.1
+wcmatch==8.5
     # via mkdocs-awesome-pages-plugin
-webencodings==0.5.1
-    # via bleach
-wheel==0.40.0
+wheel==0.41.2
     # via pip-tools
-wrapt==1.15.0
-    # via astroid
-zipp==3.15.0
+zipp==3.17.0
     # via importlib-metadata
 
 # The following packages are considered to be unsafe in a requirements file:

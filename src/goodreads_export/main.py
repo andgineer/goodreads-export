@@ -5,7 +5,7 @@ import sys
 from pathlib import Path
 from typing import Optional
 
-import click
+import rich_click as click
 
 from goodreads_export.goodreads_book import GoodreadsBooks
 from goodreads_export.library import Library
