@@ -56,10 +56,12 @@ class Library:
     def merge_author_names(self) -> None:
         """Replace all author names (translations, misspellings) with `primary` name.
 
-        To use this feature, list all author name links in one file by copying them from other author files.
+        To use this feature, list all author name links in one file by copying them
+        from other author files.
         The name from the first link will serve as the `primary` name.
 
-        Author names and links in book and series files will be updated to match the `primary` name.
+        Author names and links in book and series files will be updated to match
+        the `primary` name.
         Author files with `non-primary` names will be deleted.
         """
         for primary_author in [

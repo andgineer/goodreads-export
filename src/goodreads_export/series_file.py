@@ -54,7 +54,8 @@ class SeriesFile(AuthoredFile):
     def check(self) -> bool:
         """Check regexps for the template.
 
-        Create file from fields and after that parse it and compare parsed values with the initial fields
+        Create file from fields and after that parse it and compare parsed values
+        with the initial fields
         """
         fields_parsed = self.check_regexes(
             {

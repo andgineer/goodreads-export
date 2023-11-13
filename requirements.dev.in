@@ -20,4 +20,3 @@ coveralls
 # build
 twine
 pip-tools
-

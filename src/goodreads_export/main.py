@@ -122,7 +122,7 @@ def load_templates(
         if builtin_templates_name is not None:
             return TemplatesLoader().load_builtin(builtin_templates_name)
         return TemplatesLoader().load_folder(
-            templates_folder  # type: ignore  # mypy bug, if templates folder is None we exit earlier
+            templates_folder  # type: ignore  # mypy bug, see templates_folder check above
         )
     except Exception as exc:  # pylint: disable=broad-except
         log.error(f"Error loading templates: {exc}")
@@ -237,7 +237,7 @@ def check(
     try:
         log = Log(verbose)
         templates = load_templates(log, books_folder, templates_folder, builtin_name)
-        library = Library(  # to run template checks we do not want changes in fs, so no `folder` argument
+        library = Library(  # no `folder` argument: for template checks do not want changes in fs
             log=log, templates=templates
         )
         library.check_templates()
@@ -306,7 +306,8 @@ def init(
         if templates_folder is not None and not templates_folder.is_absolute():
             if books_folder is None:
                 raise ValueError(
-                    f"To use relative templates folder `{templates_folder}` specify root in `BOOKS_FOLDER`."
+                    f"To use relative templates folder `{templates_folder}`"
+                    " specify root in `BOOKS_FOLDER`."
                 )
             templates_folder = books_folder / templates_folder
         if templates_folder.exists():

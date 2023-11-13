@@ -111,7 +111,8 @@ class BookFile(AuthoredFile):  # pylint: disable=too-many-instance-attributes
     def check(self) -> bool:
         """Check regexps for the template.
 
-        Create file from fields and after that parse it and compare parsed values with the initial fields
+        Create file from fields and after that parse it and compare parsed values
+        with the initial fields
         """
         return self.check_regexes(
             {
