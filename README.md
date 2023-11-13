@@ -1,43 +1,40 @@
 [![Build Status](https://github.com/andgineer/goodreads-export/workflows/Test/badge.svg)](https://github.com/andgineer/goodreads-export/actions)
-[![Coverage Status](https://coveralls.io/repos/github/andgineer/goodreads-export/badge.svg?branch=main)](https://coveralls.io/github/andgineer/goodreads-export?branch=main)
+[![Coverage](https://raw.githubusercontent.com/andgineer/goodreads-export/python-coverage-comment-action-data/badge.svg)](https://htmlpreview.github.io/?https://github.com/andgineer/goodreads-export/blob/python-coverage-comment-action-data/htmlcov/index.html)
 # Export goodreads books into markdown files (Obsidian etc)
 
-![goodreads.png](https://andgineer.github.io/goodreads-export/goodreads.png)
-![goodreads-author.png](https://andgineer.github.io/goodreads-export/goodreads-author.png)
+![goodreads.png](https://andgineer.github.io/goodreads-export/en/goodreads.png)
+![goodreads-author.png](https://andgineer.github.io/goodreads-export/en/goodreads-author.png)
 
 # User manual
 
-[goodreads-export](https://andgineer.github.io/goodreads-export/)
+[goodreads-export](https://andgineer.github.io/goodreads-export/en/)
 
 # Developers
+### Codebase structure
+[Auto-generated reference](https://andgineer.github.io/goodreads-export/docstrings/).
 
-#### Create / activate environment
+### Create / activate environment
     . ./activate.sh
 
-Delete `venv/` if you want to reinstall everything from requirements*.txt
+It will also install the package in [edit mode](https://realpython.com/what-is-pip/#installing-packages-in-editable-mode-to-ease-development).
 
-    make reqs  # if you want to refresh versions
-    deactivate
-    rm -f venv
-    pip install --upgrade pip-tools
-    . ./activate.sh
+### Setting Up Pre-commit for Formatting and Static Checks
 
-#### Compile pinned to versions requirements*.txt from requirements*.in files
+1. **Install Pre-commit**:
+   ```bash
+   pip install pre-commit
+   ```
 
-Using pip-tools
+2. **Configure Pre-commit**:
+   ```bash
+   pre-commit install
+   ```
 
-    make reqs
+This sets up `pre-commit` in your local environment to run the same static checks as the `static` GitHub Action.
 
-#### Release version
-    make ver-bug/feature/release
-
-Github actin will automatically update the pip package on pypi.org
-
-# Docstrings documentation
-
-Documentation generated from source code.
-
-[reference](https://andgineer.github.io/goodreads-export/docstrings/)
-
-# All scripts
+### Scripts
     make help
+
+## Coverage report
+* [Codecov](https://app.codecov.io/gh/andgineer/goodreads-export/tree/main/src%2Fgoodreads_export)
+* [Coveralls](https://coveralls.io/github/andgineer/goodreads-export)

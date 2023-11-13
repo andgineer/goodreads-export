@@ -1,0 +1,32 @@
+site_name: goodreads-export
+site_url: https://andgineer.github.io/goodreads-export
+site_author: Andrey Sorokin
+
+# Repository
+repo_name: goodreads-export
+repo_url: https://github.com/andgineer/goodreads-export
+edit_uri: edit/main/docs
+docs_dir: 'docstrings'
+site_dir: '../site/docstrings/'
+
+plugins:
+  - awesome-pages
+  - search:
+      lang: en
+
+markdown_extensions:
+  - pymdownx.tabbed:
+      alternate_style: true
+  - abbr
+  - attr_list
+  - pymdownx.details
+  - pymdownx.superfences
+  - pymdownx.snippets:
+      base_path: 'docs'
+
+theme:
+  name: material
+  features:
+    - toc.integrate
+    - navigation.tracking
+    - content.code.copy

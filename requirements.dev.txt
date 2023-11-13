@@ -6,8 +6,8 @@
 #
 astroid==3.0.1
     # via pylint
-black==23.10.0
-    # via -r requirements.dev.in
+babel==2.13.1
+    # via mkdocs-material
 bracex==2.4
     # via wcmatch
 build==1.0.3
@@ -16,14 +16,15 @@ certifi==2023.7.22
     # via requests
 cfgv==3.4.0
     # via pre-commit
-charset-normalizer==3.3.0
+charset-normalizer==3.3.2
     # via requests
 click==8.1.7
     # via
-    #   black
     #   mkdocs
     #   pip-tools
     #   typer
+colorama==0.4.6
+    # via mkdocs-material
 coverage[toml]==6.5.0
     # via
     #   coveralls
@@ -38,11 +39,11 @@ docopt==0.6.2
     # via coveralls
 docutils==0.20.1
     # via readme-renderer
-filelock==3.12.4
+filelock==3.13.1
     # via virtualenv
 ghp-import==2.1.0
     # via mkdocs
-identify==2.5.30
+identify==2.5.31
     # via pre-commit
 idna==3.4
     # via requests
@@ -57,13 +58,18 @@ isort==5.12.0
 jaraco-classes==3.3.0
     # via keyring
 jinja2==3.1.2
-    # via mkdocs
-keyring==24.2.0
+    # via
+    #   mkdocs
+    #   mkdocs-material
+keyring==24.3.0
     # via twine
 lazydocs==0.4.8
     # via -r requirements.dev.in
-markdown==3.5
-    # via mkdocs
+markdown==3.5.1
+    # via
+    #   mkdocs
+    #   mkdocs-material
+    #   pymdown-extensions
 markdown-it-py==3.0.0
     # via rich
 markupsafe==2.1.3
@@ -80,16 +86,19 @@ mkdocs==1.5.3
     # via
     #   -r requirements.dev.in
     #   mkdocs-awesome-pages-plugin
+    #   mkdocs-material
 mkdocs-awesome-pages-plugin==2.9.2
     # via -r requirements.dev.in
+mkdocs-material==9.4.8
+    # via -r requirements.dev.in
+mkdocs-material-extensions==1.3
+    # via mkdocs-material
 more-itertools==10.1.0
     # via jaraco-classes
-mypy==1.6.1
+mypy==1.7.0
     # via -r requirements.dev.in
 mypy-extensions==1.0.0
-    # via
-    #   black
-    #   mypy
+    # via mypy
 natsort==8.4.0
     # via mkdocs-awesome-pages-plugin
 nh3==0.2.14
@@ -98,21 +107,19 @@ nodeenv==1.8.0
     # via pre-commit
 packaging==23.2
     # via
-    #   black
     #   build
     #   mkdocs
     #   pytest
+paginate==0.5.6
+    # via mkdocs-material
 pathspec==0.11.2
-    # via
-    #   black
-    #   mkdocs
+    # via mkdocs
 pip-tools==7.3.0
     # via -r requirements.dev.in
 pkginfo==1.9.6
     # via twine
 platformdirs==3.11.0
     # via
-    #   black
     #   mkdocs
     #   pylint
     #   virtualenv
@@ -120,17 +127,20 @@ pluggy==1.3.0
     # via pytest
 pre-commit==3.5.0
     # via -r requirements.dev.in
-pydocstyle==6.3.0
-    # via -r requirements.dev.in
 pygments==2.16.1
     # via
+    #   mkdocs-material
     #   readme-renderer
     #   rich
-pylint==3.0.1
+pylint==3.0.2
     # via -r requirements.dev.in
+pymdown-extensions==10.4
+    # via
+    #   -r requirements.dev.in
+    #   mkdocs-material
 pyproject-hooks==1.0.0
     # via build
-pytest==7.4.2
+pytest==7.4.3
     # via
     #   -r requirements.dev.in
     #   pytest-asyncio
@@ -145,14 +155,18 @@ pyyaml==6.0.1
     # via
     #   mkdocs
     #   pre-commit
+    #   pymdown-extensions
     #   pyyaml-env-tag
 pyyaml-env-tag==0.1
     # via mkdocs
 readme-renderer==42.0
     # via twine
+regex==2023.10.3
+    # via mkdocs-material
 requests==2.31.0
     # via
     #   coveralls
+    #   mkdocs-material
     #   requests-toolbelt
     #   twine
 requests-toolbelt==1.0.0
@@ -163,9 +177,7 @@ rich==13.6.0
     # via twine
 six==1.16.0
     # via python-dateutil
-snowballstemmer==2.2.0
-    # via pydocstyle
-tomlkit==0.12.1
+tomlkit==0.12.2
     # via pylint
 twine==4.0.2
     # via -r requirements.dev.in
@@ -179,13 +191,13 @@ urllib3==2.0.7
     # via
     #   requests
     #   twine
-virtualenv==20.24.5
+virtualenv==20.24.6
     # via pre-commit
 watchdog==3.0.0
     # via mkdocs
 wcmatch==8.5
     # via mkdocs-awesome-pages-plugin
-wheel==0.41.2
+wheel==0.41.3
     # via pip-tools
 zipp==3.17.0
     # via importlib-metadata

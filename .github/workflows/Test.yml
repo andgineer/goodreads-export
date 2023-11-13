@@ -30,15 +30,30 @@ jobs:
         pip install -r requirements.dev.txt
         python -m pip install -e .
     - name: Test with pytest
-      run: pytest --junitxml=pytest.xml --cov-report=term-missing:skip-covered --cov=src tests/ | tee pytest-coverage.txt
-    - name: Pytest coverage comment
-      if: ${{ matrix.python-version == 3.11 && matrix.platform == 'ubuntu-latest' }}
-      uses: MishaKav/pytest-coverage-comment@main
-      with:
-        pytest-coverage-path: ./pytest-coverage.txt
-        junitxml-path: ./pytest.xml
+      run: pytest --junitxml=pytest.xml --cov-report=term-missing:skip-covered --cov=src tests/
+
     - name: Upload coverage data to coveralls.io
       if: ${{ matrix.python-version == 3.11 && matrix.platform == 'ubuntu-latest' }}
       run: coveralls --service=github
       env:
         GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
+
+    - name: Upload Coverage to Codecov
+      if: ${{ matrix.python-version == 3.11 && matrix.platform == 'ubuntu-latest' }}
+      uses: codecov/codecov-action@v2
+
+    - name: Coverage comment
+      id: coverage_comment
+      if: ${{ matrix.python-version == 3.11 && matrix.platform == 'ubuntu-latest' }}
+      uses: py-cov-action/python-coverage-comment-action@v3
+      with:
+        GITHUB_TOKEN: ${{ github.token }}
+        MINIMUM_GREEN: 85
+        MINIMUM_ORANGE: 70
+
+    - name: Store Pull Request comment to be posted
+      uses: actions/upload-artifact@v3
+      if: steps.coverage_comment.outputs.COMMENT_FILE_WRITTEN == 'true'
+      with:
+        name: python-coverage-comment-action
+        path: python-coverage-comment-action.txt

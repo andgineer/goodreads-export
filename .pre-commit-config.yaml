@@ -1,15 +1,22 @@
+exclude: |
+    (?x)(
+        tests/|
+        docs/|
+        site/|
+        templates/|
+        setup.py|
+        version.py
+    )
 repos:
   - repo: https://github.com/pre-commit/pre-commit-hooks
     rev: v4.5.0
     hooks:
       - id: trailing-whitespace
-        exclude: (tests/resources/|templates/)
       - id: end-of-file-fixer
-        exclude: (tests/resources/|templates/)
       - id: check-yaml
         args: ["--unsafe"]
       - id: check-added-large-files
-        exclude: (tests/resources/)
+        exclude: (site)
 
   - repo: https://github.com/myint/autoflake
     rev: v2.2.1
@@ -37,7 +44,7 @@ repos:
           ]
 
   - repo: https://github.com/psf/black
-    rev: 23.10.0
+    rev: 23.11.0
     hooks:
       - id: black
         name: Fixes formatting
@@ -61,30 +68,35 @@ repos:
           # ignore module level import not at top of file (E402) to skip tests with uninstalled modules (pytest.importorskip)
           - --ignore=E501,E203,W503,E402
 
-  - repo: local
+  - repo: https://github.com/PyCQA/pydocstyle
+    rev: 6.3.0
     hooks:
-      - id: mypy
-        name: mypy
-        entry: dmypy
-        files: \.py$
-        # pre-commit send full file list so exclude in .mypy.ini is ignored
-        exclude: (tests)
-        language: python
-        require_serial: true
-        args: ["run", "--", "--strict", "--implicit-reexport", "--warn-unused-ignores", "--cache-fine-grained", "--no-namespace-packages", "--verbose"]
-        verbose: true
-
-      - id: pylint
-        name: Pylint
-        entry: pylint --max-line-length=110 --ignore-imports=yes
-        files: \.py$
-        exclude: (tests|version.py|setup.py)
-        language: python
-
       - id: pydocstyle
         name: docstrings
         entry: pydocstyle
         language: python
-        exclude: (tests|version.py)
         args:
           - --ignore=D100,D203,D405,D407,D213,D413
+
+  - repo: local
+    hooks:
+      - id: mypy
+        name: MyPy
+        entry: |
+          mypy
+          --ignore-missing-imports
+          --install-types
+          --non-interactive
+          --strict
+          --implicit-reexport
+          --warn-unused-ignores
+          --cache-fine-grained
+          --no-namespace-packages
+        files: \.py$
+        language: python
+
+      - id: pylint
+        name: Pylint
+        entry: pylint --max-line-length=99 --ignore-imports=yes
+        files: \.py$
+        language: python

@@ -19,9 +19,11 @@ jobs:
       - uses: actions/checkout@v3
       - uses: actions/setup-python@v3
         with:
-          python-version: 3.x
+          python-version: '3.11'
       - run: |
           pip install -r requirements.dev.txt
+          pip install ghp-import
           python -m pip install -e .
       - run: scripts/build-docs.sh
-      - run: mkdocs gh-deploy --force
+      - run: |
+          ghp-import --no-jekyll --push --force site
