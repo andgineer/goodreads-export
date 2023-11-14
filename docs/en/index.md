@@ -104,7 +104,7 @@ without any parameters, as follows:
 This command will generate subfolders within the current directory: `reviews`, `toread`, and `authors`, 
 each populated with corresponding markdown files. 
 
-Alternatively, you can specify a direct path to a folder within your Obsidian vault where your books are organized, 
+Alternatively, instead of `.` you can specify a path to a folder within your Obsidian vault where your books are organized, 
 and the application will update that location.
 
 ### Templates
