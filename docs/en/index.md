@@ -1,17 +1,19 @@
 # Goodreads export to markdown files
 
-Export your goodreads book reviews into markdown files using jinja templates.
+Transform your Goodreads book reviews into structured markdown files, 
+ideal for use in [Obsidian](https://obsidian.md/) and other markdown-based applications.
 
-In the current templates:
-- links to the goodreads' book pages
-- [Calibre](https://calibre-ebook.com/) URL to search
-for this book in your local Calibre collection
-- tags based on your `shelves`
+- **Goodreads Book Page Links:** Each markdown file contains a direct link to the corresponding book's page on Goodreads.
+- **Calibre Integration:** Includes a [Calibre](https://calibre-ebook.com/) URL for each book, allowing quick searches 
+in your local Calibre collection.
+- **Tagging Based on Goodreads Shelves:** Reviews are automatically categorized with tags derived from your Goodreads shelves.
+- **Customizable Templates:** Utilizing Jinja2 templates, the output format can be easily customized to suit your specific needs or preferences.
 
-This is how that looks like in [Obsidian](https://obsidian.md/):
+??? note "Example of book review in Obsidian"
+    ![goodreads.png](goodreads.png)
 
-![goodreads.png](goodreads.png)
-![goodreads-author.png](goodreads-author.png)
+??? note "Example of book author in Obsidian"
+    ![goodreads-author.png](goodreads-author.png)
 
 ## Installation
 Install using [`pipx`](https://pypa.github.io/pipx/) for isolated environments, which prevents interference 
@@ -49,7 +51,7 @@ pipx install goodreads-export
 
       Create markdown files from https://www.goodreads.com/ CSV export.
 
-      Documentation https://andgineer.github.io/goodreads-export/
+      Documentation https://andgineer.github.io/goodreads-export/en/
 
       To see help on the commands use `goodreads-export COMMAND --help`. For
       example: `goodreads-export import --help`.
@@ -73,7 +75,7 @@ pipx install goodreads-export
       BOOKS_FOLDER Folder where we put result. Do not change existed files except
       authors merge if necessary.
 
-      See details in https://andgineer.github.io/goodreads-export/
+      See details in https://andgineer.github.io/goodreads-export/en/
 
     Options:
       -v, --verbose                Increase verbosity.

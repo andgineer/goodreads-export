@@ -2,8 +2,14 @@
 [![Coverage](https://raw.githubusercontent.com/andgineer/goodreads-export/python-coverage-comment-action-data/badge.svg)](https://htmlpreview.github.io/?https://github.com/andgineer/goodreads-export/blob/python-coverage-comment-action-data/htmlcov/index.html)
 # Export goodreads books into markdown files (Obsidian etc)
 
-![goodreads.png](https://andgineer.github.io/goodreads-export/en/goodreads.png)
-![goodreads-author.png](https://andgineer.github.io/goodreads-export/en/goodreads-author.png)
+Transform your goodreads.com book reviews into structured markdown files,
+ideal for use in [Obsidian](https://obsidian.md/) and other markdown-based applications.
+
+- **Goodreads Book Page Links:** Each markdown file contains a direct link to the corresponding book's page on Goodreads.
+- **Calibre Integration:** Includes a [Calibre](https://calibre-ebook.com/) URL for each book, allowing quick searches
+in your local Calibre collection.
+- **Tagging Based on Goodreads Shelves:** Reviews are automatically categorized with tags derived from your Goodreads shelves.
+- **Customizable Templates:** Utilizing Jinja2 templates, the output format can be easily customized to suit your specific needs or preferences.
 
 # User manual
 

@@ -142,7 +142,7 @@ def load_templates(
 def main(ctx: click.Context, version: bool) -> None:
     """Create markdown files from https://www.goodreads.com/ CSV export.
 
-    Documentation https://andgineer.github.io/goodreads-export/
+    Documentation https://andgineer.github.io/goodreads-export/en/
 
     To see help on the commands use `goodreads-export COMMAND --help`.
     For example: `goodreads-export import --help`.
@@ -186,7 +186,7 @@ def import_(
     BOOKS_FOLDER
     Folder where we put result. Do not change existed files except authors merge if necessary.
 
-    See details in https://andgineer.github.io/goodreads-export/
+    See details in https://andgineer.github.io/goodreads-export/en/
     """
     try:
         log = Log(verbose)
@@ -264,7 +264,7 @@ def merge(
 
     Unlike `import` do not need goodreads file.
 
-    See https://andgineer.github.io/goodreads-export/ for details.
+    See https://andgineer.github.io/goodreads-export/en/ for details.
     """
     try:
         log = Log(verbose)
@@ -296,7 +296,7 @@ def init(
 
     Copy from built-in templates specified in `--builtin-name`.
 
-    See https://andgineer.github.io/goodreads-export/ for details.
+    See https://andgineer.github.io/goodreads-export/en/ for details.
     """
     try:
         if books_folder is None and templates_folder is None:
