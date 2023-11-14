@@ -15,6 +15,9 @@ in your local Calibre collection.
 ??? note "Example of book author in Obsidian"
     ![goodreads-author.png](goodreads-author.png)
 
+??? note "Example of book series in Obsidian"
+    ![goodreads-series.png](goodreads-series.png)
+
 ## Installation
 Install using [`pipx`](https://pypa.github.io/pipx/) for isolated environments, which prevents interference 
 with your system's Python packages:
@@ -43,122 +46,77 @@ with your system's Python packages:
 pipx install goodreads-export
 ```
 
+## How to Create a Goodreads Export File
+
+This application utilizes a CSV file generated from goodreads.com. 
+To create your Goodreads export, follow the instructions at [Goodreads Book Export](https://www.goodreads.com/review/import).
+
+Despite announcements in 2022 about the removal of this feature by August 2020, 
+the export function was still operational as of late 2023.
+
+Initially, I developed this application as a one-off solution to migrate my 700+ book reviews away from Goodreads. 
+However, since the export feature remains functional, I now use it to incrementally update my markdown files in Obsidian.
+
+### Why Use a Manually Exported File?
+
+As of 2020, Goodreads discontinued issuing new API keys. 
+Consequently, my approach is about adapting to these limitations.
+
+While I can't fully automate the process due to the API restriction, I can still retrieve my data from Goodreads, 
+albeit with the additional step of manual export.
+
+## Incremental Updates, Merge Authors
+
+The application supports adding reviews to a folder with existing files. 
+It reads the existing files and avoids creating duplicates by using the Goodreads book IDs embedded 
+in the markdown file links to Goodreads pages.
+
+**Important:** To maintain the integrity of the data, do not remove or modify these Goodreads links. 
+The application uses these links, not the file names, to identify the books.
+
+### Author Files
+
+The links within the files serve as author IDs and should not be altered. 
+The author's name is sourced from the link within each file, rather than from the file's name.
+
+### Merging Different Author Names
+
+Goodreads may have various spellings or language versions of an author's name. 
+This application allows for merging these into a single 'primary' author file.
+
+- Consolidate all author names by copying their links into one primary author file.
+- Ensure the first link in this file is the 'primary' name of the author.
+- To merge author names without importing new data from Goodreads, use the `--merge` option. 
+This will only perform the merging of author names, eliminating the necessity to specify a Goodreads export file.
+
 ## Command Line Interface
+??? note "goodreads-export --help"
+    ![help.png](help.png)
 
-    $> goodreads-export --help
+??? note "goodreads-export import --help"
+    ![help-import.png](help-import.png)
 
-    Usage: goodreads-export [OPTIONS] COMMAND [ARGS]...
-
-      Create markdown files from https://www.goodreads.com/ CSV export.
-
-      Documentation https://andgineer.github.io/goodreads-export/en/
-
-      To see help on the commands use `goodreads-export COMMAND --help`. For
-      example: `goodreads-export import --help`.
-
-    Options:
-      --version  Show version.
-      --help     Show this message and exit.
-
-    Commands:
-      check   Check templates consistency with extraction regexes.
-      import  Convert goodreads export CSV file to markdown files.
-      init    Create templates folder in path from `--templates-folder`.
-      merge   Merge authors in the `BOOKS_FOLDER`.
-
-    $> goodreads-export import --help
-
-    Usage: goodreads-export import [OPTIONS] BOOKS_FOLDER
-
-      Convert goodreads export CSV file to markdown files.
-
-      BOOKS_FOLDER Folder where we put result. Do not change existed files except
-      authors merge if necessary.
-
-      See details in https://andgineer.github.io/goodreads-export/en/
-
-    Options:
-      -v, --verbose                Increase verbosity.
-      -t, --templates-folder PATH  Folder with templates. If not absolute it's
-                                   relative to `BOOKS_FOLDER`. If not specified,
-                                   look for `./templates` in `BOOKS_FOLDER`. If
-                                   not found use built-in templates, see
-                                   `--builtin-name`.
-      -b, --builtin-name TEXT      Name of the built-in template. Use `default` if
-                                   not specified.
-      -i, --in TEXT                Goodreads export file. By default
-                                   `goodreads_library_export.csv`. if you specify
-                                   just folder it will look for file with this
-                                   name in that folder.
-      --help                       Show this message and exit.
-
-If we run in the folder with goodreads export file (goodreads_library_export.csv) the
-script without parameters, like that
+If the script is executed in a directory containing the Goodreads export file (`goodreads_library_export.csv`) 
+without any parameters, as follows:
 
     goodreads-export import .
 
-It will create in this folder subfolders `reviws`, `toread`, `authors` with the md-files.
-Alternatively you can specify direct path inside Obsidian vault with your books folder
-and the application will update it.
+This command will generate subfolders within the current directory: `reviews`, `toread`, and `authors`, 
+each populated with corresponding markdown files. 
+
+Alternatively, you can specify a direct path to a folder within your Obsidian vault where your books are organized, 
+and the application will update that location.
 
 ### Templates
 
-The application use jinja templates that you can modify.
-Use `init` command to copy built-in templates to some folder and modify them.
+This application utilizes [Jinja templates](https://jinja.palletsprojects.com/en/latest/), which are fully customizable. 
+To begin customizing, use the `init` command to copy built-in templates into your `BOOKS_FOLDER`. 
+You can then modify these templates as needed.
 
-In `regex.toml` are specified regexes to extract data from file.
+The templates include:
 
-## How to create goodreads export file
+- `author.jinja` for generating author files.
+- `book.jinja` for creating book files.
+- `series.jinja` for series files.
 
-This application use CSV file created on goodreads.com.
-How to create goodreads export see in https://www.goodreads.com/review/import
-
-In 2022 they declared the export feature to be removed by August 2020, but at least at the beginning of
-2023 it still works.
-
-In fact I created the application as one-time solution to go away from goodreads with
-my 600-something book reviews. But as it still works now I use it also to incrementally update my
-markdown files in Obsidian.
-
-## Incremental updates
-
-Application can add reviews to folder with already existed files.
-
-It reads files from the folders and won't create reviews that are already there.
-This is possible because there are goodreads book ID in the markdown files - inside link to goodreads.
-
-If you do not remove this link with ID, even if you rename the file the application still
-know what book it is about.
-
-### Author files
-
-Please do not delete or modify link inside the files, application use them as author IDs.
-
-Author name is always get from the link and not from the author file name.
-
-### Merging different author names
-
-In goodreads could be a lot of different spellings of the author name plus versions in
-different languages.
-
-With this application you can merge them.
-
-For that all author names should be listed as links in one author file -
-just copy them from other author files.
-This file with all author names is `primary` author file.
-
-First link should contain `primary` name.
-Application will relink all existed and newly created books to the `primary` name.
-
-If you need re-link only without importing goodreads file use option `--merge`.
-
-## Why this lame approach with manually exported file
-
-Goodreads at 2020 had stopped giving out API keys.
-
-So it's all about making lemonade out of lemons.
-
-I cannot not use the API to fully automate the process,
-but at least I can still get my data from goodreads.
-
-Unfortunately with this manual export step included.
+Additionally, `regex.toml` contains specified regexes to extract data from these files.
