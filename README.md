@@ -10,14 +10,14 @@
 | src/goodreads\_export/clean\_file\_name.py |        6 |        0 |    100% |           |
 | src/goodreads\_export/data\_file.py        |       66 |        7 |     89% |9, 41, 45, 73, 118-120 |
 | src/goodreads\_export/goodreads\_book.py   |       37 |        0 |    100% |           |
-| src/goodreads\_export/library.py           |      151 |        8 |     95% |222-224, 226-227, 249, 257, 280 |
+| src/goodreads\_export/library.py           |      151 |        9 |     94% |222-224, 226-227, 249, 257, 278-280 |
 | src/goodreads\_export/log.py               |       49 |        4 |     92% |     78-81 |
 | src/goodreads\_export/main.py              |      145 |       25 |     83% |109-113, 118, 127-129, 155-157, 159-160, 246-249, 279-281, 303, 308, 314, 320-322, 326 |
 | src/goodreads\_export/series\_file.py      |       37 |        4 |     89% | 46, 73-75 |
 | src/goodreads\_export/stat.py              |       13 |        0 |    100% |           |
 | src/goodreads\_export/templates.py         |      115 |        9 |     92% |16-17, 121-122, 142, 191, 211, 219, 226 |
 | src/goodreads\_export/version.py           |        1 |        0 |    100% |           |
-|                                  **TOTAL** |  **747** |   **66** | **91%** |           |
+|                                  **TOTAL** |  **747** |   **67** | **91%** |           |
 
 
 ## Setup coverage badge
