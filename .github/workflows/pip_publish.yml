@@ -8,7 +8,7 @@ name: Publish Python PIP Package on pypi and create github release
 on:
   push:
     tags:
-      - '*.*.*'
+      - 'v*.*.*'
 
 jobs:
   publish:
@@ -19,7 +19,7 @@ jobs:
     - uses: actions/checkout@v3
     - name: Set version var
       run: |
-        echo "RELEASE_VERSION=$(echo ${GITHUB_REF#refs/*/})" >> $GITHUB_ENV
+        echo "RELEASE_VERSION=$(echo ${GITHUB_REF#refs/*/} | cut -c 2-)" >> $GITHUB_ENV
         echo $RELEASE_VERSION
     - name: Set up Python
       uses: actions/setup-python@v3
@@ -42,8 +42,8 @@ jobs:
       env:
         GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
       with:
-        tag_name: ${{ github.ref }}
-        release_name: Release ${{ github.ref }}
+        tag_name: ${{ env.RELEASE_VERSION }}
+        release_name: Release ${{ env.RELEASE_VERSION }}
         body: https://pypi.org/project/goodreads-export/${{ env.RELEASE_VERSION }}/
         draft: false
         prerelease: false

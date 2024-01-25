@@ -4,15 +4,15 @@
 #
 #    pip-compile requirements.dev.in
 #
-astroid==3.0.1
+astroid==3.0.2
     # via pylint
-babel==2.13.1
+babel==2.14.0
     # via mkdocs-material
 bracex==2.4
     # via wcmatch
 build==1.0.3
     # via pip-tools
-certifi==2023.7.22
+certifi==2023.11.17
     # via requests
 cfgv==3.4.0
     # via pre-commit
@@ -27,13 +27,14 @@ colorama==0.4.6
     # via mkdocs-material
 coverage[toml]==6.5.0
     # via
+    #   coverage
     #   coveralls
     #   pytest-cov
 coveralls==3.3.1
     # via -r requirements.dev.in
 dill==0.3.7
     # via pylint
-distlib==0.3.7
+distlib==0.3.8
     # via virtualenv
 docopt==0.6.2
     # via coveralls
@@ -43,21 +44,21 @@ filelock==3.13.1
     # via virtualenv
 ghp-import==2.1.0
     # via mkdocs
-identify==2.5.31
+identify==2.5.33
     # via pre-commit
-idna==3.4
+idna==3.6
     # via requests
-importlib-metadata==6.8.0
+importlib-metadata==7.0.1
     # via
     #   keyring
     #   twine
 iniconfig==2.0.0
     # via pytest
-isort==5.12.0
+isort==5.13.2
     # via pylint
 jaraco-classes==3.3.0
     # via keyring
-jinja2==3.1.2
+jinja2==3.1.3
     # via
     #   mkdocs
     #   mkdocs-material
@@ -65,14 +66,14 @@ keyring==24.3.0
     # via twine
 lazydocs==0.4.8
     # via -r requirements.dev.in
-markdown==3.5.1
+markdown==3.5.2
     # via
     #   mkdocs
     #   mkdocs-material
     #   pymdown-extensions
 markdown-it-py==3.0.0
     # via rich
-markupsafe==2.1.3
+markupsafe==2.1.4
     # via
     #   jinja2
     #   mkdocs
@@ -89,19 +90,19 @@ mkdocs==1.5.3
     #   mkdocs-material
 mkdocs-awesome-pages-plugin==2.9.2
     # via -r requirements.dev.in
-mkdocs-material==9.4.8
+mkdocs-material==9.5.5
     # via -r requirements.dev.in
-mkdocs-material-extensions==1.3
+mkdocs-material-extensions==1.3.1
     # via mkdocs-material
-more-itertools==10.1.0
+more-itertools==10.2.0
     # via jaraco-classes
-mypy==1.7.0
+mypy==1.8.0
     # via -r requirements.dev.in
 mypy-extensions==1.0.0
     # via mypy
 natsort==8.4.0
     # via mkdocs-awesome-pages-plugin
-nh3==0.2.14
+nh3==0.2.15
     # via readme-renderer
 nodeenv==1.8.0
     # via pre-commit
@@ -112,40 +113,40 @@ packaging==23.2
     #   pytest
 paginate==0.5.6
     # via mkdocs-material
-pathspec==0.11.2
+pathspec==0.12.1
     # via mkdocs
 pip-tools==7.3.0
     # via -r requirements.dev.in
 pkginfo==1.9.6
     # via twine
-platformdirs==3.11.0
+platformdirs==4.1.0
     # via
     #   mkdocs
     #   pylint
     #   virtualenv
-pluggy==1.3.0
+pluggy==1.4.0
     # via pytest
-pre-commit==3.5.0
+pre-commit==3.6.0
     # via -r requirements.dev.in
-pygments==2.16.1
+pygments==2.17.2
     # via
     #   mkdocs-material
     #   readme-renderer
     #   rich
-pylint==3.0.2
+pylint==3.0.3
     # via -r requirements.dev.in
-pymdown-extensions==10.4
+pymdown-extensions==10.7
     # via
     #   -r requirements.dev.in
     #   mkdocs-material
 pyproject-hooks==1.0.0
     # via build
-pytest==7.4.3
+pytest==7.4.4
     # via
     #   -r requirements.dev.in
     #   pytest-asyncio
     #   pytest-cov
-pytest-asyncio==0.21.1
+pytest-asyncio==0.23.3
     # via -r requirements.dev.in
 pytest-cov==4.1.0
     # via -r requirements.dev.in
@@ -161,7 +162,7 @@ pyyaml-env-tag==0.1
     # via mkdocs
 readme-renderer==42.0
     # via twine
-regex==2023.10.3
+regex==2023.12.25
     # via mkdocs-material
 requests==2.31.0
     # via
@@ -173,31 +174,31 @@ requests-toolbelt==1.0.0
     # via twine
 rfc3986==2.0.0
     # via twine
-rich==13.6.0
+rich==13.7.0
     # via twine
 six==1.16.0
     # via python-dateutil
-tomlkit==0.12.2
+tomlkit==0.12.3
     # via pylint
 twine==4.0.2
     # via -r requirements.dev.in
 typer==0.9.0
     # via lazydocs
-typing-extensions==4.8.0
+typing-extensions==4.9.0
     # via
     #   mypy
     #   typer
-urllib3==2.0.7
+urllib3==2.1.0
     # via
     #   requests
     #   twine
-virtualenv==20.24.6
+virtualenv==20.25.0
     # via pre-commit
 watchdog==3.0.0
     # via mkdocs
 wcmatch==8.5
     # via mkdocs-awesome-pages-plugin
-wheel==0.41.3
+wheel==0.42.0
     # via pip-tools
 zipp==3.17.0
     # via importlib-metadata
