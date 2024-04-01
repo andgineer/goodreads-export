@@ -1,4 +1,5 @@
 """Library object with author."""
+
 from abc import ABC
 from typing import TYPE_CHECKING, Any, Optional
 

@@ -1,4 +1,5 @@
 """Series object."""
+
 import urllib.parse
 from pathlib import Path
 from typing import Any, Dict, List, Optional, Union
@@ -49,7 +50,10 @@ class SeriesFile(AuthoredFile):
 
     def is_file_name(self, file_name: Union[str, Path]) -> bool:
         """Check `file_name` with series file name regex."""
-        return self._get_template().file_name_regexes.choose_regex(str(file_name)) is not None
+        return (
+            self._get_template().file_name_regexes.choose_regex(str(file_name))
+            is not None
+        )
 
     def check(self) -> bool:
         """Check regexps for the template.
@@ -70,8 +74,12 @@ class SeriesFile(AuthoredFile):
         series_file_name = self.file_name
         is_file_name = self.is_file_name(series_file_name)
         if not is_file_name:
-            print(f"Rendered with template `{self._get_template().file_name_template}`)")
-            print(f"file name `{series_file_name}` is not recognized using the pattern:")
+            print(
+                f"Rendered with template `{self._get_template().file_name_template}`)"
+            )
+            print(
+                f"file name `{series_file_name}` is not recognized using the pattern:"
+            )
             print(f"{self._get_template().file_name_regexes[0].regex}")
 
         return fields_parsed and is_file_name

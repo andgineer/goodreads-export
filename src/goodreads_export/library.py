@@ -1,4 +1,5 @@
 """Library of books."""
+
 import os
 from pathlib import Path
 from typing import Dict, Optional
@@ -90,7 +91,9 @@ class Library:
         reviews_bar_title = "Review"
         authors_bar_title = "Author"
         self.log.open_progress(reviews_bar_title, "books", len(books))
-        self.log.open_progress(authors_bar_title, "authors", bar_format="{desc}: {n_fmt}")
+        self.log.open_progress(
+            authors_bar_title, "authors", bar_format="{desc}: {n_fmt}"
+        )
 
         for book in books:
             self.log.progress(reviews_bar_title)
@@ -101,7 +104,8 @@ class Library:
                 primary_author := self.authors[book.author].name
             ):
                 self.log.progress_description(
-                    authors_bar_title, f"Author name `{book.author}` changed to `{primary_author}`"
+                    authors_bar_title,
+                    f"Author name `{book.author}` changed to `{primary_author}`",
                 )
                 book.author = primary_author
 
@@ -223,12 +227,16 @@ class Library:
                     self.log.info(f"Series file {file_name} has no author name")
                     continue
                 if series.author.name not in authors:
-                    self.log.info(f"Series file {file_name} has author without author file")
+                    self.log.info(
+                        f"Series file {file_name} has author without author file"
+                    )
                     continue
                 authors[series.author.name].series.append(series)
                 self.stat.series_added += 1
 
-    def load_books(self, folder: Path, authors: Dict[str, AuthorFile]) -> Dict[str, BookFile]:
+    def load_books(
+        self, folder: Path, authors: Dict[str, AuthorFile]
+    ) -> Dict[str, BookFile]:
         """Load existed books.
 
         Look for goodreads book ID inside files.
@@ -272,9 +280,13 @@ class Library:
                 content=file_name.read_text(encoding="utf8"),
             )
             if author.names:  # parse succeeded
-                authors[author.name] = author  # primary name is always point to primary file
+                authors[author.name] = (
+                    author  # primary name is always point to primary file
+                )
                 for name in author.names:
-                    if name not in authors:  # do not overwrite if pointed to primary file
+                    if (
+                        name not in authors
+                    ):  # do not overwrite if pointed to primary file
                         authors[name] = author
             else:
                 self.stat.skipped_unknown_files += 1

@@ -1,4 +1,5 @@
 """Object stored in the file."""
+
 import os
 from pathlib import Path
 from typing import TYPE_CHECKING, Any, Dict, Optional
@@ -51,7 +52,9 @@ class DataFile:
         Automatically generate file name from book's fields if not assigned.
         """
         if self._file_name is None:
-            self._file_name = self._get_template().render_file_name(self._get_template_context())
+            self._file_name = self._get_template().render_file_name(
+                self._get_template_context()
+            )
         return self._file_name
 
     @file_name.setter
@@ -104,7 +107,9 @@ class DataFile:
         """Write file to path."""
         self.path.write_text(self.content, encoding="utf8")
 
-    def check_regexes(self, checks: Dict[str, Dict[str, Any]], default_regex: str) -> bool:
+    def check_regexes(
+        self, checks: Dict[str, Dict[str, Any]], default_regex: str
+    ) -> bool:
         """Check regexps.
 
         `checks` is a dict of {check name: {initial value, parsed value function, regexp}}
@@ -115,7 +120,9 @@ class DataFile:
         result = True
         for name, check in checks.items():
             if check["initial"] != check["value"]():
-                print(f"{name} {check['initial']} is not parsed from content\n{self.content}")
+                print(
+                    f"{name} {check['initial']} is not parsed from content\n{self.content}"
+                )
                 print(f"using the pattern\n{check.get('regex', default_regex)}")
                 result = False
         return result

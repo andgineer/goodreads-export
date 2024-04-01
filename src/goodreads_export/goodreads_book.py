@@ -1,4 +1,5 @@
 """Goodreads export CSV parser."""
+
 import re
 from typing import List
 
@@ -48,7 +49,9 @@ class Book:  # pylint: disable=too-few-public-methods,too-many-instance-attribut
             self.series = [series[1].strip() for series in series_match]
         else:
             self.series = []
-        self.series_full = [f"{self.author} - {series} - series" for series in self.series]
+        self.series_full = [
+            f"{self.author} - {series} - series" for series in self.series
+        ]
 
 
 class GoodreadsBooks(List[Book]):

@@ -1,4 +1,5 @@
 """Command line interface."""
+
 import os
 import shutil
 import sys
@@ -10,7 +11,11 @@ import rich_click as click
 from goodreads_export.goodreads_book import GoodreadsBooks
 from goodreads_export.library import Library
 from goodreads_export.log import Log
-from goodreads_export.templates import DEFAULT_BUILTIN_TEMPLATE, TemplateSet, TemplatesLoader
+from goodreads_export.templates import (
+    DEFAULT_BUILTIN_TEMPLATE,
+    TemplateSet,
+    TemplatesLoader,
+)
 from goodreads_export.version import VERSION
 
 GOODREAD_EXPORT_FILE_NAME = "goodreads_library_export.csv"
@@ -103,9 +108,14 @@ def load_templates(
         sys.exit(1)
     try:
         if templates_folder is None:
-            if books_folder is not None and (books_folder / DEFAULT_TEMPLATES_FOLDER).is_dir():
+            if (
+                books_folder is not None
+                and (books_folder / DEFAULT_TEMPLATES_FOLDER).is_dir()
+            ):
                 if builtin_templates_name is None:
-                    return TemplatesLoader().load_folder(books_folder / DEFAULT_TEMPLATES_FOLDER)
+                    return TemplatesLoader().load_folder(
+                        books_folder / DEFAULT_TEMPLATES_FOLDER
+                    )
                 log.info(
                     f"Using embedded templates `{builtin_templates_name}, "
                     f"ignore templates in `{DEFAULT_TEMPLATES_FOLDER}`."
@@ -130,16 +140,9 @@ def load_templates(
 
 
 @click.group(invoke_without_command=True)
+@click.version_option(version=VERSION, prog_name="goodreads-export")
 @click.pass_context
-@click.option(
-    "--version",
-    "version",
-    is_flag=True,
-    default=False,
-    help="Show version.",
-    nargs=1,
-)
-def main(ctx: click.Context, version: bool) -> None:
+def main(ctx: click.Context) -> None:
     """Create markdown files from https://www.goodreads.com/ CSV export.
 
     Documentation https://andgineer.github.io/goodreads-export/en/
@@ -148,9 +151,6 @@ def main(ctx: click.Context, version: bool) -> None:
     For example: `goodreads-export import --help`.
     """
     try:
-        if version:
-            print(f"{VERSION}")
-            sys.exit(0)
         if not ctx.invoked_subcommand:
             click.echo("Error: Missing command.")
             click.echo(main.get_help(ctx))
@@ -300,7 +300,9 @@ def init(
     """
     try:
         if books_folder is None and templates_folder is None:
-            raise ValueError("You should specify `BOOKS_FOLDER` or `--templates-folder`")
+            raise ValueError(
+                "You should specify `BOOKS_FOLDER` or `--templates-folder`"
+            )
         if books_folder is not None and templates_folder is None:
             templates_folder = Path(DEFAULT_TEMPLATES_FOLDER)
         if templates_folder is not None and not templates_folder.is_absolute():
@@ -315,7 +317,9 @@ def init(
         if builtin_name is None:
             builtin_name = DEFAULT_BUILTIN_TEMPLATE
         log = Log(verbose)
-        shutil.copytree(str(TemplatesLoader.builtin_folder(builtin_name)), templates_folder)
+        shutil.copytree(
+            str(TemplatesLoader.builtin_folder(builtin_name)), templates_folder
+        )
         log.info(f"Built-in templates `{builtin_name}` copied to `{templates_folder}`")
     except Exception as exc:  # pylint: disable=broad-except
         print(f"\n{exc}")

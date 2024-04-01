@@ -1,4 +1,5 @@
 """Work statistics."""
+
 from typing import Set
 
 

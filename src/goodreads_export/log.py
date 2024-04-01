@@ -1,4 +1,5 @@
 """Logger."""
+
 import os
 from textwrap import shorten
 from typing import Dict, Optional
@@ -33,14 +34,24 @@ class Log:
         print(f"{message}...", **({} if self._verbose else {"end": ""}))  # type: ignore
 
     def open_progress(
-        self, title: str, unit: str, num: Optional[int] = None, bar_format: Optional[str] = None
+        self,
+        title: str,
+        unit: str,
+        num: Optional[int] = None,
+        bar_format: Optional[str] = None,
     ) -> None:
         """Open progress bar."""
         if not self._verbose:
             self.progress_bar[title] = {
-                "title": tqdm(bar_format="{desc}", leave=False, position=self.position + 1),
+                "title": tqdm(
+                    bar_format="{desc}", leave=False, position=self.position + 1
+                ),
                 "bar": tqdm(
-                    total=num, desc=title, unit=f" {unit}", leave=False, position=self.position + 2
+                    total=num,
+                    desc=title,
+                    unit=f" {unit}",
+                    leave=False,
+                    position=self.position + 2,
                 ),
             }
             if bar_format:

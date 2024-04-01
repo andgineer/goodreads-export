@@ -1,4 +1,5 @@
 """Book's object."""
+
 import urllib.parse
 from pathlib import Path
 from typing import Any, Dict, List, Optional
@@ -61,7 +62,9 @@ class BookFile(AuthoredFile):  # pylint: disable=too-many-instance-attributes
         """Parse file content."""
         assert self._content is not None, "Cannot parse None content"
         self.series_titles = []
-        if book_regex := self._get_template().goodreads_link_regexes.choose_regex(self._content):
+        if book_regex := self._get_template().goodreads_link_regexes.choose_regex(
+            self._content
+        ):
             link_match = book_regex.compiled.search(self._content)
             assert link_match is not None, (
                 "impossible happened: after successful `search` in "
@@ -69,12 +72,16 @@ class BookFile(AuthoredFile):  # pylint: disable=too-many-instance-attributes
             )
             self.book_id = link_match[book_regex.book_id_group]
             self.title = link_match[book_regex.title_group]
-            self.author = self.library.author_factory(link_match[book_regex.author_group])
+            self.author = self.library.author_factory(
+                link_match[book_regex.author_group]
+            )
         else:
             raise ParseError(
                 f"Cannot extract book information from file content:\n{self._content}"
             )
-        if series_regex := self._get_template().series_regexes.choose_regex(self._content):
+        if series_regex := self._get_template().series_regexes.choose_regex(
+            self._content
+        ):
             self.series_titles = [
                 series_match[series_regex.series_group]
                 for series_match in series_regex.compiled.finditer(self._content)
@@ -89,7 +96,9 @@ class BookFile(AuthoredFile):  # pylint: disable=too-many-instance-attributes
         """
         assert self.folder is not None, "Cannot write to None folder"
         assert self.book_id is not None, "Cannot write book not knowing its ID"
-        if (self.folder / self.file_name).exists() and self.book_id not in str(self.file_name):
+        if (self.folder / self.file_name).exists() and self.book_id not in str(
+            self.file_name
+        ):
             self.file_name = Path(
                 f"{self.file_name.with_suffix('')} - {self.book_id}{self.file_name.suffix}"
             )
@@ -131,6 +140,11 @@ class BookFile(AuthoredFile):  # pylint: disable=too-many-instance-attributes
     def series(self) -> List[SeriesFile]:
         """List of series objects constructed from series_names."""
         return [
-            SeriesFile(library=self.library, folder=self.folder, title=title, author=self.author)
+            SeriesFile(
+                library=self.library,
+                folder=self.folder,
+                title=title,
+                author=self.author,
+            )
             for title in self.series_titles
         ]

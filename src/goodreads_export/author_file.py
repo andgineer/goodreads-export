@@ -1,4 +1,5 @@
 """Author's object."""
+
 import urllib.parse
 from pathlib import Path
 from typing import TYPE_CHECKING, Any, Dict, Optional
@@ -31,7 +32,9 @@ class AuthorFile(DataFile):
         """Set fields from args. Rewrite them from content if provided."""
         self.name = name
         self.names = names if names is not None else [name]
-        assert name in self.names, f"Primary name '{name}' must be in names {self.names}"
+        assert (
+            name in self.names
+        ), f"Primary name '{name}' must be in names {self.names}"
         self.series = series or SeriesList()
         self.books = books or []
         super().__init__(**kwargs)
@@ -53,7 +56,8 @@ class AuthorFile(DataFile):
         self.names = []
         if regex := self._get_template().names_regexes.choose_regex(self._content):
             self.names = [
-                match[regex.name_group] for match in regex.compiled.finditer(self._content)
+                match[regex.name_group]
+                for match in regex.compiled.finditer(self._content)
             ]
             self.name = self.names[0]  # first name is primary
         else:

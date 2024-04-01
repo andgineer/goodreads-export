@@ -1,4 +1,5 @@
 """Templates."""
+
 import re
 from dataclasses import dataclass, field
 from importlib.abc import Traversable
@@ -116,7 +117,9 @@ class FileTemplate:
 
     def __post_init__(self) -> None:
         """Split template to file name, optional link and body."""
-        object.__setattr__(self, "file_name_template", self.template.split("\n", maxsplit=1)[0])
+        object.__setattr__(
+            self, "file_name_template", self.template.split("\n", maxsplit=1)[0]
+        )
         if self.template.split("\n", maxsplit=2)[1] != "":
             file_link_template = self.template.split("\n", maxsplit=2)[1]
             body_template = "\n".join(self.template.split("\n")[3:])
@@ -129,7 +132,9 @@ class FileTemplate:
     def render_file_name(self, context: Dict[str, Any]) -> Path:
         """Render file name with context."""
         return Path(
-            clean_file_name(self.jinja.from_string(self.file_name_template).render(context))
+            clean_file_name(
+                self.jinja.from_string(self.file_name_template).render(context)
+            )
         )
 
     def render_file_link(self, context: Dict[str, Any]) -> str:
@@ -139,7 +144,9 @@ class FileTemplate:
         """
         if self.file_link_template is None:
             return Path(context["file_name"]).stem
-        return clean_file_name(self.jinja.from_string(self.file_link_template).render(context))
+        return clean_file_name(
+            self.jinja.from_string(self.file_link_template).render(context)
+        )
 
     def render_body(self, context: Dict[str, Any]) -> str:
         """Render file body with context."""
@@ -223,13 +230,19 @@ class TemplatesLoader:
             SERIES_TEMPLATE_FILE_NAME,
         ]:
             if not folder.joinpath(template).is_file():
-                raise ValueError(f"No {template} file in the templates folder: {folder}")
-        regex_config = tomllib.loads(folder.joinpath(CONFIG_FILE_NAME).read_text(encoding="utf-8"))
+                raise ValueError(
+                    f"No {template} file in the templates folder: {folder}"
+                )
+        regex_config = tomllib.loads(
+            folder.joinpath(CONFIG_FILE_NAME).read_text(encoding="utf-8")
+        )
         return TemplateSet(
             name=folder.name,
             author=AuthorTemplate(
                 jinja=self.jinja,
-                template=folder.joinpath(AUTHOR_TEMPLATE_FILE_NAME).read_text(encoding="utf-8"),
+                template=folder.joinpath(AUTHOR_TEMPLATE_FILE_NAME).read_text(
+                    encoding="utf-8"
+                ),
                 names_regexes=RegExList(
                     [
                         AuthorNamesRegEx(**regex)
@@ -239,7 +252,9 @@ class TemplatesLoader:
             ),
             book=BookTemplate(
                 jinja=self.jinja,
-                template=folder.joinpath(BOOK_TEMPLATE_FILE_NAME).read_text(encoding="utf-8"),
+                template=folder.joinpath(BOOK_TEMPLATE_FILE_NAME).read_text(
+                    encoding="utf-8"
+                ),
                 goodreads_link_regexes=RegExList(
                     [
                         BookGoodreadsLinkRegEx(**regex)
@@ -247,12 +262,17 @@ class TemplatesLoader:
                     ]
                 ),
                 series_regexes=RegExList(
-                    [BookSeriesRegEx(**regex) for regex in regex_config["regex"]["book"]["series"]]
+                    [
+                        BookSeriesRegEx(**regex)
+                        for regex in regex_config["regex"]["book"]["series"]
+                    ]
                 ),
             ),
             series=SeriesTemplate(
                 jinja=self.jinja,
-                template=folder.joinpath(SERIES_TEMPLATE_FILE_NAME).read_text(encoding="utf-8"),
+                template=folder.joinpath(SERIES_TEMPLATE_FILE_NAME).read_text(
+                    encoding="utf-8"
+                ),
                 content_regexes=RegExList(
                     [
                         SeriesContentRegEx(**regex)
