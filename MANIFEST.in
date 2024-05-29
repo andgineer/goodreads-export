@@ -1,2 +1,2 @@
-include LICENSE.txt
+include LICENSE.txt  requirements.in  requirements.dev.in
 include src/goodreads_export/templates/default/*.md
