@@ -3,14 +3,6 @@
 import re
 import sys
 from dataclasses import dataclass, field
-if sys.version_info >= (3, 12):
-    from importlib.resources.abc import Traversable
-    from importlib.resources import files
-elif sys.version_info >= (3, 9):
-    from importlib.abc import Traversable
-    from importlib.resources import files
-else:
-    raise RuntimeError("Python 3.9 or higher is required")
 from pathlib import Path
 from typing import Any, Dict, List, Optional, TypeVar, Union
 
@@ -18,6 +10,16 @@ import jinja2
 from jinja2 import DebugUndefined
 
 from goodreads_export.clean_file_name import clean_file_name
+
+if sys.version_info >= (3, 12):
+    from importlib.resources.abc import Traversable
+    from importlib.resources import files
+elif sys.version_info >= (3, 9):
+    from importlib.abc import Traversable  # pylint: disable=deprecated-class
+    from importlib.resources import files
+else:
+    raise RuntimeError("Python 3.9 or higher is required")
+
 
 try:
     import tomllib
