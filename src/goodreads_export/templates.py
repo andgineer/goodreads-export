@@ -1,9 +1,16 @@
 """Templates."""
 
 import re
+import sys
 from dataclasses import dataclass, field
-from importlib.abc import Traversable
-from importlib.resources import files
+if sys.version_info >= (3, 12):
+    from importlib.resources.abc import Traversable
+    from importlib.resources import files
+elif sys.version_info >= (3, 9):
+    from importlib.abc import Traversable
+    from importlib.resources import files
+else:
+    raise RuntimeError("Python 3.9 or higher is required")
 from pathlib import Path
 from typing import Any, Dict, List, Optional, TypeVar, Union
 

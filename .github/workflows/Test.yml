@@ -30,7 +30,7 @@ jobs:
         pip install -r requirements.dev.txt
         python -m pip install -e .
     - name: Test with pytest
-      run: pytest --junitxml=pytest.xml --cov-report=term-missing:skip-covered --cov=src tests/
+      run: python -m pytest --junitxml=pytest.xml --cov-report=term-missing:skip-covered --cov=src tests/
 
     - name: Upload coverage data to coveralls.io
       if: ${{ matrix.python-version == 3.11 && matrix.platform == 'ubuntu-latest' }}
