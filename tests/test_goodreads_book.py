@@ -35,6 +35,7 @@ def test_success(test_case):
                 "books",
             ],
         )
+        print(result.output)
         assert result.exit_code == 0, f"stdout: {result.output}"
         assert test_case.check("./books"), test_case.diff
         assert "Saved book" not in result.output  # should be only with --verbose

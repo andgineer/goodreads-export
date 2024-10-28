@@ -10,9 +10,6 @@ with open("README.md", "r") as fh:
 with open("requirements.in") as f:
     requirements = f.read().splitlines()
 
-with open("requirements.dev.in") as f:
-    tests_requirements = f.read().splitlines()
-
 
 # Solution from https://packaging.python.org/guides/single-sourcing-package-version/
 def read(rel_path: str) -> str:
@@ -48,7 +45,6 @@ setuptools.setup(
     package_dir={"": "src"},
     packages=setuptools.find_packages(where="src"),
     install_requires=requirements,
-    extras_require={'test': tests_requirements},
     # dict union operator 3.9, walrus operator, cached property 3.8
     python_requires=">=3.9",
     keywords="goodreads book markdown obsidian",

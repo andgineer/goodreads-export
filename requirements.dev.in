@@ -1,4 +1,6 @@
 # dependencies list to build requirements.dev.txt with pip-compile (from pip-tools package)
+-r requirements.in
+
 # docs
 lazydocs
 mkdocs
@@ -18,5 +20,6 @@ pytest-cov
 coveralls
 
 # build
+-e .
 twine
 pip-tools
