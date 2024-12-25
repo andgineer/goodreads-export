@@ -7,6 +7,7 @@ class Stat:  # pylint: disable=too-few-public-methods
     """Work statistics."""
 
     books_added: int = 0
+    books_changed: int = 0
     authors_added: int = 0
     skipped_unknown_files: int = 0
     series_added: int = 0

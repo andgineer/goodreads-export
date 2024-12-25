@@ -22,6 +22,21 @@ SUBFOLDERS = {
 BOOKS_SUBFOLDERS = [SUBFOLDERS["reviews"], SUBFOLDERS["toread"]]
 
 
+def normalize_review(review: str | None) -> str:
+    """Normalize review text by removing extra whitespace and standardizing escaping."""
+    if not review:
+        return ""
+    # Remove extra whitespace, normalize line breaks, and handle escaping
+    lines = []
+    for line in review.splitlines():
+        line = line.strip()
+        line = line.replace(r"\.", ".")  # Remove escaping
+        line = line.replace("\\", "")  # Remove other escaping
+        if line:
+            lines.append(line)
+    return "\n".join(lines)
+
+
 class Library:
     """Books and authors."""
 
@@ -109,7 +124,20 @@ class Library:
                 )
                 book.author = primary_author
 
-            if book.book_id not in self.books:
+            need_book_update = False
+            if book.book_id in self.books:
+                existing_book = self.books[book.book_id]
+                if normalize_review(existing_book.review) != normalize_review(
+                    book.review
+                ):
+                    self.log.info(
+                        f"Review changed for book '{book.title}', recreating file"
+                    )
+                    self.stat.books_changed += 1
+                    existing_book.delete_file()
+                    need_book_update = True
+
+            if book.book_id not in self.books or need_book_update:
                 if book.author not in self.authors:
                     self.authors[book.author] = self.create_author_file(book)
                     self.stat.authors_added += 1

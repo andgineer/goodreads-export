@@ -2,7 +2,7 @@
 
 import os
 from textwrap import shorten
-from typing import Dict, Optional
+from typing import Dict, Optional, List
 
 from tqdm import tqdm
 
@@ -16,6 +16,8 @@ class Log:
 
     progress_bar: Dict[str, Dict[str, tqdm]] = {}
     position = 0
+    in_progress = False
+    buffer: List[str] = []
 
     def __init__(self, verbose: bool = False) -> None:
         """Initialize logger."""
@@ -41,6 +43,7 @@ class Log:
         bar_format: Optional[str] = None,
     ) -> None:
         """Open progress bar."""
+        self.in_progress = True
         if not self._verbose:
             self.progress_bar[title] = {
                 "title": tqdm(
@@ -83,6 +86,10 @@ class Log:
                 progress_bar["title"].close()
             self.progress_bar = {}
             self.position = 0
+        self.in_progress = False
+        if self.buffer:
+            print("\n", "\n".join(self.buffer))
+            self.buffer = []
 
     def progress_refresh(self) -> None:
         """Refresh progress bars."""
@@ -97,12 +104,21 @@ class Log:
         Do nothing in non-verbose mode.
         """
         if self._verbose:
-            print(message)
+            if self.in_progress:
+                self.buffer.append(message)
+            else:
+                print(message)
 
     def info(self, message: str) -> None:
         """Print info messages."""
-        print(message)
+        if self.in_progress:
+            self.buffer.append(message)
+        else:
+            print(message)
 
     def error(self, message: str) -> None:
         """Print error messages."""
-        print(message)
+        if self.in_progress:
+            self.buffer.append(message)
+        else:
+            print(message)

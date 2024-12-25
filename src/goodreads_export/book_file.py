@@ -86,6 +86,13 @@ class BookFile(AuthoredFile):  # pylint: disable=too-many-instance-attributes
                 series_match[series_regex.series_group]
                 for series_match in series_regex.compiled.finditer(self._content)
             ]
+        if review_regex := self._get_template().review_regexes.choose_regex(
+            self._content
+        ):
+            if review_match := review_regex.compiled.search(self._content):
+                self.review = review_match[review_regex.review_group].strip()
+            else:
+                self.review = ""
 
     def write(self) -> None:
         """Write markdown file to path.

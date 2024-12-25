@@ -209,6 +209,7 @@ def import_(
         library.dump(books)
         print(
             f"\nAdded {library.stat.books_added} review files, "
+            f"changed {library.stat.books_changed} review files, "
             f"{library.stat.authors_added} author files.",
             f"Renamed {library.stat.authors_renamed} authors.",
         )

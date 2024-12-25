@@ -10,7 +10,7 @@ ISBN{{ book.isbn }} (ISBN13{{ book.isbn13 }})
 
 {{ book.review }}
 
-[Calibre](calibre://search/_?{{ urlencode({"q": book.title}) }})
+[Search in Calibre](calibre://search/_?{{ urlencode({"q": book.title}) }})
 
 {{ " ".join(book.tags) }}
 

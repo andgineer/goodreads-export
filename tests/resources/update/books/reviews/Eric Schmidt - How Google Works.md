@@ -6,6 +6,6 @@ review 4\.
 line .  
 
 
-[Calibre](calibre://search/_?q=How+Google+Works)
+[Search in Calibre](calibre://search/_?q=How+Google+Works)
 
 #book/audio #book/book #book/rating2

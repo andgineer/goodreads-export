@@ -73,6 +73,13 @@ class BookGoodreadsLinkRegEx(RegEx):
 
 
 @dataclass(frozen=True)
+class BookReviewRegEx(RegEx):
+    """Regular expression for book review."""
+
+    review_group: int  # group with review text
+
+
+@dataclass(frozen=True)
 class SeriesFileNameRegEx(RegEx):
     """Regular expressions for series file name.
 
@@ -183,6 +190,7 @@ class BookTemplate(FileTemplate):
 
     goodreads_link_regexes: RegExList[BookGoodreadsLinkRegEx]
     series_regexes: RegExList[BookSeriesRegEx]
+    review_regexes: RegExList[BookReviewRegEx]
 
 
 @dataclass
@@ -274,6 +282,12 @@ class TemplatesLoader:
                     [
                         BookSeriesRegEx(**regex)
                         for regex in regex_config["regex"]["book"]["series"]
+                    ]
+                ),
+                review_regexes=RegExList(
+                    [
+                        BookReviewRegEx(**regex)
+                        for regex in regex_config["regex"]["book"]["review"]
                     ]
                 ),
             ),
