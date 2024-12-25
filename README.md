@@ -6,18 +6,18 @@
 |------------------------------------------- | -------: | -------: | ------: | --------: |
 | src/goodreads\_export/author\_file.py      |       49 |        8 |     84% | 12, 83-89 |
 | src/goodreads\_export/authored\_file.py    |       18 |        1 |     94% |         9 |
-| src/goodreads\_export/book\_file.py        |       60 |        0 |    100% |           |
+| src/goodreads\_export/book\_file.py        |       64 |        1 |     98% |        95 |
 | src/goodreads\_export/clean\_file\_name.py |        6 |        0 |    100% |           |
 | src/goodreads\_export/data\_file.py        |       66 |        7 |     89% |10, 42, 46, 76, 123-127 |
 | src/goodreads\_export/goodreads\_book.py   |       37 |        0 |    100% |           |
-| src/goodreads\_export/library.py           |      151 |        9 |     94% |226-228, 230-233, 257, 265, 290-292 |
-| src/goodreads\_export/log.py               |       49 |        4 |     92% |     89-92 |
-| src/goodreads\_export/main.py              |      142 |       26 |     82% |119-123, 128, 137-139, 155-160, 246-249, 279-281, 303, 310, 316, 324-326, 330 |
+| src/goodreads\_export/library.py           |      170 |        9 |     95% |254-256, 258-261, 285, 293, 318-320 |
+| src/goodreads\_export/log.py               |       62 |        6 |     90% |96-99, 110, 122 |
+| src/goodreads\_export/main.py              |      142 |       26 |     82% |119-123, 128, 137-139, 155-160, 247-250, 280-282, 304, 311, 317, 325-327, 331 |
 | src/goodreads\_export/series\_file.py      |       37 |        4 |     89% | 47, 77-83 |
-| src/goodreads\_export/stat.py              |       13 |        0 |    100% |           |
-| src/goodreads\_export/templates.py         |      121 |       12 |     90% |15-16, 21, 26-27, 133-134, 156, 207, 227, 235, 242 |
+| src/goodreads\_export/stat.py              |       14 |        0 |    100% |           |
+| src/goodreads\_export/templates.py         |      125 |       12 |     90% |15-16, 21, 26-27, 140-141, 163, 215, 235, 243, 250 |
 | src/goodreads\_export/version.py           |        1 |        0 |    100% |           |
-|                                  **TOTAL** |  **750** |   **71** | **91%** |           |
+|                                  **TOTAL** |  **791** |   **74** | **91%** |           |
 
 
 ## Setup coverage badge
