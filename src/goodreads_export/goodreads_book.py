@@ -28,7 +28,9 @@ class Book:  # pylint: disable=too-few-public-methods,too-many-instance-attribut
         self.book_id = str(goodreads["Book Id"])
         self.rating = goodreads["My Rating"]
         if isinstance(goodreads["My Review"], str):
-            self.review = markdownify.markdownify(goodreads["My Review"])
+            self.review = markdownify.markdownify(
+                goodreads["My Review"], escape_misc=True
+            )
         else:
             self.review = ""
         self.tags = (
