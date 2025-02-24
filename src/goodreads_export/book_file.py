@@ -2,7 +2,7 @@
 
 import urllib.parse
 from pathlib import Path
-from typing import Any, Dict, List, Optional
+from typing import TYPE_CHECKING, Any, Optional
 
 from goodreads_export.authored_file import AuthoredFile
 from goodreads_export.data_file import ParseError
@@ -15,24 +15,28 @@ class BookFile(AuthoredFile):  # pylint: disable=too-many-instance-attributes
 
     title: Optional[str]
     book_id: Optional[str]
-    tags: List[str]
+    tags: list[str]
     rating: Optional[int]
     isbn: Optional[int]
     isbn13: Optional[int]
     review: Optional[str]
-    series_titles: List[str]
+    series_titles: list[str]
 
-    def __init__(  # pylint: disable=too-many-arguments
+    if TYPE_CHECKING:
+        # Workaround for mypy bug in property descending thru abstract class
+        file_name: Path
+
+    def __init__(  # noqa: PLR0913
         self,
         *,
         title: Optional[str] = None,
         book_id: Optional[str] = None,
-        tags: Optional[List[str]] = None,
+        tags: Optional[list[str]] = None,
         rating: Optional[int] = None,
         isbn: Optional[int] = None,
         isbn13: Optional[int] = None,
         review: Optional[str] = None,
-        series_titles: Optional[List[str]] = None,
+        series_titles: Optional[list[str]] = None,
         **kwargs: Any,
     ) -> None:
         """Set fields from args. Rewrite them from content if provided."""
@@ -50,7 +54,7 @@ class BookFile(AuthoredFile):  # pylint: disable=too-many-instance-attributes
         """Template."""
         return self.library.templates.book
 
-    def _get_template_context(self) -> Dict[str, Any]:
+    def _get_template_context(self) -> dict[str, Any]:
         """Template context."""
         return {
             "book": self,
@@ -63,7 +67,7 @@ class BookFile(AuthoredFile):  # pylint: disable=too-many-instance-attributes
         assert self._content is not None, "Cannot parse None content"
         self.series_titles = []
         if book_regex := self._get_template().goodreads_link_regexes.choose_regex(
-            self._content
+            self._content,
         ):
             link_match = book_regex.compiled.search(self._content)
             assert link_match is not None, (
@@ -73,21 +77,21 @@ class BookFile(AuthoredFile):  # pylint: disable=too-many-instance-attributes
             self.book_id = link_match[book_regex.book_id_group]
             self.title = link_match[book_regex.title_group]
             self.author = self.library.author_factory(
-                link_match[book_regex.author_group]
+                link_match[book_regex.author_group],
             )
         else:
             raise ParseError(
-                f"Cannot extract book information from file content:\n{self._content}"
+                f"Cannot extract book information from file content:\n{self._content}",
             )
         if series_regex := self._get_template().series_regexes.choose_regex(
-            self._content
+            self._content,
         ):
             self.series_titles = [
                 series_match[series_regex.series_group]
                 for series_match in series_regex.compiled.finditer(self._content)
             ]
         if review_regex := self._get_template().review_regexes.choose_regex(
-            self._content
+            self._content,
         ):
             if review_match := review_regex.compiled.search(self._content):
                 self.review = review_match[review_regex.review_group].strip()
@@ -103,15 +107,16 @@ class BookFile(AuthoredFile):  # pylint: disable=too-many-instance-attributes
         """
         assert self.folder is not None, "Cannot write to None folder"
         assert self.book_id is not None, "Cannot write book not knowing its ID"
+
         if (self.folder / self.file_name).exists() and self.book_id not in str(
-            self.file_name
+            self.file_name,
         ):
             self.file_name = Path(
-                f"{self.file_name.with_suffix('')} - {self.book_id}{self.file_name.suffix}"
+                f"{self.file_name.with_suffix('')} - {self.book_id}{self.file_name.suffix}",
             )
         super().write()
 
-    def create_series_files(self) -> Dict[str, Path]:
+    def create_series_files(self) -> dict[str, Path]:
         """Create series files if they do not exist.
 
         Do not change already existed files.
@@ -144,7 +149,7 @@ class BookFile(AuthoredFile):  # pylint: disable=too-many-instance-attributes
         )
 
     @property
-    def series(self) -> List[SeriesFile]:
+    def series(self) -> list[SeriesFile]:
         """List of series objects constructed from series_names."""
         return [
             SeriesFile(

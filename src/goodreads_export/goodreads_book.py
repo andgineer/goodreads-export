@@ -1,7 +1,6 @@
 """Goodreads export CSV parser."""
 
 import re
-from typing import List
 
 import markdownify
 import pandas as pd
@@ -29,7 +28,8 @@ class Book:  # pylint: disable=too-few-public-methods,too-many-instance-attribut
         self.rating = goodreads["My Rating"]
         if isinstance(goodreads["My Review"], str):
             self.review = markdownify.markdownify(
-                goodreads["My Review"], escape_misc=True
+                goodreads["My Review"],
+                escape_misc=True,
             )
         else:
             self.review = ""
@@ -51,12 +51,10 @@ class Book:  # pylint: disable=too-few-public-methods,too-many-instance-attribut
             self.series = [series[1].strip() for series in series_match]
         else:
             self.series = []
-        self.series_full = [
-            f"{self.author} - {series} - series" for series in self.series
-        ]
+        self.series_full = [f"{self.author} - {series} - series" for series in self.series]
 
 
-class GoodreadsBooks(List[Book]):
+class GoodreadsBooks(list[Book]):
     """List of books from goodreads export."""
 
     def __init__(self, csv_file: str) -> None:

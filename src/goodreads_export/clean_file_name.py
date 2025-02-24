@@ -1,6 +1,6 @@
 """Make file name safe for cloud disks."""
 
-from typing import Dict, Optional
+from typing import Optional
 
 FILE_NAME_REPLACE_MAP = {
     "%": " percent",
@@ -21,7 +21,8 @@ FILE_NAME_REPLACE_MAP = {
 
 
 def clean_file_name(
-    file_name: str, replace_map: Optional[Dict[str, str]] = None
+    file_name: str,
+    replace_map: Optional[dict[str, str]] = None,
 ) -> str:
     """Replace chars unsafe for file name in MS OneDrive etc."""
     if replace_map is None:

@@ -2,7 +2,7 @@
 
 import urllib.parse
 from pathlib import Path
-from typing import TYPE_CHECKING, Any, Dict, Optional
+from typing import TYPE_CHECKING, Any, Optional
 
 from goodreads_export.data_file import DataFile, ParseError
 from goodreads_export.series_file import SeriesList
@@ -32,9 +32,7 @@ class AuthorFile(DataFile):
         """Set fields from args. Rewrite them from content if provided."""
         self.name = name
         self.names = names if names is not None else [name]
-        assert (
-            name in self.names
-        ), f"Primary name '{name}' must be in names {self.names}"
+        assert name in self.names, f"Primary name '{name}' must be in names {self.names}"
         self.series = series or SeriesList()
         self.books = books or []
         super().__init__(**kwargs)
@@ -43,7 +41,7 @@ class AuthorFile(DataFile):
         """Template."""
         return self.library.templates.author
 
-    def _get_template_context(self) -> Dict[str, Any]:
+    def _get_template_context(self) -> dict[str, Any]:
         """Template context."""
         return {
             "author": self,
@@ -56,13 +54,12 @@ class AuthorFile(DataFile):
         self.names = []
         if regex := self._get_template().names_regexes.choose_regex(self._content):
             self.names = [
-                match[regex.name_group]
-                for match in regex.compiled.finditer(self._content)
+                match[regex.name_group] for match in regex.compiled.finditer(self._content)
             ]
             self.name = self.names[0]  # first name is primary
         else:
             raise ParseError(
-                f"Cannot extract author information from file content:\n{self._content}"
+                f"Cannot extract author information from file content:\n{self._content}",
             )
 
     def merge(self, other: "AuthorFile") -> None:
@@ -75,7 +72,7 @@ class AuthorFile(DataFile):
         self.series += other.series
         other.delete_file()
 
-    def delete_series(self) -> Dict[str, Path]:
+    def delete_series(self) -> dict[str, Path]:
         """Delete series and their files.
 
         Return deleted series files {series name: series file path}

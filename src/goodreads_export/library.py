@@ -2,7 +2,7 @@
 
 import os
 from pathlib import Path
-from typing import Dict, Optional
+from typing import Optional
 
 from goodreads_export.author_file import AuthorFile
 from goodreads_export.book_file import BookFile
@@ -28,12 +28,11 @@ def normalize_review(review: str | None) -> str:
         return ""
     # Remove extra whitespace, normalize line breaks, and handle escaping
     lines = []
-    for line in review.splitlines():
-        line = line.strip()
-        line = line.replace(r"\.", ".")  # Remove escaping
-        line = line.replace("\\", "")  # Remove other escaping
-        if line:
-            lines.append(line)
+    for raw_line in review.splitlines():
+        cleaned_line = raw_line.strip()
+        cleaned_line = cleaned_line.replace(r"\.", ".")  # Remove escaping
+        if cleaned_line := cleaned_line.replace("\\", ""):
+            lines.append(cleaned_line)
     return "\n".join(lines)
 
 
@@ -59,9 +58,9 @@ class Library:
         self.log = log or Log()
         self.templates = templates or TemplatesLoader().load_builtin()
 
-        self.books: Dict[str, BookFile] = {}
-        self.authors: Dict[str, AuthorFile] = {}
-        self.primary_authors: Dict[str, AuthorFile] = {}
+        self.books: dict[str, BookFile] = {}
+        self.authors: dict[str, AuthorFile] = {}
+        self.primary_authors: dict[str, AuthorFile] = {}
         if folder is not None:
             self.authors = self.load_authors(folder / SUBFOLDERS["authors"])
             for books_subfolder in BOOKS_SUBFOLDERS:
@@ -81,9 +80,7 @@ class Library:
         Author files with `non-primary` names will be deleted.
         """
         for primary_author in [
-            author
-            for author in self.authors.values()
-            if len(set(author.names) - {author.name}) > 0
+            author for author in self.authors.values() if len(set(author.names) - {author.name}) > 0
         ]:
             for author_name in primary_author.names:
                 if (
@@ -91,7 +88,7 @@ class Library:
                     and (author := self.authors[author_name]) != primary_author
                 ):
                     self.log.debug(
-                        f"Author `{primary_author.name}` has synonym `{author.name}` to merge"
+                        f"Author `{primary_author.name}` has synonym `{author.name}` to merge",
                     )
                     self.stat.authors_renamed += 1
                     primary_author.merge(self.authors[author_name])
@@ -107,7 +104,9 @@ class Library:
         authors_bar_title = "Author"
         self.log.open_progress(reviews_bar_title, "books", len(books))
         self.log.open_progress(
-            authors_bar_title, "authors", bar_format="{desc}: {n_fmt}"
+            authors_bar_title,
+            "authors",
+            bar_format="{desc}: {n_fmt}",
         )
 
         for book in books:
@@ -128,10 +127,10 @@ class Library:
             if book.book_id in self.books:
                 existing_book = self.books[book.book_id]
                 if normalize_review(existing_book.review) != normalize_review(
-                    book.review
+                    book.review,
                 ):
                     self.log.info(
-                        f"Review changed for book '{book.title}', recreating file"
+                        f"Review changed for book '{book.title}', recreating file",
                     )
                     self.stat.books_changed += 1
                     existing_book.delete_file()
@@ -142,7 +141,8 @@ class Library:
                     self.authors[book.author] = self.create_author_file(book)
                     self.stat.authors_added += 1
                     self.log.progress_description(
-                        authors_bar_title, f"Added author `{book.author}`"
+                        authors_bar_title,
+                        f"Added author `{book.author}`",
                     )
                 added_file_path = self.create_book_file(book)
                 self.stat.books_added += 1
@@ -206,7 +206,9 @@ class Library:
                 return AuthorFile(library=self, name=name)
             self.log.info(f"Creating author '{name}' ")
             self.authors[name] = AuthorFile(
-                library=self, name=name, folder=self.folder / SUBFOLDERS["authors"]
+                library=self,
+                name=name,
+                folder=self.folder / SUBFOLDERS["authors"],
             )
             self.authors[name].write()
         return self.authors[name]
@@ -234,7 +236,7 @@ class Library:
         dummy_series = SeriesFile(library=self, author=dummy_author, title="title")
         return dummy_series.is_file_name(file_name)
 
-    def load_series(self, folder: Path, authors: Dict[str, AuthorFile]) -> None:
+    def load_series(self, folder: Path, authors: dict[str, AuthorFile]) -> None:
         """Load existed series.
 
         Add them to authors.
@@ -256,22 +258,24 @@ class Library:
                     continue
                 if series.author.name not in authors:
                     self.log.info(
-                        f"Series file {file_name} has author without author file"
+                        f"Series file {file_name} has author without author file",
                     )
                     continue
                 authors[series.author.name].series.append(series)
                 self.stat.series_added += 1
 
     def load_books(
-        self, folder: Path, authors: Dict[str, AuthorFile]
-    ) -> Dict[str, BookFile]:
+        self,
+        folder: Path,
+        authors: dict[str, AuthorFile],
+    ) -> dict[str, BookFile]:
         """Load existed books.
 
         Look for goodreads book ID inside files.
         Return {id: BookFile} for files with book ID, ignore other files.
         This way we ignore "- series" files and unknown files.
         """
-        books: Dict[str, BookFile] = {}
+        books: dict[str, BookFile] = {}
         for file_name in folder.glob(self.book_file_mask()):
             try:
                 book = BookFile(  # also create author file if not yet existed
@@ -284,7 +288,7 @@ class Library:
                 if book.book_id in books:
                     raise ValueError(
                         f"Duplicate book ID {book.book_id} in {file_name} "
-                        f"and {books[book.book_id].file_name}"
+                        f"and {books[book.book_id].file_name}",
                     )
                 books[book.book_id] = book
                 authors[book.author.name].books.append(book)
@@ -293,12 +297,12 @@ class Library:
                     self.stat.skipped_unknown_files += 1
         return books
 
-    def load_authors(self, folder: Path) -> Dict[str, AuthorFile]:
+    def load_authors(self, folder: Path) -> dict[str, AuthorFile]:
         """Load existed authors.
 
         Return loaded authors
         """
-        authors: Dict[str, AuthorFile] = {}
+        authors: dict[str, AuthorFile] = {}
         for file_name in folder.glob(self.author_file_mask()):
             author = AuthorFile(
                 library=self,
@@ -308,13 +312,9 @@ class Library:
                 content=file_name.read_text(encoding="utf8"),
             )
             if author.names:  # parse succeeded
-                authors[author.name] = (
-                    author  # primary name is always point to primary file
-                )
+                authors[author.name] = author  # primary name is always point to primary file
                 for name in author.names:
-                    if (
-                        name not in authors
-                    ):  # do not overwrite if pointed to primary file
+                    if name not in authors:  # do not overwrite if pointed to primary file
                         authors[name] = author
             else:
                 self.stat.skipped_unknown_files += 1

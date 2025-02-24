@@ -2,7 +2,7 @@
 
 import os
 from textwrap import shorten
-from typing import Dict, Optional, List
+from typing import Optional
 
 from tqdm import tqdm
 
@@ -14,10 +14,10 @@ class Log:
     In verbose mode ignore all progress bars' specific commands.
     """
 
-    progress_bar: Dict[str, Dict[str, tqdm]] = {}
+    progress_bar: dict[str, dict[str, tqdm]] = {}
     position = 0
     in_progress = False
-    buffer: List[str] = []
+    buffer: list[str] = []
 
     def __init__(self, verbose: bool = False) -> None:
         """Initialize logger."""
@@ -47,7 +47,9 @@ class Log:
         if not self._verbose:
             self.progress_bar[title] = {
                 "title": tqdm(
-                    bar_format="{desc}", leave=False, position=self.position + 1
+                    bar_format="{desc}",
+                    leave=False,
+                    position=self.position + 1,
                 ),
                 "bar": tqdm(
                     total=num,
@@ -68,7 +70,7 @@ class Log:
         """
         if not self._verbose:
             self.progress_bar[title]["title"].set_description_str(
-                shorten(message, self.get_terminal_width())
+                shorten(message, self.get_terminal_width()),
             )
         else:
             print(f"{title}: {message}")

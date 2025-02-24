@@ -22,9 +22,9 @@ def test_author_file_initial_nonbook_content(author_markdown):
 
 
 def are_names_in_content(author_file, author_markdown):
-    assert all(
-        f"[{name}]" in author_markdown for name in author_file.names
-    ), f"Not all {author_file.names} are in {author_markdown}"
+    assert all(f"[{name}]" in author_markdown for name in author_file.names), (
+        f"Not all {author_file.names} are in {author_markdown}"
+    )
     assert author_file.name == author_file.names[0]
 
 

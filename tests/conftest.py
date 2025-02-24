@@ -2,7 +2,7 @@ import json
 import os.path
 import pathlib
 from pathlib import Path
-from typing import List, Optional
+from typing import Optional
 
 import pytest
 
@@ -37,7 +37,7 @@ def paths_content_is_same(path1: Path, path2: Path) -> bool:
 
 
 class GoodreadsTestCase:
-    diff: Optional[List[str]] = None
+    diff: Optional[list[str]] = None
 
     def __init__(self, folder: str):
         self.expected_folder = RESOURCES / folder / "books"
@@ -103,7 +103,5 @@ def author_markdown(request) -> str:
     ],
 )
 def book_markdown(request) -> str:
-    with (RESOURCES / "create" / "books" / request.param).open(
-        "r", encoding="utf8"
-    ) as author_file:
+    with (RESOURCES / "create" / "books" / request.param).open("r", encoding="utf8") as author_file:
         return author_file.read()

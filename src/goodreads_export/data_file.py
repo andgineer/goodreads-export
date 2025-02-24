@@ -2,7 +2,7 @@
 
 import os
 from pathlib import Path
-from typing import TYPE_CHECKING, Any, Dict, Optional
+from typing import TYPE_CHECKING, Any, Optional
 
 from goodreads_export.templates import FileTemplate
 
@@ -41,7 +41,7 @@ class DataFile:
         """Template."""
         raise NotImplementedError()
 
-    def _get_template_context(self) -> Dict[str, Any]:
+    def _get_template_context(self) -> dict[str, Any]:
         """Return template context."""
         raise NotImplementedError()
 
@@ -52,9 +52,10 @@ class DataFile:
         Automatically generate file name from book's fields if not assigned.
         """
         if self._file_name is None:
-            self._file_name = self._get_template().render_file_name(
-                self._get_template_context()
+            rendered_name = self._get_template().render_file_name(
+                self._get_template_context(),
             )
+            self._file_name = Path(rendered_name)
         return self._file_name
 
     @file_name.setter
@@ -108,7 +109,9 @@ class DataFile:
         self.path.write_text(self.content, encoding="utf8")
 
     def check_regexes(
-        self, checks: Dict[str, Dict[str, Any]], default_regex: str
+        self,
+        checks: dict[str, dict[str, Any]],
+        default_regex: str,
     ) -> bool:
         """Check regexps.
 
@@ -121,7 +124,7 @@ class DataFile:
         for name, check in checks.items():
             if check["initial"] != check["value"]():
                 print(
-                    f"{name} {check['initial']} is not parsed from content\n{self.content}"
+                    f"{name} {check['initial']} is not parsed from content\n{self.content}",
                 )
                 print(f"using the pattern\n{check.get('regex', default_regex)}")
                 result = False

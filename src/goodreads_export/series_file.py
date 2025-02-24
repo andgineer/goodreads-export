@@ -2,7 +2,7 @@
 
 import urllib.parse
 from pathlib import Path
-from typing import Any, Dict, List, Optional, Union
+from typing import Any, Optional, Union
 
 from goodreads_export.authored_file import AuthoredFile
 from goodreads_export.data_file import ParseError
@@ -24,7 +24,7 @@ class SeriesFile(AuthoredFile):
         """Template."""
         return self.library.templates.series
 
-    def _get_template_context(self) -> Dict[str, Any]:
+    def _get_template_context(self) -> dict[str, Any]:
         """Return template context for series."""
         return {
             "series": self,
@@ -45,15 +45,12 @@ class SeriesFile(AuthoredFile):
             self.author = self.library.author_factory(match[regex.author_group])
         else:
             raise ParseError(
-                f"Cannot extract series information from file content:\n{self._content}"
+                f"Cannot extract series information from file content:\n{self._content}",
             )
 
     def is_file_name(self, file_name: Union[str, Path]) -> bool:
         """Check `file_name` with series file name regex."""
-        return (
-            self._get_template().file_name_regexes.choose_regex(str(file_name))
-            is not None
-        )
+        return self._get_template().file_name_regexes.choose_regex(str(file_name)) is not None
 
     def check(self) -> bool:
         """Check regexps for the template.
@@ -75,15 +72,15 @@ class SeriesFile(AuthoredFile):
         is_file_name = self.is_file_name(series_file_name)
         if not is_file_name:
             print(
-                f"Rendered with template `{self._get_template().file_name_template}`)"
+                f"Rendered with template `{self._get_template().file_name_template}`)",
             )
             print(
-                f"file name `{series_file_name}` is not recognized using the pattern:"
+                f"file name `{series_file_name}` is not recognized using the pattern:",
             )
             print(f"{self._get_template().file_name_regexes[0].regex}")
 
         return fields_parsed and is_file_name
 
 
-class SeriesList(List[SeriesFile]):
+class SeriesList(list[SeriesFile]):
     """List of SeriesFile objects."""

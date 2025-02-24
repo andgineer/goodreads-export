@@ -108,17 +108,14 @@ def load_templates(
         sys.exit(1)
     try:
         if templates_folder is None:
-            if (
-                books_folder is not None
-                and (books_folder / DEFAULT_TEMPLATES_FOLDER).is_dir()
-            ):
+            if books_folder is not None and (books_folder / DEFAULT_TEMPLATES_FOLDER).is_dir():
                 if builtin_templates_name is None:
                     return TemplatesLoader().load_folder(
-                        books_folder / DEFAULT_TEMPLATES_FOLDER
+                        books_folder / DEFAULT_TEMPLATES_FOLDER,
                     )
                 log.info(
                     f"Using embedded templates `{builtin_templates_name}, "
-                    f"ignore templates in `{DEFAULT_TEMPLATES_FOLDER}`."
+                    f"ignore templates in `{DEFAULT_TEMPLATES_FOLDER}`.",
                 )
                 return TemplatesLoader().load_builtin(builtin_templates_name)
             if builtin_templates_name is None:
@@ -126,15 +123,15 @@ def load_templates(
         elif not templates_folder.is_absolute():
             if books_folder is None:
                 raise ValueError(
-                    "if template folder is relative, need books folder to build its full path."
+                    "if template folder is relative, need books folder to build its full path.",
                 )
             templates_folder = books_folder / templates_folder
         if builtin_templates_name is not None:
             return TemplatesLoader().load_builtin(builtin_templates_name)
         return TemplatesLoader().load_folder(
-            templates_folder  # type: ignore  # mypy bug, see templates_folder check above
+            templates_folder,  # type: ignore  # mypy bug, see templates_folder check above
         )
-    except Exception as exc:  # pylint: disable=broad-except
+    except Exception as exc:  # noqa: BLE001
         log.error(f"Error loading templates: {exc}")
         sys.exit(1)
 
@@ -155,7 +152,7 @@ def main(ctx: click.Context) -> None:
             click.echo("Error: Missing command.")
             click.echo(main.get_help(ctx))
             sys.exit(1)
-    except Exception as exc:  # pylint: disable=broad-except
+    except Exception as exc:  # noqa: BLE001
         print(f"\n{exc}")
         sys.exit(1)
 
@@ -192,7 +189,7 @@ def import_(
         log = Log(verbose)
 
         if os.path.isdir(
-            csv_file
+            csv_file,
         ):  # if folder as csv_file try to find goodreads file in that folder
             csv_file = os.path.join(csv_file, GOODREAD_EXPORT_FILE_NAME)
         if not os.path.isfile(csv_file):
@@ -213,7 +210,7 @@ def import_(
             f"{library.stat.authors_added} author files.",
             f"Renamed {library.stat.authors_renamed} authors.",
         )
-    except Exception as exc:  # pylint: disable=broad-except
+    except Exception as exc:  # noqa: BLE001
         print(f"\n{exc}")
         sys.exit(1)
 
@@ -239,13 +236,14 @@ def check(
         log = Log(verbose)
         templates = load_templates(log, books_folder, templates_folder, builtin_name)
         library = Library(  # no `folder` argument: for template checks do not want changes in fs
-            log=log, templates=templates
+            log=log,
+            templates=templates,
         )
         library.check_templates()
         log.info("Templates are consistent with extraction regexes.")
         if books_folder is not None:
             load_library(log=log, books_folder=books_folder, templates=templates)
-    except Exception as exc:  # pylint: disable=broad-except
+    except Exception as exc:  # noqa: BLE001
         print(f"\n{exc}")
         sys.exit(1)
 
@@ -277,7 +275,7 @@ def merge(
         print(
             f"Renamed {library.stat.authors_renamed} authors.",
         )
-    except Exception as exc:  # pylint: disable=broad-except
+    except Exception as exc:  # noqa: BLE001
         print(f"\n{exc}")
         sys.exit(1)
 
@@ -302,7 +300,7 @@ def init(
     try:
         if books_folder is None and templates_folder is None:
             raise ValueError(
-                "You should specify `BOOKS_FOLDER` or `--templates-folder`"
+                "You should specify `BOOKS_FOLDER` or `--templates-folder`",
             )
         if books_folder is not None and templates_folder is None:
             templates_folder = Path(DEFAULT_TEMPLATES_FOLDER)
@@ -310,7 +308,7 @@ def init(
             if books_folder is None:
                 raise ValueError(
                     f"To use relative templates folder `{templates_folder}`"
-                    " specify root in `BOOKS_FOLDER`."
+                    " specify root in `BOOKS_FOLDER`.",
                 )
             templates_folder = books_folder / templates_folder
         if templates_folder.exists():
@@ -319,10 +317,11 @@ def init(
             builtin_name = DEFAULT_BUILTIN_TEMPLATE
         log = Log(verbose)
         shutil.copytree(
-            str(TemplatesLoader.builtin_folder(builtin_name)), templates_folder
+            str(TemplatesLoader.builtin_folder(builtin_name)),
+            templates_folder,
         )
         log.info(f"Built-in templates `{builtin_name}` copied to `{templates_folder}`")
-    except Exception as exc:  # pylint: disable=broad-except
+    except Exception as exc:  # noqa: BLE001
         print(f"\n{exc}")
         sys.exit(1)
 

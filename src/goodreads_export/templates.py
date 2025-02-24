@@ -4,7 +4,7 @@ import re
 import sys
 from dataclasses import dataclass, field
 from pathlib import Path
-from typing import Any, Dict, List, Optional, TypeVar, Union
+from typing import Any, Optional, TypeVar, Union
 
 import jinja2
 from jinja2 import DebugUndefined
@@ -12,9 +12,9 @@ from jinja2 import DebugUndefined
 from goodreads_export.clean_file_name import clean_file_name
 
 if sys.version_info >= (3, 12):
-    from importlib.resources.abc import Traversable
     from importlib.resources import files
-elif sys.version_info >= (3, 9):
+    from importlib.resources.abc import Traversable
+elif sys.version_info >= (3, 9):  # noqa: UP036
     from importlib.abc import Traversable  # pylint: disable=deprecated-class
     from importlib.resources import files
 else:
@@ -98,7 +98,7 @@ class SeriesContentRegEx(RegEx):
 RegExSubClass = TypeVar("RegExSubClass", bound=RegEx)
 
 
-class RegExList(List[RegExSubClass]):
+class RegExList(list[RegExSubClass]):
     """List of regular expressions."""
 
     def choose_regex(self, content: str) -> Optional[RegExSubClass]:
@@ -134,7 +134,9 @@ class FileTemplate:
     def __post_init__(self) -> None:
         """Split template to file name, optional link and body."""
         object.__setattr__(
-            self, "file_name_template", self.template.split("\n", maxsplit=1)[0]
+            self,
+            "file_name_template",
+            self.template.split("\n", maxsplit=1)[0],
         )
         if self.template.split("\n", maxsplit=2)[1] != "":
             file_link_template = self.template.split("\n", maxsplit=2)[1]
@@ -145,15 +147,15 @@ class FileTemplate:
         object.__setattr__(self, "file_link_template", file_link_template)
         object.__setattr__(self, "body_template", body_template)
 
-    def render_file_name(self, context: Dict[str, Any]) -> Path:
+    def render_file_name(self, context: dict[str, Any]) -> Path:
         """Render file name with context."""
         return Path(
             clean_file_name(
-                self.jinja.from_string(self.file_name_template).render(context)
-            )
+                self.jinja.from_string(self.file_name_template).render(context),
+            ),
         )
 
-    def render_file_link(self, context: Dict[str, Any]) -> str:
+    def render_file_link(self, context: dict[str, Any]) -> str:
         """Render link with context.
 
         If link template is not defined, return file name without extension and folder.
@@ -161,10 +163,10 @@ class FileTemplate:
         if self.file_link_template is None:
             return Path(context["file_name"]).stem
         return clean_file_name(
-            self.jinja.from_string(self.file_link_template).render(context)
+            self.jinja.from_string(self.file_link_template).render(context),
         )
 
-    def render_body(self, context: Dict[str, Any]) -> str:
+    def render_body(self, context: dict[str, Any]) -> str:
         """Render file body with context."""
         return self.jinja.from_string(self.body_template).render(context)
 
@@ -212,9 +214,9 @@ class TemplatesLoader:
     ) -> None:
         """Init jinja environment."""
         if debug:
-            self.jinja = jinja2.Environment(undefined=DebugUndefined)
+            self.jinja = jinja2.Environment(undefined=DebugUndefined)  # noqa: S701
         else:
-            self.jinja = jinja2.Environment()
+            self.jinja = jinja2.Environment()  # noqa: S701
 
     def load_builtin(self, builtin_name: str = DEFAULT_BUILTIN_TEMPLATE) -> TemplateSet:
         """Load built-in template with the name `builtin_name`.
@@ -234,7 +236,7 @@ class TemplatesLoader:
             return templates_folder
         raise ValueError(
             f"No such built-in template: `{builtin_name}`.\n"
-            f"Existed templates: {[folder.name for folder in templates_resource.iterdir()]}."
+            f"Existed templates: {[folder.name for folder in templates_resource.iterdir()]}.",
         )
 
     def load_folder(self, folder: Union[Traversable, Path]) -> TemplateSet:
@@ -248,65 +250,59 @@ class TemplatesLoader:
         ]:
             if not folder.joinpath(template).is_file():
                 raise ValueError(
-                    f"No {template} file in the templates folder: {folder}"
+                    f"No {template} file in the templates folder: {folder}",
                 )
         regex_config = tomllib.loads(
-            folder.joinpath(CONFIG_FILE_NAME).read_text(encoding="utf-8")
+            folder.joinpath(CONFIG_FILE_NAME).read_text(encoding="utf-8"),
         )
         return TemplateSet(
             name=folder.name,
             author=AuthorTemplate(
                 jinja=self.jinja,
                 template=folder.joinpath(AUTHOR_TEMPLATE_FILE_NAME).read_text(
-                    encoding="utf-8"
+                    encoding="utf-8",
                 ),
                 names_regexes=RegExList(
                     [
                         AuthorNamesRegEx(**regex)
                         for regex in regex_config["regex"]["author"]["names"]
-                    ]
+                    ],
                 ),
             ),
             book=BookTemplate(
                 jinja=self.jinja,
                 template=folder.joinpath(BOOK_TEMPLATE_FILE_NAME).read_text(
-                    encoding="utf-8"
+                    encoding="utf-8",
                 ),
                 goodreads_link_regexes=RegExList(
                     [
                         BookGoodreadsLinkRegEx(**regex)
                         for regex in regex_config["regex"]["book"]["goodreads-link"]
-                    ]
+                    ],
                 ),
                 series_regexes=RegExList(
-                    [
-                        BookSeriesRegEx(**regex)
-                        for regex in regex_config["regex"]["book"]["series"]
-                    ]
+                    [BookSeriesRegEx(**regex) for regex in regex_config["regex"]["book"]["series"]],
                 ),
                 review_regexes=RegExList(
-                    [
-                        BookReviewRegEx(**regex)
-                        for regex in regex_config["regex"]["book"]["review"]
-                    ]
+                    [BookReviewRegEx(**regex) for regex in regex_config["regex"]["book"]["review"]],
                 ),
             ),
             series=SeriesTemplate(
                 jinja=self.jinja,
                 template=folder.joinpath(SERIES_TEMPLATE_FILE_NAME).read_text(
-                    encoding="utf-8"
+                    encoding="utf-8",
                 ),
                 content_regexes=RegExList(
                     [
                         SeriesContentRegEx(**regex)
                         for regex in regex_config["regex"]["series"]["content"]
-                    ]
+                    ],
                 ),
                 file_name_regexes=RegExList(
                     [
                         SeriesFileNameRegEx(**regex)
                         for regex in regex_config["regex"]["series"]["file-name"]
-                    ]
+                    ],
                 ),
             ),
         )

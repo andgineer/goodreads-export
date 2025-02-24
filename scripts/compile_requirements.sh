@@ -16,4 +16,3 @@ END_TIME=$(date +%s)
 echo "Req‘s compilation time: $((REQS_TIME - $START_TIME)) seconds"
 echo "Req‘s dev compilation time: $((END_TIME - REQS_TIME)) seconds"
 echo "Total execution time: $((END_TIME - $START_TIME)) seconds"
-
