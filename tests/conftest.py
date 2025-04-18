@@ -19,12 +19,26 @@ ROOT_DIR = _get_repo_root_dir()
 RESOURCES = pathlib.Path(f"{ROOT_DIR}/tests/resources")
 
 
+def normalize_content(content: str) -> str:
+    """Normalize content for cross-platform comparison."""
+    # Standardize line endings to \n
+    normalized = content.replace("\r\n", "\n").replace("\r", "\n")
+
+    # Heuristic for Windows
+    # while '\n\n\n' in normalized:
+    #     normalized = normalized.replace('\n\n\n', '\n\n')
+
+    return normalized
+
+
 def paths_content_is_same(path1: Path, path2: Path) -> bool:
     if path1.is_file():
-        assert (
-            path1.open("r", encoding="utf8").read()
-            == path2.open("r", encoding="utf8").read()  # with assert we leverage pytest diff
-        ), f"{path1.parent.name}/{path1.name}"
+        content1 = normalize_content(path1.open("r", encoding="utf8").read())
+        content2 = normalize_content(path2.open("r", encoding="utf8").read())
+
+        assert content1 == content2, (
+            f"{path1.parent.name}/{path1.name}"
+        )  # with assert we leverage pytest diff
         return True
 
     subpath_rel_1 = [f"{folder.parent.name}/{folder.name}" for folder in path1.glob("*")]
