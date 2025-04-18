@@ -25,8 +25,8 @@ def normalize_content(content: str) -> str:
     normalized = content.replace("\r\n", "\n").replace("\r", "\n")
 
     # Heuristic for Windows
-    # while '\n\n\n' in normalized:
-    #     normalized = normalized.replace('\n\n\n', '\n\n')
+    while "\n\n\n" in normalized:
+        normalized = normalized.replace("\n\n\n", "\n\n")
 
     return normalized
 
