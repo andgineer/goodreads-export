@@ -145,7 +145,8 @@ class Library:
                         f"Added author `{book.author}`",
                     )
                 added_file_path = self.create_book_file(book)
-                self.stat.books_added += 1
+                if not need_book_update:
+                    self.stat.books_added += 1
                 self.log.debug(f"Saved book `{book.title}` to file {added_file_path} ")
         self.log.close_progress()
 
