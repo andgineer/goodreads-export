@@ -134,3 +134,54 @@ def test_book_file_check():
         book_id="123",
         title="Title",
     ).check()
+
+
+def test_review_regex_real_format():
+    """Test that review regex can extract review from real production format."""
+    from pathlib import Path
+
+    test_file = Path("tests/resources/regex_test/Max Frei - Сказки старого Вильнюса.md")
+    assert test_file.exists(), f"Test file not found: {test_file}"
+
+    library = Library()
+    author = library.author_factory(name="Max Frei")
+
+    book_file = BookFile(
+        library=library,
+        folder=test_file.parent,
+        file_name=test_file.name,
+        content=test_file.read_text(encoding="utf8"),
+        author=author,
+    )
+
+    # The review should be extracted correctly from the real format
+    assert book_file.review is not None, f"Review should not be None, got: {repr(book_file.review)}"
+    assert book_file.review.strip() == "Simple review text.", (
+        f"Expected 'Simple review text.', got: {repr(book_file.review)}"
+    )
+
+
+def test_review_regex_extraction():
+    """Test that review regex can extract review from actual markdown files."""
+    from pathlib import Path
+
+    test_file = Path(
+        "tests/resources/update/existed/reviews/Pratchett Terry - Mort (Discworld @4; Death @1).md"
+    )
+    assert test_file.exists(), f"Test file not found: {test_file}"
+
+    # Load the file and parse it
+    library = Library()
+    author = library.author_factory(name="Pratchett Terry")
+
+    book_file = BookFile(
+        library=library,
+        folder=test_file.parent,
+        file_name=test_file.name,
+        content=test_file.read_text(encoding="utf8"),
+        author=author,
+    )
+
+    # The review should be extracted correctly
+    assert book_file.review is not None, "Review should not be None"
+    assert book_file.review.strip() == "Fun.", f"Expected 'Fun.', got: {repr(book_file.review)}"

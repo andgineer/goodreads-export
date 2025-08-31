@@ -1,11 +1,12 @@
-# to parse old versions you can add additional reqexs like that
-# [[author-names]], [[regex.review.goodreads-link]] etc
+# to parse old file versions you can add regexes for that versions as additional
+# toml tables (https://toml.io/en/v1.0.0#array-of-tables)
+# for example add aditional [[regex.author.names]] to define additinal regex for `author` file.
 
 [[regex.author.names]]
 regex = '''
 \[([^]]*)\]\(https://www\.goodreads\.com/search\?utf8=%E2%9C%93&q=[^&]*&search_type=books&search%5Bfield%5D=author\)
 '''
-name_group = 1  # index of regex group that return author name
+name_group = 1  # index of regex group with author name
 
 
 [[regex.book.goodreads-link]]
@@ -27,5 +28,5 @@ author_group = 1
 title_group = 2
 
 [[regex.book.review]]
-regex = 'ISBN.*(?:ISBN13[^)]*\))?\n\n(.*?)\n\n\[(?:Search in )?Calibre\]'
+regex = 'ISBN.*(?:ISBN13[^)]*\))?\n(?:.*\n)?(.*?)\n\n\[(?:Search in )?Calibre\]'
 review_group = 1
