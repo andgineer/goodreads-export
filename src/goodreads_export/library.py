@@ -94,7 +94,7 @@ class Library:
                     primary_author.merge(self.authors[author_name])
                     self.authors[author_name] = primary_author
 
-    def dump(self, books: GoodreadsBooks) -> None:
+    def dump(self, books: GoodreadsBooks) -> None:  # noqa: C901
         """Save `books` to the library folder."""
         assert self.folder is not None, "Cannot save books to None folder"
         for subfolder in SUBFOLDERS.values():
@@ -109,6 +109,7 @@ class Library:
             bar_format="{desc}: {n_fmt}",
         )
 
+        diff_traced = False
         for book in books:
             self.log.progress(reviews_bar_title)
             self.log.progress_description(reviews_bar_title, f"{book.title}")
@@ -132,6 +133,12 @@ class Library:
                     self.log.info(
                         f"Review changed for book '{book.title}', recreating file",
                     )
+                    if not diff_traced:
+                        self.log.info(
+                            f"Old review:\n{existing_book.review}===\n"
+                            f"New review:\n{book.review}===",
+                        )
+                        diff_traced = True
                     self.stat.books_changed += 1
                     existing_book.delete_file()
                     need_book_update = True

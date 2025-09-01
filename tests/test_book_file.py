@@ -185,3 +185,33 @@ def test_review_regex_extraction():
     # The review should be extracted correctly
     assert book_file.review is not None, "Review should not be None"
     assert book_file.review.strip() == "Fun.", f"Expected 'Fun.', got: {repr(book_file.review)}"
+
+
+def test_review_regex_multiline_extraction():
+    """Review regex should capture multi-line reviews (DOTALL behavior)."""
+    library = Library()
+    author = library.author_factory(name="Some Author")
+
+    # Compose content similar to default book template with multi-line review
+    content = (
+        "[[Some Author]]: [Some Title](https://www.goodreads.com/book/show/12345)\n"
+        "ISBN123 (ISBN13 456)\n"
+        "\n"  # no series links, blank line before review
+        "First line of review\n"
+        "Second line of review\n"
+        "\n"
+        "[Search in Calibre](calibre://search/_?q=Some+Title)\n"
+    )
+
+    book_file = BookFile(
+        library=library,
+        folder=Path(),
+        file_name=Path("Some Author - Some Title.md"),
+        content=content,
+        author=author,
+    )
+
+    assert book_file.review is not None, "Review should be parsed"
+    assert book_file.review.strip() == "First line of review\nSecond line of review", (
+        f"Unexpected review: {repr(book_file.review)}"
+    )

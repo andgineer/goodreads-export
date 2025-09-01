@@ -10,7 +10,7 @@ name_group = 1  # index of regex group with author name
 
 
 [[regex.book.goodreads-link]]
-regex = '\[\[([^]]+)\]\](: \[([^]]*)\]\(https://www\.goodreads\.com/book/show/(\d+)\))'
+regex = '\[\[([^]]+)\]\](: \[(.*?)\]\(https://www\.goodreads\.com/book/show/(\d+)\))'
 book_id_group = 4
 title_group = 3
 author_group = 1
@@ -28,5 +28,5 @@ author_group = 1
 title_group = 2
 
 [[regex.book.review]]
-regex = 'ISBN.*(?:ISBN13[^)]*\))?\n(?:(?:\[\[[^\]]*\]\][ ]*)+\n|\n)(.*?)\n\n\[(?:Search in )?Calibre\]'
+regex = 'ISBN.*(?:ISBN13[^)]*\))?\n(?:(?:\[\[.*?\]\][ ]*)+\n|\n)(.*?)\n\n\[(?:Search in )?Calibre\]'
 review_group = 1

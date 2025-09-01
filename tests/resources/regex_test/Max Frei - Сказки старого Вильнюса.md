@@ -1,4 +1,4 @@
-[[Max Frei]]: [Сказки старого Вильнюса](https://www.goodreads.com/book/show/14759812)
+[[Max Frei]]: [Сказки старого Вильнюса [squeare roots]](https://www.goodreads.com/book/show/14759812)
 ISBN="" (ISBN13="9785367022209")
 
 Simple review text.

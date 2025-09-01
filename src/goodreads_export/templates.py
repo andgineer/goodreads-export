@@ -78,6 +78,11 @@ class BookReviewRegEx(RegEx):
 
     review_group: int  # group with review text
 
+    def __post_init__(self) -> None:
+        """Compile regex with DOTALL flag for multiline reviews."""
+        # Override parent's __post_init__ to use DOTALL flag
+        object.__setattr__(self, "compiled", re.compile(self.regex, re.DOTALL))
+
 
 @dataclass(frozen=True)
 class SeriesFileNameRegEx(RegEx):

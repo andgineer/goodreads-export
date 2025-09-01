@@ -80,9 +80,9 @@ def load_library(log: Log, books_folder: Path, templates: TemplateSet) -> Librar
     library = Library(folder=books_folder, log=log, templates=templates)
     log.start(f"Reading existing files from {books_folder}")
     print(
-        f" loaded {len(library.books)} books, {len(library.authors)} authors, "
-        f"skipped {library.stat.skipped_unknown_files} unknown files"
-        f" and {library.stat.series_added} series files.",
+        f" loaded {len(library.books)} books, {len(library.authors)} authors"
+        f" and {library.stat.series_added} series files."
+        f" Skipped {library.stat.skipped_unknown_files} unknown files",
     )
     return library
 

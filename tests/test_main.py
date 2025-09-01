@@ -84,7 +84,7 @@ def test_main_merge():
             ["merge", "."],
         )
     assert result.exit_code == 0, f"stdout: {result.output}"
-    assert "loaded 0 books, 0 authors, skipped 0 unknown files" in result.output
+    assert "loaded 0 books, 0 authors and 8 series files. Skipped 0 unknown files" in result.output
 
 
 def test_main_verbose(test_case):
@@ -97,7 +97,7 @@ def test_main_verbose(test_case):
             ["import", ".", "--verbose"],
         )
     assert result.exit_code == 0, f"stdout: {result.output}"
-    assert "loaded 0 books, 0 authors, skipped 0 unknown files" in result.output
+    assert "loaded 0 books, 0 authors and 8 series files. Skipped 0 unknown files" in result.output
     assert "Saved book" in result.output
 
 
