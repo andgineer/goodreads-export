@@ -2,22 +2,23 @@
 
 [Full report](https://htmlpreview.github.io/?https://github.com/andgineer/goodreads-export/blob/python-coverage-comment-action-data/htmlcov/index.html)
 
-| Name                                       |    Stmts |     Miss |   Cover |   Missing |
-|------------------------------------------- | -------: | -------: | ------: | --------: |
-| src/goodreads\_export/author\_file.py      |       47 |        7 |     85% |     80-86 |
-| src/goodreads\_export/authored\_file.py    |       16 |        0 |    100% |           |
-| src/goodreads\_export/book\_file.py        |       64 |        1 |     98% |        99 |
-| src/goodreads\_export/clean\_file\_name.py |        6 |        0 |    100% |           |
-| src/goodreads\_export/data\_file.py        |       65 |        6 |     91% |42, 46, 77, 126-130 |
-| src/goodreads\_export/goodreads\_book.py   |       36 |        0 |    100% |           |
-| src/goodreads\_export/library.py           |      174 |        9 |     95% |28, 264-266, 268-271, 297, 305, 328 |
-| src/goodreads\_export/log.py               |       62 |        6 |     90% |98-101, 112, 124 |
-| src/goodreads\_export/main.py              |      142 |       26 |     82% |116-120, 125, 134-136, 152-157, 245-248, 278-280, 302, 309, 315, 324-326, 330 |
-| src/goodreads\_export/series\_file.py      |       37 |        4 |     89% | 47, 74-80 |
-| src/goodreads\_export/stat.py              |       13 |        0 |    100% |           |
-| src/goodreads\_export/templates.py         |      127 |       12 |     91% |15-16, 21, 26-27, 147-148, 170, 222, 242, 250, 257 |
-| src/goodreads\_export/version.py           |        1 |        0 |    100% |           |
-|                                  **TOTAL** |  **790** |   **71** | **91%** |           |
+| Name                                        |    Stmts |     Miss |   Cover |   Missing |
+|-------------------------------------------- | -------: | -------: | ------: | --------: |
+| src/goodreads\_export/author\_file.py       |       43 |        7 |     84% |     80-86 |
+| src/goodreads\_export/authored\_file.py     |       15 |        0 |    100% |           |
+| src/goodreads\_export/book\_file.py         |       56 |        1 |     98% |        99 |
+| src/goodreads\_export/clean\_file\_name.py  |        5 |        0 |    100% |           |
+| src/goodreads\_export/data\_file.py         |       61 |        6 |     90% |42, 46, 77, 126-130 |
+| src/goodreads\_export/goodreads\_book.py    |       36 |        0 |    100% |           |
+| src/goodreads\_export/library.py            |      173 |        9 |     95% |27, 263-265, 267-270, 296, 304, 327 |
+| src/goodreads\_export/log.py                |       65 |        7 |     89% |97-100, 111, 123, 130 |
+| src/goodreads\_export/main.py               |      248 |       28 |     89% |141, 143, 180-181, 191, 242-243, 250, 388-392, 397, 406-408, 424-429, 525-528, 562-564, 638 |
+| src/goodreads\_export/series\_file.py       |       36 |        4 |     89% | 47, 74-80 |
+| src/goodreads\_export/stat.py               |       13 |        0 |    100% |           |
+| src/goodreads\_export/template\_metadata.py |       46 |        8 |     83% |     80-98 |
+| src/goodreads\_export/templates.py          |      116 |       13 |     89% |15-16, 21, 26-27, 155-156, 178, 230, 250, 269, 275, 282 |
+| src/goodreads\_export/version.py            |        1 |        0 |    100% |           |
+|                                   **TOTAL** |  **914** |   **83** | **91%** |           |
 
 
 ## Setup coverage badge
