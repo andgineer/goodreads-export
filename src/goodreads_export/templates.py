@@ -4,7 +4,7 @@ import re
 import sys
 from dataclasses import dataclass, field
 from pathlib import Path
-from typing import Any, Optional, TypeVar, Union
+from typing import Any, TypeVar
 
 import jinja2
 from jinja2 import DebugUndefined
@@ -32,6 +32,14 @@ CONFIG_FILE_NAME = "regex.toml"
 BOOK_TEMPLATE_FILE_NAME = "book.jinja"
 AUTHOR_TEMPLATE_FILE_NAME = "author.jinja"
 SERIES_TEMPLATE_FILE_NAME = "series.jinja"
+METADATA_FILE_NAME = ".goodreads.json"
+
+TEMPLATE_FILES = [
+    AUTHOR_TEMPLATE_FILE_NAME,
+    BOOK_TEMPLATE_FILE_NAME,
+    SERIES_TEMPLATE_FILE_NAME,
+    CONFIG_FILE_NAME,
+]
 
 
 @dataclass(frozen=True)
@@ -106,7 +114,7 @@ RegExSubClass = TypeVar("RegExSubClass", bound=RegEx)
 class RegExList(list[RegExSubClass]):
     """List of regular expressions."""
 
-    def choose_regex(self, content: str) -> Optional[RegExSubClass]:
+    def choose_regex(self, content: str) -> RegExSubClass | None:
         """Choose regex that matches the content."""
         if content is not None:
             for regex in self:
@@ -244,7 +252,24 @@ class TemplatesLoader:
             f"Existed templates: {[folder.name for folder in templates_resource.iterdir()]}.",
         )
 
-    def load_folder(self, folder: Union[Traversable, Path]) -> TemplateSet:
+    @classmethod
+    def get_builtin_file_content(cls, builtin_name: str, file_name: str) -> str:
+        """Get content of built-in template file.
+
+        Args:
+            builtin_name: Name of builtin template set.
+            file_name: Name of template file.
+
+        Returns:
+            File content as string.
+        """
+        folder = cls.builtin_folder(builtin_name)
+        file_path = folder.joinpath(file_name)
+        if not file_path.is_file():
+            raise ValueError(f"File {file_name} not found in builtin template {builtin_name}")
+        return file_path.read_text(encoding="utf-8")
+
+    def load_folder(self, folder: Traversable | Path) -> TemplateSet:
         """Load templates from the folder."""
         if not folder.joinpath(CONFIG_FILE_NAME).is_file():
             raise ValueError(f"No regex.toml file in the templates folder: {folder}")

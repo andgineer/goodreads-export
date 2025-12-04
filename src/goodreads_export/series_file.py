@@ -2,7 +2,7 @@
 
 import urllib.parse
 from pathlib import Path
-from typing import Any, Optional, Union
+from typing import Any
 
 from goodreads_export.authored_file import AuthoredFile
 from goodreads_export.data_file import ParseError
@@ -14,7 +14,7 @@ class SeriesFile(AuthoredFile):
 
     title: str
 
-    def __init__(self, *, title: Optional[str] = None, **kwargs: Any) -> None:
+    def __init__(self, *, title: str | None = None, **kwargs: Any) -> None:
         """Set fields from args. Rewrite them from content if provided."""
         if title is not None:
             self.title = title
@@ -48,7 +48,7 @@ class SeriesFile(AuthoredFile):
                 f"Cannot extract series information from file content:\n{self._content}",
             )
 
-    def is_file_name(self, file_name: Union[str, Path]) -> bool:
+    def is_file_name(self, file_name: str | Path) -> bool:
         """Check `file_name` with series file name regex."""
         return self._get_template().file_name_regexes.choose_regex(str(file_name)) is not None
 

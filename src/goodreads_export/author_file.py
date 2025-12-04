@@ -2,7 +2,7 @@
 
 import urllib.parse
 from pathlib import Path
-from typing import TYPE_CHECKING, Any, Optional
+from typing import TYPE_CHECKING, Any
 
 from goodreads_export.data_file import DataFile, ParseError
 from goodreads_export.series_file import SeriesList
@@ -24,9 +24,9 @@ class AuthorFile(DataFile):
         self,
         *,
         name: str,
-        names: Optional[list[str]] = None,
-        series: Optional[SeriesList] = None,
-        books: Optional[list["BookFile"]] = None,
+        names: list[str] | None = None,
+        series: SeriesList | None = None,
+        books: list["BookFile"] | None = None,
         **kwargs: Any,
     ) -> None:
         """Set fields from args. Rewrite them from content if provided."""

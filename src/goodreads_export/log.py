@@ -2,7 +2,6 @@
 
 import os
 from textwrap import shorten
-from typing import Optional
 
 from tqdm import tqdm
 
@@ -39,8 +38,8 @@ class Log:
         self,
         title: str,
         unit: str,
-        num: Optional[int] = None,
-        bar_format: Optional[str] = None,
+        num: int | None = None,
+        bar_format: str | None = None,
     ) -> None:
         """Open progress bar."""
         self.in_progress = True
@@ -113,6 +112,13 @@ class Log:
 
     def info(self, message: str) -> None:
         """Print info messages."""
+        if self.in_progress:
+            self.buffer.append(message)
+        else:
+            print(message)
+
+    def warning(self, message: str) -> None:
+        """Print warning messages."""
         if self.in_progress:
             self.buffer.append(message)
         else:

@@ -26,6 +26,8 @@ numpy==2.1.2
     # via pandas
 pandas==2.2.3
     # via -r requirements.in
+platformdirs==4.5.0
+    # via -r requirements.in
 pygments==2.18.0
     # via rich
 python-dateutil==2.9.0.post0

@@ -10,25 +10,27 @@ This is a Python CLI tool that converts Goodreads book export CSV files into str
 
 Create and activate the development environment:
 ```bash
-. ./activate.sh
+source ./activate.sh
 ```
 This installs the package in editable mode and sets up the development environment.
+
+**IMPORTANT**: Always activate the virtual environment before running any commands. Use `source ./activate.sh` before each command.
 
 ## Core Commands
 
 ### Testing
 ```bash
-pytest                    # Run all tests with doctest modules
-pytest tests/test_*.py    # Run specific test files
+source ./activate.sh && pytest                    # Run all tests with doctest modules
+source ./activate.sh && pytest tests/test_*.py    # Run specific test files
 ```
 
 ### Code Quality and Linting
 ```bash
-pre-commit install        # Install pre-commit hooks
-pre-commit run --all-files # Run all pre-commit checks manually
-mypy src/                 # Run type checking (mypy configured for src/ only)
-ruff --fix --line-length=100 src/  # Run ruff linter with fixes
+source ./activate.sh && pre-commit install        # Install pre-commit hooks
+source ./activate.sh && pre-commit run --all-files # Run all pre-commit checks manually
 ```
+
+**IMPORTANT**: Always use `pre-commit run --all-files` for code quality checks. Never run ruff or mypy directly.
 
 ### Build and Package
 ```bash

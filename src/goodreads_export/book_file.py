@@ -2,7 +2,7 @@
 
 import urllib.parse
 from pathlib import Path
-from typing import TYPE_CHECKING, Any, Optional
+from typing import TYPE_CHECKING, Any
 
 from goodreads_export.authored_file import AuthoredFile
 from goodreads_export.data_file import ParseError
@@ -13,13 +13,13 @@ from goodreads_export.templates import BookTemplate
 class BookFile(AuthoredFile):  # pylint: disable=too-many-instance-attributes
     """Book's object."""
 
-    title: Optional[str]
-    book_id: Optional[str]
+    title: str | None
+    book_id: str | None
     tags: list[str]
-    rating: Optional[int]
-    isbn: Optional[int]
-    isbn13: Optional[int]
-    review: Optional[str]
+    rating: int | None
+    isbn: int | None
+    isbn13: int | None
+    review: str | None
     series_titles: list[str]
 
     if TYPE_CHECKING:
@@ -29,14 +29,14 @@ class BookFile(AuthoredFile):  # pylint: disable=too-many-instance-attributes
     def __init__(  # noqa: PLR0913
         self,
         *,
-        title: Optional[str] = None,
-        book_id: Optional[str] = None,
-        tags: Optional[list[str]] = None,
-        rating: Optional[int] = None,
-        isbn: Optional[int] = None,
-        isbn13: Optional[int] = None,
-        review: Optional[str] = None,
-        series_titles: Optional[list[str]] = None,
+        title: str | None = None,
+        book_id: str | None = None,
+        tags: list[str] | None = None,
+        rating: int | None = None,
+        isbn: int | None = None,
+        isbn13: int | None = None,
+        review: str | None = None,
+        series_titles: list[str] | None = None,
         **kwargs: Any,
     ) -> None:
         """Set fields from args. Rewrite them from content if provided."""

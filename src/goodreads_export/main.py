@@ -1,18 +1,26 @@
 """Command line interface."""
 
 import os
-import shutil
 import sys
+from dataclasses import dataclass, field
 from pathlib import Path
-from typing import Optional
 
 import rich_click as click
+from platformdirs import user_config_dir
 
 from goodreads_export.goodreads_book import GoodreadsBooks
 from goodreads_export.library import Library
 from goodreads_export.log import Log
+from goodreads_export.template_metadata import (
+    compute_content_hash,
+    compute_file_hash,
+    load_metadata,
+    save_metadata,
+    update_metadata,
+)
 from goodreads_export.templates import (
     DEFAULT_BUILTIN_TEMPLATE,
+    TEMPLATE_FILES,
     TemplateSet,
     TemplatesLoader,
 )
@@ -20,6 +28,21 @@ from goodreads_export.version import VERSION
 
 GOODREAD_EXPORT_FILE_NAME = "goodreads_library_export.csv"
 DEFAULT_TEMPLATES_FOLDER = "./templates"
+
+
+@dataclass
+class ConfigureReport:
+    """Report of configure operation."""
+
+    created_files: list[str] = field(default_factory=list)
+    updated_files: list[str] = field(default_factory=list)
+    new_versions: list[str] = field(default_factory=list)
+    unchanged_files: list[str] = field(default_factory=list)
+
+    def is_empty(self) -> bool:
+        """Check if any changes were made."""
+        return not (self.created_files or self.updated_files or self.new_versions)
+
 
 VERBOSE_OPTION = click.option(
     "--verbose",
@@ -39,7 +62,21 @@ TEMPLATES_FOLDER_OPTION = click.option(
     type=click.Path(path_type=Path),
     help=f"""Folder with templates. If not absolute it's relative to `BOOKS_FOLDER`.
 If not specified, look for `{DEFAULT_TEMPLATES_FOLDER}` in `BOOKS_FOLDER`.
-If not found use built-in templates, see `--builtin-name`.""",
+If not found use built-in templates, see `--builtin-name`.
+DEPRECATED: Use --config/-c instead.""",
+    nargs=1,
+)
+
+CONFIG_OPTION = click.option(
+    "--config",
+    "-c",
+    "config_folder",
+    default=None,
+    type=click.Path(path_type=Path),
+    help=(
+        "Config folder for templates. "
+        "If not specified, look for templates in BOOKS_FOLDER or use built-in."
+    ),
     nargs=1,
 )
 
@@ -87,11 +124,246 @@ def load_library(log: Log, books_folder: Path, templates: TemplateSet) -> Librar
     return library
 
 
+def resolve_config_folder(config_folder: Path | None) -> Path:
+    """Resolve config folder path for templates.
+
+    Args:
+        config_folder: User-specified config folder or None.
+
+    Returns:
+        Resolved config folder path.
+
+    Raises:
+        ValueError: If relative path provided without books_folder.
+    """
+    if config_folder is None:
+        # Use default app config directory
+        config_folder = Path(user_config_dir("goodreads-export")) / "templates"
+    elif not config_folder.is_absolute():
+        raise ValueError("Config folder must be absolute path")
+
+    # Create directory if it doesn't exist
+    config_folder.mkdir(parents=True, exist_ok=True)
+
+    return config_folder
+
+
+def resolve_builtin_name(
+    templates_folder: Path,
+    requested_builtin_name: str | None,
+    force: bool,
+    log: Log,
+) -> str:
+    """Resolve which builtin template set to use.
+
+    Args:
+        templates_folder: Path to templates folder.
+        requested_builtin_name: User-requested builtin name or None.
+        force: Whether force flag is set.
+        log: Log instance.
+
+    Returns:
+        Builtin name to use.
+
+    Raises:
+        ValueError: If switching template sets without --force.
+    """
+    metadata = load_metadata(templates_folder)
+    templates_exist = any((templates_folder / f).exists() for f in TEMPLATE_FILES)
+
+    if not templates_exist:
+        # First run - use requested or default
+        return requested_builtin_name or DEFAULT_BUILTIN_TEMPLATE
+
+    if not metadata:
+        # Templates exist but no metadata - use requested or default
+        log.warning("Templates exist but metadata is missing. Using requested or default.")
+        return requested_builtin_name or DEFAULT_BUILTIN_TEMPLATE
+
+    saved_builtin_name = metadata.get("builtin_name")
+
+    if requested_builtin_name is None:
+        # No name specified - use saved one
+        return saved_builtin_name or DEFAULT_BUILTIN_TEMPLATE
+
+    if requested_builtin_name == saved_builtin_name:
+        # Same as saved - use it
+        return requested_builtin_name
+
+    # Different from saved - require --force
+    if not force:
+        raise ValueError(
+            f"Existing templates were created from '{saved_builtin_name}' template set.\n"
+            f"You specified '{requested_builtin_name}' template set which is different.\n\n"
+            f"If you want to replace all templates with files from "
+            f"'{requested_builtin_name}' template set,\n"
+            f"use --force/-f flag. WARNING: This will overwrite all your customizations\n"
+            f"in template files if you made any.\n\n"
+            f"Run: goodreads-export configure --builtin-name {requested_builtin_name} --force",
+        )
+
+    # Force is set - allow switching
+    log.warning(
+        f"Switching template set from '{saved_builtin_name}' to '{requested_builtin_name}'.\n"
+        f"All template files will be replaced. User modifications will be lost.",
+    )
+    return requested_builtin_name
+
+
+def detect_user_modifications(
+    templates_folder: Path,
+    metadata: dict | None,
+    force: bool,
+) -> dict[str, bool]:
+    """Detect which template files were modified by user.
+
+    Args:
+        templates_folder: Path to templates folder.
+        metadata: Template metadata or None.
+        force: Whether force flag is set (all files considered unmodified).
+
+    Returns:
+        Dictionary mapping file_name -> is_modified.
+    """
+    if force:
+        # Force mode - all files considered unmodified
+        return dict.fromkeys(TEMPLATE_FILES, False)
+
+    if not metadata:
+        # If metadata doesn't exist, assume all files are new (not modified)
+        return dict.fromkeys(TEMPLATE_FILES, False)
+
+    modifications = {}
+
+    # Compare with stored hashes
+    for file_name in TEMPLATE_FILES:
+        file_path = templates_folder / file_name
+        if not file_path.exists():
+            modifications[file_name] = False  # File doesn't exist, will be created
+            continue
+
+        stored_hash = metadata["files"].get(file_name, {}).get("hash")
+        if stored_hash:
+            current_hash = compute_file_hash(file_path)
+            modifications[file_name] = current_hash != stored_hash
+        else:
+            modifications[file_name] = False  # New file, not modified yet
+
+    return modifications
+
+
+def configure_templates(  # noqa: PLR0913
+    templates_folder: Path,
+    builtin_name: str,
+    modifications: dict[str, bool],
+    metadata: dict | None,
+    force: bool,
+) -> ConfigureReport:
+    """Create or update templates based on modification status.
+
+    Args:
+        templates_folder: Path to templates folder.
+        builtin_name: Name of builtin template set to use.
+        modifications: Dictionary mapping file_name -> is_modified.
+        metadata: Template metadata or None.
+        force: Whether force flag is set.
+
+    Returns:
+        ConfigureReport with operation results.
+    """
+    report = ConfigureReport()
+    builtin_hashes = {}
+
+    # Compute hashes of built-in templates
+    for file_name in TEMPLATE_FILES:
+        builtin_content = TemplatesLoader.get_builtin_file_content(builtin_name, file_name)
+        builtin_hashes[file_name] = compute_content_hash(builtin_content)
+
+    for file_name in TEMPLATE_FILES:
+        file_path = templates_folder / file_name
+        builtin_content = TemplatesLoader.get_builtin_file_content(builtin_name, file_name)
+        builtin_hash = builtin_hashes[file_name]
+
+        if not file_path.exists():
+            # File doesn't exist - create it
+            file_path.write_text(builtin_content, encoding="utf-8")
+            report.created_files.append(file_name)
+        elif force or not modifications[file_name]:
+            # Force mode or file not modified - update directly
+            # Check if built-in template actually changed
+            stored_hash = metadata["files"].get(file_name, {}).get("hash") if metadata else None
+            if stored_hash != builtin_hash or force:
+                file_path.write_text(builtin_content, encoding="utf-8")
+                report.updated_files.append(file_name)
+            else:
+                report.unchanged_files.append(file_name)
+        else:
+            # File modified and not force - create .latest version only if built-in changed
+            stored_hash = metadata["files"].get(file_name, {}).get("hash") if metadata else None
+            if stored_hash != builtin_hash:
+                latest_file_path = templates_folder / f"{file_name}.latest"
+                latest_file_path.write_text(builtin_content, encoding="utf-8")
+                report.new_versions.append(file_name)
+            # Original file remains unchanged
+
+    return report
+
+
+def format_configure_report(
+    report: ConfigureReport,
+    templates_folder: Path,
+) -> str:
+    """Format configure operation report.
+
+    Args:
+        report: ConfigureReport instance.
+        templates_folder: Path to templates folder.
+
+    Returns:
+        Formatted report string.
+    """
+    lines = [f"Configuring templates in {templates_folder}...", ""]
+
+    if report.created_files:
+        lines.append("Created files (first run):")
+        for file_name in report.created_files:
+            lines.append(f"  ✓ {file_name}")
+        lines.append("")
+        lines.append("Configuration completed. Metadata created.")
+        return "\n".join(lines)
+
+    if report.is_empty():
+        lines.append("All templates are up to date. No changes needed.")
+        return "\n".join(lines)
+
+    if report.updated_files:
+        lines.append("Updated files (user did not modify):")
+        for file_name in report.updated_files:
+            lines.append(f"  ✓ {file_name}")
+        lines.append("")
+
+    if report.new_versions:
+        lines.append("New versions created (user modified these files):")
+        for file_name in report.new_versions:
+            lines.append(f"  → {file_name}.latest (new version available)")
+        lines.append("")
+        lines.append("To apply new versions, review and rename:")
+        for file_name in report.new_versions:
+            lines.append(f"  mv {file_name}.latest {file_name}")
+        lines.append("")
+
+    if report.unchanged_files:
+        lines.append(f"Unchanged files: {len(report.unchanged_files)}")
+
+    lines.append("Configuration completed. Metadata updated.")
+    return "\n".join(lines)
+
+
 def load_templates(
     log: Log,
-    books_folder: Optional[Path],
-    templates_folder: Optional[Path],
-    builtin_templates_name: Optional[str],
+    books_folder: Path | None,
+    templates_folder: Path | None,
+    builtin_templates_name: str | None,
 ) -> TemplateSet:
     """Load templates.
 
@@ -104,7 +376,7 @@ def load_templates(
     If built-in explicitly specified, silently ignore the default templates folder.
     """
     if builtin_templates_name is not None and templates_folder is not None:
-        log.error("You can't specify both `--templates-name` and `--templates-folder`.")
+        log.error("You can't specify both `--builtin-name` and `--templates-folder` or `--config`.")
         sys.exit(1)
     try:
         if templates_folder is None:
@@ -160,6 +432,7 @@ def main(ctx: click.Context) -> None:
 @main.command(name="import")
 @BOOKS_FOLDER_OPTION
 @VERBOSE_OPTION
+@CONFIG_OPTION
 @TEMPLATES_FOLDER_OPTION
 @BUILTIN_TEMPLATES_NAME_OPTION
 @click.option(
@@ -171,12 +444,13 @@ def main(ctx: click.Context) -> None:
 if you specify just folder it will look for file with this name in that folder.""",
     nargs=1,
 )
-def import_(
+def import_(  # noqa: PLR0913
     verbose: bool,
     csv_file: str,
     books_folder: Path,
-    templates_folder: Optional[Path],
-    builtin_name: Optional[str],
+    config_folder: Path | None,
+    templates_folder: Path | None,
+    builtin_name: str | None,
 ) -> None:
     """Convert goodreads export CSV file to markdown files.
 
@@ -198,10 +472,12 @@ def import_(
         log.start(f"Loading reviews from {csv_file}")
         books = GoodreadsBooks(csv_file)
         print(f" loaded {len(books)} reviews.")
+        # Use config_folder if provided, otherwise fall back to templates_folder
+        templates_path = config_folder if config_folder is not None else templates_folder
         library = merge_authors(
             log=log,
             books_folder=books_folder,
-            templates=load_templates(log, books_folder, templates_folder, builtin_name),
+            templates=load_templates(log, books_folder, templates_path, builtin_name),
         )
         library.dump(books)
         print(
@@ -218,13 +494,15 @@ def import_(
 @main.command()
 @BOOKS_FOLDER_OPTIONAL_OPTION
 @VERBOSE_OPTION
+@CONFIG_OPTION
 @TEMPLATES_FOLDER_OPTION
 @BUILTIN_TEMPLATES_NAME_OPTION
 def check(
     verbose: bool,
-    books_folder: Optional[Path],
-    templates_folder: Optional[Path],
-    builtin_name: Optional[str],
+    books_folder: Path | None,
+    config_folder: Path | None,
+    templates_folder: Path | None,
+    builtin_name: str | None,
 ) -> None:
     """Check templates consistency with extraction regexes.
 
@@ -234,7 +512,9 @@ def check(
     """
     try:
         log = Log(verbose)
-        templates = load_templates(log, books_folder, templates_folder, builtin_name)
+        # Use config_folder if provided, otherwise fall back to templates_folder
+        templates_path = config_folder if config_folder is not None else templates_folder
+        templates = load_templates(log, books_folder, templates_path, builtin_name)
         library = Library(  # no `folder` argument: for template checks do not want changes in fs
             log=log,
             templates=templates,
@@ -251,13 +531,15 @@ def check(
 @main.command()
 @BOOKS_FOLDER_OPTION
 @VERBOSE_OPTION
+@CONFIG_OPTION
 @TEMPLATES_FOLDER_OPTION
 @BUILTIN_TEMPLATES_NAME_OPTION
 def merge(
     verbose: bool,
     books_folder: Path,
-    templates_folder: Optional[Path],
-    builtin_name: Optional[str],
+    config_folder: Path | None,
+    templates_folder: Path | None,
+    builtin_name: str | None,
 ) -> None:
     """Merge authors in the `BOOKS_FOLDER`.
 
@@ -267,10 +549,12 @@ def merge(
     """
     try:
         log = Log(verbose)
+        # Use config_folder if provided, otherwise fall back to templates_folder
+        templates_path = config_folder if config_folder is not None else templates_folder
         library = merge_authors(
             log=log,
             books_folder=books_folder,
-            templates=load_templates(log, books_folder, templates_folder, builtin_name),
+            templates=load_templates(log, books_folder, templates_path, builtin_name),
         )
         print(
             f"Renamed {library.stat.authors_renamed} authors.",
@@ -281,46 +565,70 @@ def merge(
 
 
 @main.command()
-@BOOKS_FOLDER_OPTIONAL_OPTION
 @VERBOSE_OPTION
-@TEMPLATES_FOLDER_OPTION
+@click.option(
+    "--config",
+    "-c",
+    "config_folder",
+    default=None,
+    type=click.Path(path_type=Path),
+    help="Config folder for templates. If not specified, use default app config directory.",
+    nargs=1,
+)
 @BUILTIN_TEMPLATES_NAME_OPTION
-def init(
+@click.option(
+    "--force",
+    "-f",
+    "force",
+    is_flag=True,
+    default=False,
+    help="Force update: always replace templates with new versions, even if user modified them.",
+)
+def configure(
     verbose: bool,
-    books_folder: Optional[Path],
-    templates_folder: Path,
-    builtin_name: Optional[str],
+    config_folder: Path | None,
+    builtin_name: str | None,
+    force: bool,
 ) -> None:
-    """Create templates folder in path from `--templates-folder`.
+    """Create or update config, preserving user templates modifications.
 
-    Copy from built-in templates specified in `--builtin-name`.
+    Creates templates in app config directory if they don't exist.
+    Updates templates that user did not modify.
+    For modified templates, creates new version files with .latest extension.
 
     See https://andgineer.github.io/goodreads-export/en/ for details.
     """
     try:
-        if books_folder is None and templates_folder is None:
-            raise ValueError(
-                "You should specify `BOOKS_FOLDER` or `--templates-folder`",
-            )
-        if books_folder is not None and templates_folder is None:
-            templates_folder = Path(DEFAULT_TEMPLATES_FOLDER)
-        if templates_folder is not None and not templates_folder.is_absolute():
-            if books_folder is None:
-                raise ValueError(
-                    f"To use relative templates folder `{templates_folder}`"
-                    " specify root in `BOOKS_FOLDER`.",
-                )
-            templates_folder = books_folder / templates_folder
-        if templates_folder.exists():
-            raise ValueError(f"Templates folder `{templates_folder}` already exists.")
-        if builtin_name is None:
-            builtin_name = DEFAULT_BUILTIN_TEMPLATE
         log = Log(verbose)
-        shutil.copytree(
-            str(TemplatesLoader.builtin_folder(builtin_name)),
+
+        # Resolve config folder
+        templates_folder = resolve_config_folder(config_folder)
+
+        # Resolve builtin name
+        builtin_name = resolve_builtin_name(templates_folder, builtin_name, force, log)
+
+        # Load metadata
+        metadata = load_metadata(templates_folder)
+
+        # Detect user modifications
+        modifications = detect_user_modifications(templates_folder, metadata, force)
+
+        # Configure templates
+        report = configure_templates(
             templates_folder,
+            builtin_name,
+            modifications,
+            metadata,
+            force,
         )
-        log.info(f"Built-in templates `{builtin_name}` copied to `{templates_folder}`")
+
+        # Update metadata
+        updated_metadata = update_metadata(templates_folder, builtin_name)
+        save_metadata(templates_folder, updated_metadata)
+
+        # Print report
+        print(format_configure_report(report, templates_folder))
+
     except Exception as exc:  # noqa: BLE001
         print(f"\n{exc}")
         sys.exit(1)

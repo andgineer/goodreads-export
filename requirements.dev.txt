@@ -145,6 +145,8 @@ pkginfo==1.10.0
     # via twine
 platformdirs==4.3.6
     # via
+    #   -r requirements.in
+    #   goodreads-export
     #   mkdocs-get-deps
     #   pylint
     #   virtualenv

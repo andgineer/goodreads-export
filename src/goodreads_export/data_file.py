@@ -2,7 +2,7 @@
 
 import os
 from pathlib import Path
-from typing import TYPE_CHECKING, Any, Optional
+from typing import TYPE_CHECKING, Any
 
 from goodreads_export.templates import FileTemplate
 
@@ -18,18 +18,18 @@ class DataFile:
     """Object stored in the file."""
 
     library: "Library"
-    folder: Optional[Path]
+    folder: Path | None
 
-    _file_name: Optional[Path]
-    _content: Optional[str]
+    _file_name: Path | None
+    _content: str | None
 
     def __init__(
         self,
         *,
         library: "Library",
-        folder: Optional[Path] = None,
-        file_name: Optional[Path] = None,
-        content: Optional[str] = None,
+        folder: Path | None = None,
+        file_name: Path | None = None,
+        content: str | None = None,
     ) -> None:
         """Set fields from args."""
         self.library = library
@@ -87,7 +87,7 @@ class DataFile:
         return self._content
 
     @content.setter
-    def content(self, content: Optional[str]) -> None:
+    def content(self, content: str | None) -> None:
         """Set content and parse it."""
         self._content = content
         if content is not None:

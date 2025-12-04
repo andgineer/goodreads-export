@@ -2,7 +2,6 @@
 
 import os
 from pathlib import Path
-from typing import Optional
 
 from goodreads_export.author_file import AuthorFile
 from goodreads_export.book_file import BookFile
@@ -43,9 +42,9 @@ class Library:
 
     def __init__(
         self,
-        folder: Optional[Path] = None,
-        log: Optional[Log] = None,
-        templates: Optional[TemplateSet] = None,
+        folder: Path | None = None,
+        log: Log | None = None,
+        templates: TemplateSet | None = None,
     ) -> None:
         """Load books from folder if specified.
 

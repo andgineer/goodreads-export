@@ -8,7 +8,6 @@ from click.testing import CliRunner
 import goodreads_export.main
 from goodreads_export.log import Log
 from goodreads_export.main import DEFAULT_TEMPLATES_FOLDER, load_templates, main
-from goodreads_export.templates import TemplatesLoader
 from goodreads_export.version import VERSION
 
 
@@ -208,21 +207,3 @@ def test_load_templates_embedded_name():
                 builtin_templates_name=templates_name,
             )
             mock_load_templates.assert_called_with(templates_name)
-
-
-def test_main_init():
-    runner = CliRunner()
-    with runner.isolated_filesystem():
-        result = runner.invoke(
-            main,
-            ["init", "."],
-        )
-        assert result.exit_code == 0, f"stdout: {result.output}"
-        templates_folder = Path(DEFAULT_TEMPLATES_FOLDER)
-        assert templates_folder.is_dir()
-        builtin_folder = TemplatesLoader.builtin_folder("default")
-        for file in builtin_folder.iterdir():
-            assert file.read_text() == (templates_folder / file.name).read_text()
-        assert {file.name for file in builtin_folder.iterdir()} == {
-            file.name for file in templates_folder.iterdir()
-        }
