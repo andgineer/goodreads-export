@@ -13,11 +13,9 @@ in your local Calibre collection.
 
 # User manual
 
-[goodreads-export](https://andgineer.github.io/goodreads-export/en/)
+[goodreads-export](https://andgineer.github.io/goodreads-export/)
 
 # Developers
-### Codebase structure
-[Auto-generated reference](https://andgineer.github.io/goodreads-export/docstrings/).
 
 ### Create / activate environment
     . ./activate.sh

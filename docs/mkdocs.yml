@@ -36,10 +36,10 @@ theme:
 extra:
   alternate:
     - name: English
-      link: /dictforge/
+      link: /goodreads-export/
       lang: en
     - name: Русский
-      link: /dictforge/ru/
+      link: /goodreads-export/ru/
       lang: ru
 
 nav:
