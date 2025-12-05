@@ -10,13 +10,13 @@ in your local Calibre collection.
 - **Customizable Templates:** Utilizing Jinja2 templates, the output format can be easily customized to suit your specific needs or preferences.
 
 ??? note "Example of book review in Obsidian"
-    ![goodreads.png](goodreads.png)
+    ![goodreads.png](images/goodreads.png)
 
 ??? note "Example of book author in Obsidian"
-    ![goodreads-author.png](goodreads-author.png)
+    ![goodreads-author.png](images/goodreads-author.png)
 
 ??? note "Example of book series in Obsidian"
-    ![goodreads-series.png](goodreads-series.png)
+    ![goodreads-series.png](images/goodreads-series.png)
 
 ## Installation
 Install using [`pipx`](https://pypa.github.io/pipx/) for isolated environments, which prevents interference
@@ -52,7 +52,7 @@ This application utilizes a CSV file generated from goodreads.com.
 To create your Goodreads export, follow the instructions at [Goodreads Book Export](https://www.goodreads.com/review/import).
 
 Despite announcements in 2022 about the removal of this feature by August 2020,
-the export function was still operational as of late 2023.
+the export function was still operational as of late 2025.
 
 Initially, I developed this application as a one-off solution to migrate my 700+ book reviews away from Goodreads.
 However, since the export feature remains functional, I now use it to incrementally update my markdown files in Obsidian.
@@ -91,10 +91,10 @@ This will only perform the merging of author names, eliminating the necessity to
 
 ## Command Line Interface
 ??? note "goodreads-export --help"
-    ![help.png](help.png)
+    ![help.png](images/help.png)
 
 ??? note "goodreads-export import --help"
-    ![help-import.png](help-import.png)
+    ![help-import.png](images/help-import.png)
 
 If the script is executed in a directory containing the Goodreads export file (`goodreads_library_export.csv`)
 without any parameters, as follows:
@@ -110,13 +110,44 @@ and the application will update that location.
 ### Templates
 
 This application utilizes [Jinja templates](https://jinja.palletsprojects.com/en/latest/), which are fully customizable.
-To begin customizing, use the `init` command to copy built-in templates into your `BOOKS_FOLDER`.
+
+#### Creating and Updating Templates
+
+To begin customizing templates, use the `configure` command to create templates in the application's config directory:
+
+    goodreads-export configure
+
+This command creates templates in the default application config directory (platform-specific location).
 You can then modify these templates as needed.
+
+To specify a custom config directory, use the `--config` or `-c` option:
+
+    goodreads-export configure --config /path/to/config
+
+#### Template Files
 
 The templates include:
 
 - `author.jinja` for generating author files.
 - `book.jinja` for creating book files.
 - `series.jinja` for series files.
+- `regex.toml` contains specified regexes to extract data from these files.
 
-Additionally, `regex.toml` contains specified regexes to extract data from these files.
+#### Updating Templates Safely
+
+The `configure` command intelligently handles template updates:
+
+- **Unmodified templates**: Automatically updated when new versions are available.
+- **Modified templates**: New versions are saved as `.latest` files (e.g., `book.jinja.latest`) without overwriting your customizations.
+- **Force updates**: Use `--force` or `-f` to replace all templates, including modified ones.
+
+When you run `configure` without specifying a built-in template set, it uses the same set that was used when templates were initially created.
+To switch to a different built-in template set, use `--force` along with `--builtin-name`.
+
+#### Using Custom Templates
+
+When running `import`, `check`, or `merge` commands, you can specify your custom config folder using the `--config` or `-c` option:
+
+    goodreads-export import . --config /path/to/config
+
+If not specified, the application will look for templates in the default config folder or use built-in templates if the templates were not copied with `configure` command.

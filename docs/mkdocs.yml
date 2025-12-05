@@ -1,3 +1,4 @@
+# yaml-language-server: $schema=https://squidfunk.github.io/mkdocs-material/schema.json
 site_name: goodreads-export
 site_url: https://andgineer.github.io/goodreads-export
 site_author: Andrey Sorokin
@@ -6,23 +7,24 @@ site_author: Andrey Sorokin
 repo_name: goodreads-export
 repo_url: https://github.com/andgineer/goodreads-export
 edit_uri: edit/main/docs
-docs_dir: 'docstrings'
-site_dir: '../site/docstrings/'
+docs_dir: 'src/LANGUAGE'
+site_dir: '../site/SITE_PREFIX'
 
 plugins:
   - awesome-pages
   - search:
-      lang: en
+      lang: LANGUAGE
 
 markdown_extensions:
-  - pymdownx.tabbed:
-      alternate_style: true
   - abbr
   - attr_list
   - pymdownx.details
   - pymdownx.superfences
+  - pymdownx.tabbed:
+      alternate_style: true
   - pymdownx.snippets:
-      base_path: 'docs'
+      base_path: 'docs/includes'
+  - admonition
 
 theme:
   name: material
@@ -30,3 +32,15 @@ theme:
     - toc.integrate
     - navigation.tracking
     - content.code.copy
+
+extra:
+  alternate:
+    - name: English
+      link: /dictforge/
+      lang: en
+    - name: Русский
+      link: /dictforge/ru/
+      lang: ru
+
+nav:
+  - index.md

@@ -2,6 +2,16 @@
 VERSION := $(shell cat src/goodreads_export/version.py | cut -d= -f2 | sed 's/\"//g; s/ //')
 export VERSION
 
+# If the first argument is "docs" treat additional "targets" as parameters
+ifeq (docs,$(firstword $(MAKECMDGOALS)))
+  DOCS_LANGUAGE := $(wordlist 2,$(words $(MAKECMDGOALS)),$(MAKECMDGOALS))
+  ifndef DOCS_LANGUAGE
+    DOCS_LANGUAGE := en
+  endif
+  # turn the parameters into do-nothing targets
+  $(eval $(RUN_ARGS):;@:)
+endif
+
 .HELP: version ## Show the current version
 version:
 	echo ${VERSION}
@@ -28,18 +38,16 @@ reqs:
 .HELP: refresh ## Refresh test resources
 refresh:
 	bash ./scripts/refresh_test_resources.sh
-.PHONY: docs # mark as phony so it always runs even we have a docs folder
-.HELP: docs  ## Build the documentation
-docs:
-	bash ./scripts/build-docs.sh
-	open -a "Google Chrome" http://127.0.0.1:8000/goodreads-export/
-	mkdocs serve -f docs/mkdocs-en.yml
 
-.HELP: docs-src  ## Build the API documentation from docstrings
-docs-src:
-	bash ./scripts/build-docs.sh
+.PHONY: docs # mark as phony so it always runs even we have a docs folder
+.HELP: docs  ## Docs preview for the language specified (en ru), like "make docs ru", by default build for English
+docs:
+	bash ./scripts/docs-render-config.sh $(DOCS_LANGUAGE)
 	open -a "Google Chrome" http://127.0.0.1:8000/goodreads-export/
-	mkdocs serve -f docs/mkdocs-docstrings.yml
+	if [ $(DOCS_LANGUAGE) != "en" ]; then \
+		cp -r ./docs/src/en/images/ ./docs/src/$(DOCS_LANGUAGE)/images/; \
+	fi
+	mkdocs serve -f docs/_mkdocs.yml
 
 .HELP: help  ## Display this message
 help:
