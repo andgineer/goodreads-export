@@ -18,7 +18,7 @@
 | src/goodreads\_export/template\_metadata.py |       46 |        8 |     83% |     80-98 |
 | src/goodreads\_export/templates.py          |      116 |       13 |     89% |15-16, 21, 26-27, 155-156, 178, 230, 250, 269, 275, 282 |
 | src/goodreads\_export/version.py            |        1 |        0 |    100% |           |
-|                                   **TOTAL** |  **914** |   **83** | **91%** |           |
+| **TOTAL**                                   |  **914** |   **83** | **91%** |           |
 
 
 ## Setup coverage badge
